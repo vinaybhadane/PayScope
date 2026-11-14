@@ -231,7 +231,7 @@ export default function CommitmentDetailPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#E5E8CE] text-[#4B6248]">
+      <div className="min-h-screen flex items-center justify-center bg-[#040711] text-[#8E9CAE]">
         <div className="flex flex-col items-center gap-3">
           <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
           <span className="text-sm font-medium">Loading recurring commitment...</span>
@@ -242,16 +242,16 @@ export default function CommitmentDetailPage({
 
   if (error || !commitment) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#E5E8CE] text-[#4B6248] p-4">
-        <div className="max-w-md w-full p-6 rounded-2xl bg-[#F0F2E3] border border-[#B7C4A6] text-center flex flex-col gap-4">
+      <div className="min-h-screen flex items-center justify-center bg-[#040711] text-[#8E9CAE] p-4">
+        <div className="max-w-md w-full p-6 rounded-2xl bg-[#0D1322] border border-[#1E293B] text-center flex flex-col gap-4">
           <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center mx-auto text-xl font-bold">
             !
           </div>
           <h2 className="text-xl font-bold">Commitment Not Found</h2>
-          <p className="text-xs text-[#4B6248]">{error || "Could not locate this recurring obligation."}</p>
+          <p className="text-xs text-[#8E9CAE]">{error || "Could not locate this recurring obligation."}</p>
           <Link
             href="/commitments"
-            className="mt-2 inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-semibold bg-[#F0F2E3] hover:bg-[#F0F2E3] text-[#243C2D] transition-colors"
+            className="mt-2 inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-semibold bg-[#0D1322] hover:bg-[#0D1322] text-[#F4F7FB] transition-colors"
           >
             ← Back to All Commitments
           </Link>
@@ -263,7 +263,7 @@ export default function CommitmentDetailPage({
   const openInsights = insights.filter((i) => i.status === "open");
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#E5E8CE] text-[#4B6248] antialiased selection:bg-[#789575] selection:text-[#243C2D]">
+    <div className="min-h-screen flex flex-col bg-[#040711] text-[#8E9CAE] antialiased selection:bg-[#FF5500] selection:text-[#F4F7FB]">
       {/* Top Header */}
       <AppHeader />
 
@@ -290,17 +290,17 @@ export default function CommitmentDetailPage({
                 ⚠
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-[#243C2D]">
+                <h3 className="text-sm font-semibold text-[#F4F7FB]">
                   {openInsights[0].title}
                 </h3>
-                <p className="text-xs text-[#4B6248] mt-0.5">
+                <p className="text-xs text-[#8E9CAE] mt-0.5">
                   {openInsights[0].summary}
                 </p>
               </div>
             </div>
             <Link
               href={`/insights/${openInsights[0].id}`}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#243C2D] bg-indigo-600 hover:bg-indigo-500 transition-colors shrink-0 self-start sm:self-auto"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#F4F7FB] bg-indigo-600 hover:bg-indigo-500 transition-colors shrink-0 self-start sm:self-auto"
             >
               Investigate Anomaly &rarr;
             </Link>
@@ -308,10 +308,10 @@ export default function CommitmentDetailPage({
         )}
 
         {/* Commitment Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 p-6 rounded-2xl bg-[#F0F2E3]/60 border border-[#B7C4A6]/80">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 p-6 rounded-2xl bg-[#0D1322]/60 border border-[#1E293B]/80">
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#243C2D]">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#F4F7FB]">
                 {commitment.display_name}
               </h1>
               {/* Status Badge */}
@@ -324,7 +324,7 @@ export default function CommitmentDetailPage({
               </span>
             </div>
 
-            <p className="text-sm text-[#4B6248] flex items-center gap-2">
+            <p className="text-sm text-[#8E9CAE] flex items-center gap-2">
               <span className="capitalize">{commitment.commitment_type.replace("_", " ")}</span>
               <span>•</span>
               <span className="capitalize">{commitment.cadence.replace("_", " ")}</span>
@@ -349,7 +349,7 @@ export default function CommitmentDetailPage({
             {commitment.user_decision !== "confirmed" && (
               <button
                 onClick={handleConfirm}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-[#243C2D] transition-colors cursor-pointer shadow-sm shadow-emerald-600/20"
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-[#F4F7FB] transition-colors cursor-pointer shadow-sm shadow-emerald-600/20"
               >
                 Confirm Recurring
               </button>
@@ -357,20 +357,20 @@ export default function CommitmentDetailPage({
             {commitment.user_decision !== "not_recurring" && (
               <button
                 onClick={handleMarkNotRecurring}
-                className="px-4 py-2 rounded-xl text-xs font-medium bg-[#F0F2E3] hover:bg-[#F0F2E3] text-[#4B6248] transition-colors cursor-pointer border border-[#B7C4A6]"
+                className="px-4 py-2 rounded-xl text-xs font-medium bg-[#0D1322] hover:bg-[#0D1322] text-[#8E9CAE] transition-colors cursor-pointer border border-[#1E293B]"
               >
                 Mark Not Recurring
               </button>
             )}
             <Link
               href={`/cancellations?commitment_id=${commitment.id}`}
-              className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#789575]/20 hover:bg-[#789575]/30 text-[#4B6248] border border-[#789575]/40 transition-colors cursor-pointer flex items-center gap-1.5"
+              className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#FF5500]/20 hover:bg-[#FF5500]/30 text-[#8E9CAE] border border-[#FF5500]/40 transition-colors cursor-pointer flex items-center gap-1.5"
             >
               <span>View cancellation guidance →</span>
             </Link>
             <button
               onClick={() => setIsEditing(!isEditing)}
-              className="px-3 py-2 rounded-xl text-xs font-medium bg-[#F0F2E3] hover:bg-[#F0F2E3] text-[#4B6248] hover:text-[#4B6248] transition-colors border border-[#B7C4A6] cursor-pointer"
+              className="px-3 py-2 rounded-xl text-xs font-medium bg-[#0D1322] hover:bg-[#0D1322] text-[#8E9CAE] hover:text-[#8E9CAE] transition-colors border border-[#1E293B] cursor-pointer"
             >
               {isEditing ? "Close Correction" : "Correct Details"}
             </button>
@@ -381,31 +381,31 @@ export default function CommitmentDetailPage({
         {isEditing && (
           <form
             onSubmit={handleSaveCorrection}
-            className="p-6 rounded-2xl bg-[#F0F2E3] border border-emerald-500/30 flex flex-col gap-4 animate-in fade-in duration-200"
+            className="p-6 rounded-2xl bg-[#0D1322] border border-emerald-500/30 flex flex-col gap-4 animate-in fade-in duration-200"
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-[#243C2D]">Correct Commitment Intelligence Metadata</h3>
-              <span className="text-xs text-[#4B6248]">Overrides detector classification</span>
+              <h3 className="text-sm font-semibold text-[#F4F7FB]">Correct Commitment Intelligence Metadata</h3>
+              <span className="text-xs text-[#8E9CAE]">Overrides detector classification</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-medium text-[#4B6248] mb-1.5">Display Name</label>
+                <label className="block text-xs font-medium text-[#8E9CAE] mb-1.5">Display Name</label>
                 <input
                   type="text"
                   value={editDisplayName}
                   onChange={(e) => setEditDisplayName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-[#E5E8CE] border border-[#B7C4A6] text-sm text-[#243C2D] focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 rounded-xl bg-[#040711] border border-[#1E293B] text-sm text-[#F4F7FB] focus:outline-none focus:border-emerald-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#4B6248] mb-1.5">Commitment Type</label>
+                <label className="block text-xs font-medium text-[#8E9CAE] mb-1.5">Commitment Type</label>
                 <select
                   value={editType}
                   onChange={(e) => setEditType(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-[#E5E8CE] border border-[#B7C4A6] text-sm text-[#243C2D] focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 rounded-xl bg-[#040711] border border-[#1E293B] text-sm text-[#F4F7FB] focus:outline-none focus:border-emerald-500"
                 >
                   <option value="subscription">Subscription</option>
                   <option value="utility">Utility</option>
@@ -417,11 +417,11 @@ export default function CommitmentDetailPage({
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#4B6248] mb-1.5">Cadence Schedule</label>
+                <label className="block text-xs font-medium text-[#8E9CAE] mb-1.5">Cadence Schedule</label>
                 <select
                   value={editCadence}
                   onChange={(e) => setEditCadence(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-[#E5E8CE] border border-[#B7C4A6] text-sm text-[#243C2D] focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 rounded-xl bg-[#040711] border border-[#1E293B] text-sm text-[#F4F7FB] focus:outline-none focus:border-emerald-500"
                 >
                   <option value="monthly">Monthly</option>
                   <option value="quarterly">Quarterly</option>
@@ -437,14 +437,14 @@ export default function CommitmentDetailPage({
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="px-4 py-2 rounded-xl text-xs font-medium text-[#4B6248] hover:text-[#4B6248]"
+                className="px-4 py-2 rounded-xl text-xs font-medium text-[#8E9CAE] hover:text-[#8E9CAE]"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={savingEdit}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-[#243C2D] transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-[#F4F7FB] transition-colors cursor-pointer"
               >
                 {savingEdit ? "Saving..." : "Save Correction"}
               </button>
@@ -454,38 +454,38 @@ export default function CommitmentDetailPage({
 
         {/* Key Metrics Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-5 rounded-2xl bg-[#F0F2E3]/60 border border-[#B7C4A6]/80">
-            <div className="text-xs font-medium text-[#4B6248]">Representative Amount</div>
-            <div className="mt-2 text-2xl font-bold tracking-tight text-[#243C2D]">
+          <div className="p-5 rounded-2xl bg-[#0D1322]/60 border border-[#1E293B]/80">
+            <div className="text-xs font-medium text-[#8E9CAE]">Representative Amount</div>
+            <div className="mt-2 text-2xl font-bold tracking-tight text-[#F4F7FB]">
               ₹{Number(commitment.representative_amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </div>
-            <div className="mt-1 text-xs text-[#4B6248]">
+            <div className="mt-1 text-xs text-[#8E9CAE]">
               Pattern: <span className="capitalize">{commitment.amount_pattern}</span>
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-[#F0F2E3]/60 border border-[#B7C4A6]/80">
-            <div className="text-xs font-medium text-[#4B6248]">Annualised Impact</div>
+          <div className="p-5 rounded-2xl bg-[#0D1322]/60 border border-[#1E293B]/80">
+            <div className="text-xs font-medium text-[#8E9CAE]">Annualised Impact</div>
             <div className="mt-2 text-2xl font-bold tracking-tight text-emerald-400">
               ₹{Number(commitment.annualised_amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </div>
-            <div className="mt-1 text-xs text-[#4B6248]">
+            <div className="mt-1 text-xs text-[#8E9CAE]">
               Method: {commitment.annualisation_method ? commitment.annualisation_method.replace("_", " ") : "standard"}
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-[#F0F2E3]/60 border border-[#B7C4A6]/80">
-            <div className="text-xs font-medium text-[#4B6248]">Observed Range</div>
-            <div className="mt-2 text-2xl font-bold tracking-tight text-[#4B6248]">
+          <div className="p-5 rounded-2xl bg-[#0D1322]/60 border border-[#1E293B]/80">
+            <div className="text-xs font-medium text-[#8E9CAE]">Observed Range</div>
+            <div className="mt-2 text-2xl font-bold tracking-tight text-[#8E9CAE]">
               ₹{Number(commitment.amount_min || commitment.representative_amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 0 })}
               {" – "}
               ₹{Number(commitment.amount_max || commitment.representative_amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 0 })}
             </div>
-            <div className="mt-1 text-xs text-[#4B6248]">Historical Min / Max</div>
+            <div className="mt-1 text-xs text-[#8E9CAE]">Historical Min / Max</div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-[#F0F2E3]/60 border border-[#B7C4A6]/80">
-            <div className="text-xs font-medium text-[#4B6248]">Next Expected Debit</div>
+          <div className="p-5 rounded-2xl bg-[#0D1322]/60 border border-[#1E293B]/80">
+            <div className="text-xs font-medium text-[#8E9CAE]">Next Expected Debit</div>
             <div className="mt-2 text-2xl font-bold tracking-tight text-sky-400">
               {commitment.next_expected_date ? (
                 new Date(commitment.next_expected_date).toLocaleDateString("en-IN", {
@@ -497,50 +497,50 @@ export default function CommitmentDetailPage({
                 "Not Projected"
               )}
             </div>
-            <div className="mt-1 text-xs text-[#4B6248]">Estimated renewal date</div>
+            <div className="mt-1 text-xs text-[#8E9CAE]">Estimated renewal date</div>
           </div>
         </div>
 
         {/* Discovery Engine Explanation Panel */}
-        <div className="p-6 rounded-2xl bg-[#F0F2E3]/40 border border-[#B7C4A6]/80 flex flex-col gap-3">
+        <div className="p-6 rounded-2xl bg-[#0D1322]/40 border border-[#1E293B]/80 flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-[#243C2D] flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-[#F4F7FB] flex items-center gap-2">
               <span>Why PayScope Flagged This as Recurring</span>
             </h3>
-            <span className="text-xs text-[#4B6248] font-mono">
+            <span className="text-xs text-[#8E9CAE] font-mono">
               First Seen: {new Date(commitment.first_seen_at).toLocaleDateString("en-IN", { month: "short", year: "numeric" })} • Last Seen: {new Date(commitment.last_seen_at).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}
             </span>
           </div>
 
-          <p className="text-xs leading-relaxed text-[#4B6248] bg-[#E5E8CE]/50 p-4 rounded-xl border border-[#B7C4A6]/60">
+          <p className="text-xs leading-relaxed text-[#8E9CAE] bg-[#040711]/50 p-4 rounded-xl border border-[#1E293B]/60">
             {commitment.detection_explanation || "Recurring obligation identified based on cadence interval consistency and transaction matching."}
           </p>
 
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <span className="text-[11px] text-[#4B6248]">Reason Codes:</span>
+            <span className="text-[11px] text-[#8E9CAE]">Reason Codes:</span>
             {commitment.detection_reason_codes && commitment.detection_reason_codes.length > 0 ? (
               commitment.detection_reason_codes.map((code) => (
-                <span key={code} className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#F0F2E3] text-[#4B6248] border border-[#B7C4A6]">
+                <span key={code} className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#0D1322] text-[#8E9CAE] border border-[#1E293B]">
                   {code}
                 </span>
               ))
             ) : (
-              <span className="text-[10px] text-[#B7C4A6] font-mono">CADENCE_MATCH</span>
+              <span className="text-[10px] text-[#1E293B] font-mono">CADENCE_MATCH</span>
             )}
-            <span className="ml-auto text-[11px] text-[#4B6248] font-mono">
+            <span className="ml-auto text-[11px] text-[#8E9CAE] font-mono">
               Engine {commitment.detector_version}
             </span>
           </div>
         </div>
 
         {/* Tab Controls for Supporting Evidence */}
-        <div className="flex items-center gap-4 border-b border-[#B7C4A6]">
+        <div className="flex items-center gap-4 border-b border-[#1E293B]">
           <button
             onClick={() => setActiveTab("transactions")}
             className={`pb-3 text-sm font-medium transition-colors border-b-2 cursor-pointer ${
               activeTab === "transactions"
-                ? "border-emerald-400 text-[#243C2D]"
-                : "border-transparent text-[#4B6248] hover:text-[#4B6248]"
+                ? "border-emerald-400 text-[#F4F7FB]"
+                : "border-transparent text-[#8E9CAE] hover:text-[#8E9CAE]"
             }`}
           >
             Supporting Transactions ({commitment.supporting_transactions.length})
@@ -549,8 +549,8 @@ export default function CommitmentDetailPage({
             onClick={() => setActiveTab("timeline")}
             className={`pb-3 text-sm font-medium transition-colors border-b-2 cursor-pointer ${
               activeTab === "timeline"
-                ? "border-emerald-400 text-[#243C2D]"
-                : "border-transparent text-[#4B6248] hover:text-[#4B6248]"
+                ? "border-emerald-400 text-[#F4F7FB]"
+                : "border-transparent text-[#8E9CAE] hover:text-[#8E9CAE]"
             }`}
           >
             Chronological Timeline ({timelineEvents.length})
@@ -559,14 +559,14 @@ export default function CommitmentDetailPage({
             onClick={() => setActiveTab("insights")}
             className={`pb-3 text-sm font-medium transition-colors border-b-2 cursor-pointer flex items-center gap-2 ${
               activeTab === "insights"
-                ? "border-emerald-400 text-[#243C2D]"
-                : "border-transparent text-[#4B6248] hover:text-[#4B6248]"
+                ? "border-emerald-400 text-[#F4F7FB]"
+                : "border-transparent text-[#8E9CAE] hover:text-[#8E9CAE]"
             }`}
           >
             <span>Insights & Anomalies</span>
             {insights.length > 0 && (
               <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                openInsights.length > 0 ? "bg-rose-500/20 text-rose-300" : "bg-[#F0F2E3] text-[#4B6248]"
+                openInsights.length > 0 ? "bg-rose-500/20 text-rose-300" : "bg-[#0D1322] text-[#8E9CAE]"
               }`}>
                 {insights.length}
               </span>
@@ -576,11 +576,11 @@ export default function CommitmentDetailPage({
 
         {/* Tab 1: Supporting Transactions Table */}
         {activeTab === "transactions" && (
-          <div className="rounded-xl border border-[#B7C4A6] bg-[#F0F2E3]/50 overflow-hidden shadow-sm">
+          <div className="rounded-xl border border-[#1E293B] bg-[#0D1322]/50 overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-[#B7C4A6] bg-[#F0F2E3]/80 text-[#4B6248] font-medium">
+                  <tr className="border-b border-[#1E293B] bg-[#0D1322]/80 text-[#8E9CAE] font-medium">
                     <th className="py-3 px-4">Date</th>
                     <th className="py-3 px-4">Raw Descriptor</th>
                     <th className="py-3 px-4">Amount</th>
@@ -590,34 +590,34 @@ export default function CommitmentDetailPage({
                     <th className="py-3 px-4">Reason</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#B7C4A6]/60 font-mono">
+                <tbody className="divide-y divide-[#1E293B]/60 font-mono">
                   {commitment.supporting_transactions.map((tx) => (
-                    <tr key={tx.id} className="hover:bg-[#F0F2E3]/30 transition-colors">
-                      <td className="py-3 px-4 text-[#4B6248] font-sans">
+                    <tr key={tx.id} className="hover:bg-[#0D1322]/30 transition-colors">
+                      <td className="py-3 px-4 text-[#8E9CAE] font-sans">
                         {new Date(tx.transaction_date).toLocaleDateString("en-IN", {
                           year: "numeric",
                           month: "short",
                           day: "numeric",
                         })}
                       </td>
-                      <td className="py-3 px-4 text-[#4B6248] font-sans font-medium">
+                      <td className="py-3 px-4 text-[#8E9CAE] font-sans font-medium">
                         {tx.raw_descriptor}
                       </td>
-                      <td className="py-3 px-4 font-bold text-[#243C2D]">
+                      <td className="py-3 px-4 font-bold text-[#F4F7FB]">
                         ₹{Number(tx.amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                       </td>
-                      <td className="py-3 px-4 text-[#4B6248] font-sans uppercase text-[11px]">
+                      <td className="py-3 px-4 text-[#8E9CAE] font-sans uppercase text-[11px]">
                         {tx.payment_channel}
                       </td>
-                      <td className="py-3 px-4 text-[#4B6248] text-[11px]">
+                      <td className="py-3 px-4 text-[#8E9CAE] text-[11px]">
                         {tx.payment_reference || "—"}
                       </td>
                       <td className="py-3 px-4 font-sans">
-                        <span className="px-2 py-0.5 rounded bg-[#F0F2E3] text-[#4B6248] border border-[#B7C4A6] text-[11px]">
+                        <span className="px-2 py-0.5 rounded bg-[#0D1322] text-[#8E9CAE] border border-[#1E293B] text-[11px]">
                           {tx.relationship_role.replace("_", " ")}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-[#4B6248] font-sans text-[11px]">
+                      <td className="py-3 px-4 text-[#8E9CAE] font-sans text-[11px]">
                         {tx.reason || "—"}
                       </td>
                     </tr>
@@ -630,13 +630,13 @@ export default function CommitmentDetailPage({
 
         {/* Tab 2: Chronological Timeline View */}
         {activeTab === "timeline" && (
-          <div className="rounded-2xl border border-[#B7C4A6] bg-[#F0F2E3]/40 p-6">
+          <div className="rounded-2xl border border-[#1E293B] bg-[#0D1322]/40 p-6">
             {timelineEvents.length === 0 ? (
-              <div className="py-8 text-center text-[#4B6248] text-xs">
+              <div className="py-8 text-center text-[#8E9CAE] text-xs">
                 No chronological events recorded yet for this commitment.
               </div>
             ) : (
-              <div className="relative pl-6 space-y-8 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#F0F2E3]">
+              <div className="relative pl-6 space-y-8 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#0D1322]">
                 {timelineEvents.map((evt) => {
                   let dotColor = "bg-emerald-500";
                   if (evt.event_type === "notification") dotColor = "bg-sky-500";
@@ -650,12 +650,12 @@ export default function CommitmentDetailPage({
                       />
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold text-[#243C2D]">{evt.title}</span>
-                          <span className="px-1.5 py-0.5 text-[10px] font-mono uppercase rounded bg-[#F0F2E3] text-[#4B6248]">
+                          <span className="text-xs font-semibold text-[#F4F7FB]">{evt.title}</span>
+                          <span className="px-1.5 py-0.5 text-[10px] font-mono uppercase rounded bg-[#0D1322] text-[#8E9CAE]">
                             {evt.event_type}
                           </span>
                         </div>
-                        <span className="text-[11px] font-mono text-[#4B6248]">
+                        <span className="text-[11px] font-mono text-[#8E9CAE]">
                           {new Date(evt.event_date).toLocaleDateString("en-IN", {
                             day: "numeric",
                             month: "short",
@@ -663,12 +663,12 @@ export default function CommitmentDetailPage({
                           })}
                         </span>
                       </div>
-                      <p className="text-xs text-[#4B6248] mt-1 leading-relaxed">{evt.description}</p>
+                      <p className="text-xs text-[#8E9CAE] mt-1 leading-relaxed">{evt.description}</p>
                       {evt.amount && (
                         <div className="mt-2 text-xs font-mono font-medium text-emerald-400">
                           ₹{Number(evt.amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                           {evt.payment_channel && (
-                            <span className="text-[#4B6248] ml-2 uppercase font-sans text-[11px]">
+                            <span className="text-[#8E9CAE] ml-2 uppercase font-sans text-[11px]">
                               via {evt.payment_channel}
                             </span>
                           )}
@@ -686,7 +686,7 @@ export default function CommitmentDetailPage({
         {activeTab === "insights" && (
           <div className="flex flex-col gap-4">
             {insights.length === 0 ? (
-              <div className="p-8 text-center rounded-2xl border border-dashed border-[#B7C4A6] bg-[#F0F2E3]/30 text-xs text-[#4B6248]">
+              <div className="p-8 text-center rounded-2xl border border-dashed border-[#1E293B] bg-[#0D1322]/30 text-xs text-[#8E9CAE]">
                 No anomalies or intelligence insights detected for this commitment.
               </div>
             ) : (
@@ -694,27 +694,27 @@ export default function CommitmentDetailPage({
                 {insights.map((ins) => (
                   <div
                     key={ins.id}
-                    className={`p-5 rounded-2xl bg-[#F0F2E3]/70 border flex flex-col justify-between gap-3 ${
+                    className={`p-5 rounded-2xl bg-[#0D1322]/70 border flex flex-col justify-between gap-3 ${
                       ins.severity === "high" ? "border-rose-500/30" :
                       ins.severity === "medium" ? "border-amber-500/30" :
-                      "border-[#B7C4A6]"
+                      "border-[#1E293B]"
                     }`}
                   >
                     <div>
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[11px] uppercase font-semibold text-[#4B6248]">
+                        <span className="text-[11px] uppercase font-semibold text-[#8E9CAE]">
                           {ins.insight_type.replace("_", " ")}
                         </span>
-                        <span className="text-[11px] font-mono text-[#4B6248]">
+                        <span className="text-[11px] font-mono text-[#8E9CAE]">
                           {new Date(ins.detected_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
                         </span>
                       </div>
-                      <h4 className="text-sm font-semibold text-[#243C2D] mt-1">{ins.title}</h4>
-                      <p className="text-xs text-[#4B6248] mt-1">{ins.summary}</p>
+                      <h4 className="text-sm font-semibold text-[#F4F7FB] mt-1">{ins.title}</h4>
+                      <p className="text-xs text-[#8E9CAE] mt-1">{ins.summary}</p>
                     </div>
 
-                    <div className="pt-3 border-t border-[#B7C4A6]/80 flex items-center justify-between">
-                      <span className="text-[11px] text-[#4B6248]">{ins.confidence_band} confidence</span>
+                    <div className="pt-3 border-t border-[#1E293B]/80 flex items-center justify-between">
+                      <span className="text-[11px] text-[#8E9CAE]">{ins.confidence_band} confidence</span>
                       <Link
                         href={`/insights/${ins.id}`}
                         className="text-xs px-3 py-1 rounded-lg bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-600/30 transition-colors font-medium"

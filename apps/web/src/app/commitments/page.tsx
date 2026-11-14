@@ -200,7 +200,7 @@ export default function CommitmentsPage() {
       case "needs_review":
         return <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Needs Review</span>;
       default:
-        return <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-[#F0F2E3] text-[#4B6248] border border-[#B7C4A6]">{band}</span>;
+        return <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-[#0D1322] text-[#8E9CAE] border border-[#1E293B]">{band}</span>;
     }
   };
 
@@ -209,7 +209,7 @@ export default function CommitmentsPage() {
       return <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Confirmed</span>;
     }
     if (user_decision === "not_recurring" || status === "marked_not_recurring") {
-      return <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-[#F0F2E3] text-[#4B6248] border border-[#B7C4A6]">Not Recurring</span>;
+      return <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-[#0D1322] text-[#8E9CAE] border border-[#1E293B]">Not Recurring</span>;
     }
     if (status === "candidate") {
       return <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">Candidate</span>;
@@ -221,7 +221,7 @@ export default function CommitmentsPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#E5E8CE] text-[#4B6248] antialiased selection:bg-[#789575] selection:text-[#243C2D]">
+    <div className="min-h-screen flex flex-col bg-[#040711] text-[#8E9CAE] antialiased selection:bg-[#FF5500] selection:text-[#F4F7FB]">
       {/* Top Header */}
       <AppHeader />
 
@@ -230,10 +230,10 @@ export default function CommitmentsPage() {
         {/* Title and Discovery Action */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#243C2D]">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#F4F7FB]">
               Recurring Commitments &amp; Subscriptions
             </h1>
-            <p className="mt-1 text-sm text-[#4B6248]">
+            <p className="mt-1 text-sm text-[#8E9CAE]">
               Explainable recurring payment discovery, cadence inference, and commitment lifecycle intelligence.
             </p>
           </div>
@@ -241,11 +241,11 @@ export default function CommitmentsPage() {
           <button
             onClick={handleDiscover}
             disabled={discovering}
-            className="px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-[#243C2D] text-xs font-semibold shadow-sm transition-all flex items-center gap-2 self-start sm:self-auto cursor-pointer"
+            className="px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-[#F4F7FB] text-xs font-semibold shadow-sm transition-all flex items-center gap-2 self-start sm:self-auto cursor-pointer"
           >
             {discovering ? (
               <>
-                <svg className="animate-spin h-4 w-4 text-[#243C2D]" viewBox="0 0 24 24" fill="none">
+                <svg className="animate-spin h-4 w-4 text-[#F4F7FB]" viewBox="0 0 24 24" fill="none">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                 </svg>
@@ -289,31 +289,31 @@ export default function CommitmentsPage() {
         {/* Summary Metrics Bar */}
         {summary && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="p-4 rounded-xl bg-[#F0F2E3]/60 border border-[#B7C4A6]/80 flex flex-col">
-              <span className="text-xs font-medium text-[#4B6248]">Total Commitments</span>
-              <span className="text-2xl font-bold text-[#243C2D] mt-1">{summary.total_commitments}</span>
-              <span className="text-[11px] text-[#4B6248] mt-1">Discovered recurring payees</span>
+            <div className="p-4 rounded-xl bg-[#0D1322]/60 border border-[#1E293B]/80 flex flex-col">
+              <span className="text-xs font-medium text-[#8E9CAE]">Total Commitments</span>
+              <span className="text-2xl font-bold text-[#F4F7FB] mt-1">{summary.total_commitments}</span>
+              <span className="text-[11px] text-[#8E9CAE] mt-1">Discovered recurring payees</span>
             </div>
-            <div className="p-4 rounded-xl bg-[#F0F2E3]/60 border border-[#B7C4A6]/80 flex flex-col">
-              <span className="text-xs font-medium text-[#4B6248]">Active Commitments</span>
+            <div className="p-4 rounded-xl bg-[#0D1322]/60 border border-[#1E293B]/80 flex flex-col">
+              <span className="text-xs font-medium text-[#8E9CAE]">Active Commitments</span>
               <span className="text-2xl font-bold text-emerald-400 mt-1">{summary.active_commitments}</span>
-              <span className="text-[11px] text-[#4B6248] mt-1">{summary.confirmed_commitments} user-confirmed</span>
+              <span className="text-[11px] text-[#8E9CAE] mt-1">{summary.confirmed_commitments} user-confirmed</span>
             </div>
-            <div className="p-4 rounded-xl bg-[#F0F2E3]/60 border border-[#B7C4A6]/80 flex flex-col">
-              <span className="text-xs font-medium text-[#4B6248]">Est. Monthly Spend</span>
-              <span className="text-2xl font-bold text-[#243C2D] mt-1">
+            <div className="p-4 rounded-xl bg-[#0D1322]/60 border border-[#1E293B]/80 flex flex-col">
+              <span className="text-xs font-medium text-[#8E9CAE]">Est. Monthly Spend</span>
+              <span className="text-2xl font-bold text-[#F4F7FB] mt-1">
                 ₹{Number(summary.total_monthly_spend).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
-              <span className="text-[11px] text-[#4B6248] mt-1">
+              <span className="text-[11px] text-[#8E9CAE] mt-1">
                 Annualised: ₹{Number(summary.total_annualised_spend).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
               </span>
             </div>
-            <div className="p-4 rounded-xl bg-[#F0F2E3]/60 border border-[#B7C4A6]/80 flex flex-col">
-              <span className="text-xs font-medium text-[#4B6248]">Review &amp; Candidates</span>
+            <div className="p-4 rounded-xl bg-[#0D1322]/60 border border-[#1E293B]/80 flex flex-col">
+              <span className="text-xs font-medium text-[#8E9CAE]">Review &amp; Candidates</span>
               <span className="text-2xl font-bold text-amber-400 mt-1">
                 {summary.candidate_commitments + summary.review_required_commitments}
               </span>
-              <span className="text-[11px] text-[#4B6248] mt-1">
+              <span className="text-[11px] text-[#8E9CAE] mt-1">
                 {summary.candidate_commitments} candidate(s), {summary.review_required_commitments} review
               </span>
             </div>
@@ -321,14 +321,14 @@ export default function CommitmentsPage() {
         )}
 
         {/* Filters and Search Bar */}
-        <div className="p-4 rounded-xl bg-[#F0F2E3]/40 border border-[#B7C4A6] flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="p-4 rounded-xl bg-[#0D1322]/40 border border-[#1E293B] flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="w-full md:w-72 relative">
             <input
               type="text"
               placeholder="Search payees or merchants..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-3.5 py-2 rounded-lg bg-[#E5E8CE] border border-[#B7C4A6] text-sm text-[#4B6248] placeholder-[#4B6248]/60 focus:outline-none focus:border-emerald-500 transition-colors"
+              className="w-full px-3.5 py-2 rounded-lg bg-[#040711] border border-[#1E293B] text-sm text-[#8E9CAE] placeholder-[#8E9CAE]/60 focus:outline-none focus:border-emerald-500 transition-colors"
             />
           </div>
 
@@ -337,7 +337,7 @@ export default function CommitmentsPage() {
             <select
               value={cadenceFilter}
               onChange={(e) => setCadenceFilter(e.target.value)}
-              className="px-3 py-2 rounded-lg bg-[#E5E8CE] border border-[#B7C4A6] text-xs text-[#4B6248] focus:outline-none focus:border-emerald-500"
+              className="px-3 py-2 rounded-lg bg-[#040711] border border-[#1E293B] text-xs text-[#8E9CAE] focus:outline-none focus:border-emerald-500"
             >
               <option value="">All Cadences</option>
               <option value="monthly">Monthly</option>
@@ -353,7 +353,7 @@ export default function CommitmentsPage() {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-3 py-2 rounded-lg bg-[#E5E8CE] border border-[#B7C4A6] text-xs text-[#4B6248] focus:outline-none focus:border-emerald-500"
+              className="px-3 py-2 rounded-lg bg-[#040711] border border-[#1E293B] text-xs text-[#8E9CAE] focus:outline-none focus:border-emerald-500"
             >
               <option value="">All Types</option>
               <option value="subscription">Subscription</option>
@@ -369,7 +369,7 @@ export default function CommitmentsPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 rounded-lg bg-[#E5E8CE] border border-[#B7C4A6] text-xs text-[#4B6248] focus:outline-none focus:border-emerald-500"
+              className="px-3 py-2 rounded-lg bg-[#040711] border border-[#1E293B] text-xs text-[#8E9CAE] focus:outline-none focus:border-emerald-500"
             >
               <option value="">All Statuses</option>
               <option value="active">Active</option>
@@ -383,7 +383,7 @@ export default function CommitmentsPage() {
             <select
               value={confidenceFilter}
               onChange={(e) => setConfidenceFilter(e.target.value)}
-              className="px-3 py-2 rounded-lg bg-[#E5E8CE] border border-[#B7C4A6] text-xs text-[#4B6248] focus:outline-none focus:border-emerald-500"
+              className="px-3 py-2 rounded-lg bg-[#040711] border border-[#1E293B] text-xs text-[#8E9CAE] focus:outline-none focus:border-emerald-500"
             >
               <option value="">All Confidence</option>
               <option value="high">High</option>
@@ -395,16 +395,16 @@ export default function CommitmentsPage() {
         </div>
 
         {/* Commitments Table */}
-        <div className="rounded-xl border border-[#B7C4A6] bg-[#F0F2E3]/50 overflow-hidden shadow-sm">
+        <div className="rounded-xl border border-[#1E293B] bg-[#0D1322]/50 overflow-hidden shadow-sm">
           {loading ? (
-            <div className="p-12 text-center text-[#4B6248]">Loading commitments...</div>
+            <div className="p-12 text-center text-[#8E9CAE]">Loading commitments...</div>
           ) : commitments.length === 0 ? (
             <div className="p-12 text-center flex flex-col items-center justify-center gap-3">
-              <svg className="w-12 h-12 text-[#B7C4A6]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-12 h-12 text-[#1E293B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
-              <p className="text-sm font-medium text-[#4B6248]">No recurring commitments found</p>
-              <p className="text-xs text-[#4B6248] max-w-sm">
+              <p className="text-sm font-medium text-[#8E9CAE]">No recurring commitments found</p>
+              <p className="text-xs text-[#8E9CAE] max-w-sm">
                 Import statements in the Upload Centre and click &ldquo;Discover Recurring Commitments&rdquo; to analyze recurring payments.
               </p>
             </div>
@@ -412,7 +412,7 @@ export default function CommitmentsPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-[#B7C4A6] bg-[#F0F2E3]/80 text-[#4B6248] font-medium">
+                  <tr className="border-b border-[#1E293B] bg-[#0D1322]/80 text-[#8E9CAE] font-medium">
                     <th className="py-3 px-4">Payee / Commitment</th>
                     <th className="py-3 px-4">Type</th>
                     <th className="py-3 px-4">Cadence</th>
@@ -424,39 +424,39 @@ export default function CommitmentsPage() {
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#B7C4A6]/60">
+                <tbody className="divide-y divide-[#1E293B]/60">
                   {commitments.map((c) => (
-                    <tr key={c.id} className="hover:bg-[#F0F2E3]/30 transition-colors group">
-                      <td className="py-3.5 px-4 font-medium text-[#243C2D]">
+                    <tr key={c.id} className="hover:bg-[#0D1322]/30 transition-colors group">
+                      <td className="py-3.5 px-4 font-medium text-[#F4F7FB]">
                         <Link
                           href={`/commitments/${c.id}`}
                           className="hover:text-emerald-400 transition-colors flex flex-col"
                         >
-                          <span className="font-semibold text-sm text-[#4B6248] group-hover:text-emerald-400">
+                          <span className="font-semibold text-sm text-[#8E9CAE] group-hover:text-emerald-400">
                             {c.display_name}
                           </span>
-                          <span className="text-[11px] text-[#4B6248] font-normal">
+                          <span className="text-[11px] text-[#8E9CAE] font-normal">
                             {c.transaction_count} supporting debit{c.transaction_count === 1 ? "" : "s"}
                           </span>
                         </Link>
                       </td>
                       <td className="py-3.5 px-4">
-                        <span className="capitalize px-2 py-0.5 rounded bg-[#F0F2E3]/80 text-[#4B6248] border border-[#B7C4A6]/60 text-[11px]">
+                        <span className="capitalize px-2 py-0.5 rounded bg-[#0D1322]/80 text-[#8E9CAE] border border-[#1E293B]/60 text-[11px]">
                           {c.commitment_type.replace("_", " ")}
                         </span>
                       </td>
                       <td className="py-3.5 px-4">
-                        <span className="capitalize text-[#4B6248] font-medium">
+                        <span className="capitalize text-[#8E9CAE] font-medium">
                           {c.cadence.replace("_", " ")}
                         </span>
                         {c.amount_pattern === "variable" && (
                           <span className="block text-[10px] text-amber-400">variable amounts</span>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 font-mono font-medium text-[#4B6248]">
+                      <td className="py-3.5 px-4 font-mono font-medium text-[#8E9CAE]">
                         ₹{Number(c.representative_amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                       </td>
-                      <td className="py-3.5 px-4 font-mono text-[#4B6248]">
+                      <td className="py-3.5 px-4 font-mono text-[#8E9CAE]">
                         {c.annualised_amount ? `₹${Number(c.annualised_amount).toLocaleString("en-IN")}` : "—"}
                       </td>
                       <td className="py-3.5 px-4">
@@ -465,14 +465,14 @@ export default function CommitmentsPage() {
                       <td className="py-3.5 px-4">
                         {getStatusBadge(c.status, c.user_decision)}
                       </td>
-                      <td className="py-3.5 px-4 text-[#4B6248]">
+                      <td className="py-3.5 px-4 text-[#8E9CAE]">
                         {c.next_expected_date ? c.next_expected_date : "—"}
                       </td>
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Link
                             href={`/commitments/${c.id}`}
-                            className="px-2.5 py-1 rounded bg-[#F0F2E3] hover:bg-[#F0F2E3] text-[#4B6248] hover:text-[#243C2D] transition-colors text-[11px] font-medium"
+                            className="px-2.5 py-1 rounded bg-[#0D1322] hover:bg-[#0D1322] text-[#8E9CAE] hover:text-[#F4F7FB] transition-colors text-[11px] font-medium"
                           >
                             Details
                           </Link>

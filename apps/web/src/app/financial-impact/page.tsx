@@ -166,7 +166,7 @@ export default function FinancialImpactPage() {
   });
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#E5E8CE] text-[#4B6248] antialiased selection:bg-cyan-500 selection:text-slate-950">
+    <div className="min-h-screen flex flex-col bg-[#040711] text-[#8E9CAE] antialiased selection:bg-cyan-500 selection:text-slate-950">
       {/* Platform Header */}
       <AppHeader />
 
@@ -175,10 +175,10 @@ export default function FinancialImpactPage() {
         {/* Title & Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#243C2D] flex items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#F4F7FB] flex items-center gap-3">
               Annual Financial Impact & Expenditure
             </h1>
-            <p className="text-sm text-[#4B6248] mt-1">
+            <p className="text-sm text-[#8E9CAE] mt-1">
               Normalized monthly recurring costs, annualized commitments, category distributions, and upcoming obligations.
             </p>
           </div>
@@ -195,9 +195,9 @@ export default function FinancialImpactPage() {
 
         {/* Loading and Error States */}
         {loading && (
-          <div className="p-12 text-center rounded-xl border border-[#B7C4A6] bg-[#F0F2E3]/40">
+          <div className="p-12 text-center rounded-xl border border-[#1E293B] bg-[#0D1322]/40">
             <div className="w-8 h-8 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin mx-auto mb-3" />
-            <span className="text-sm text-[#4B6248] font-mono">Computing financial impact metrics...</span>
+            <span className="text-sm text-[#8E9CAE] font-mono">Computing financial impact metrics...</span>
           </div>
         )}
 
@@ -212,15 +212,15 @@ export default function FinancialImpactPage() {
             {/* Top Metrics Cards */}
             <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               {/* Monthly Recurring Spend */}
-              <div className="rounded-xl border border-[#B7C4A6]/80 bg-[#F0F2E3]/50 p-5 backdrop-blur-sm flex flex-col justify-between">
-                <span className="text-xs font-medium text-[#4B6248]">Monthly Recurring Outflow</span>
+              <div className="rounded-xl border border-[#1E293B]/80 bg-[#0D1322]/50 p-5 backdrop-blur-sm flex flex-col justify-between">
+                <span className="text-xs font-medium text-[#8E9CAE]">Monthly Recurring Outflow</span>
                 <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-2xl lg:text-3xl font-bold text-[#243C2D] font-mono">
+                  <span className="text-2xl lg:text-3xl font-bold text-[#F4F7FB] font-mono">
                     ₹{summary.monthly_recurring_spend.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
-                  <span className="text-xs text-[#4B6248] font-normal">/mo</span>
+                  <span className="text-xs text-[#8E9CAE] font-normal">/mo</span>
                 </div>
-                <div className="mt-3 pt-2 border-t border-[#B7C4A6]/60 flex items-center justify-between text-[11px] text-[#4B6248]">
+                <div className="mt-3 pt-2 border-t border-[#1E293B]/60 flex items-center justify-between text-[11px] text-[#8E9CAE]">
                   <span>{summary.total_confirmed_commitments} Confirmed Mandates</span>
                   <span className="text-cyan-400">Fixed & Regular</span>
                 </div>
@@ -240,35 +240,35 @@ export default function FinancialImpactPage() {
                   </span>
                   <span className="text-xs text-cyan-400/70 font-normal">/yr</span>
                 </div>
-                <div className="mt-3 pt-2 border-t border-cyan-900/40 flex items-center justify-between text-[11px] text-[#4B6248]">
+                <div className="mt-3 pt-2 border-t border-cyan-900/40 flex items-center justify-between text-[11px] text-[#8E9CAE]">
                   <span>Normalized Projection</span>
                   <span className="text-cyan-300">Baseline</span>
                 </div>
               </div>
 
               {/* Historical 12M Actual Spend */}
-              <div className="rounded-xl border border-[#B7C4A6]/80 bg-[#F0F2E3]/50 p-5 backdrop-blur-sm flex flex-col justify-between">
-                <span className="text-xs font-medium text-[#4B6248]">Historical 12M Debits</span>
+              <div className="rounded-xl border border-[#1E293B]/80 bg-[#0D1322]/50 p-5 backdrop-blur-sm flex flex-col justify-between">
+                <span className="text-xs font-medium text-[#8E9CAE]">Historical 12M Debits</span>
                 <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-2xl lg:text-3xl font-bold text-[#4B6248] font-mono">
+                  <span className="text-2xl lg:text-3xl font-bold text-[#8E9CAE] font-mono">
                     ₹{summary.historical_spend_12m.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
-                <div className="mt-3 pt-2 border-t border-[#B7C4A6]/60 flex items-center justify-between text-[11px] text-[#4B6248]">
+                <div className="mt-3 pt-2 border-t border-[#1E293B]/60 flex items-center justify-between text-[11px] text-[#8E9CAE]">
                   <span>Observed Bank Debits</span>
                   <span className="text-emerald-400">Excludes Failed</span>
                 </div>
               </div>
 
               {/* Upcoming 30D Expected */}
-              <div className="rounded-xl border border-[#B7C4A6]/80 bg-[#F0F2E3]/50 p-5 backdrop-blur-sm flex flex-col justify-between">
-                <span className="text-xs font-medium text-[#4B6248]">Upcoming 30D Expected</span>
+              <div className="rounded-xl border border-[#1E293B]/80 bg-[#0D1322]/50 p-5 backdrop-blur-sm flex flex-col justify-between">
+                <span className="text-xs font-medium text-[#8E9CAE]">Upcoming 30D Expected</span>
                 <div className="mt-2 flex items-baseline gap-2">
                   <span className="text-2xl lg:text-3xl font-bold text-amber-300 font-mono">
                     ₹{summary.upcoming_30d_expected_spend.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
-                <div className="mt-3 pt-2 border-t border-[#B7C4A6]/60 flex items-center justify-between text-[11px] text-[#4B6248]">
+                <div className="mt-3 pt-2 border-t border-[#1E293B]/60 flex items-center justify-between text-[11px] text-[#8E9CAE]">
                   <span>Next 30 Days Due</span>
                   <span className="text-amber-400/80 font-mono">Cadence Queue</span>
                 </div>
@@ -285,7 +285,7 @@ export default function FinancialImpactPage() {
                 </div>
                 <div className="mt-3 pt-2 border-t border-teal-900/40 flex items-center justify-between text-[11px] text-teal-400">
                   <span>Opportunities Detected</span>
-                  <Link href="/savings" className="underline hover:text-[#243C2D]">
+                  <Link href="/savings" className="underline hover:text-[#F4F7FB]">
                     Simulate &rarr;
                   </Link>
                 </div>
@@ -301,7 +301,7 @@ export default function FinancialImpactPage() {
                     <h4 className="text-sm font-semibold text-amber-300">
                       {summary.total_candidate_commitments} Candidate Obligation Separated (₹{summary.potential_candidate_annual_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/yr)
                     </h4>
-                    <p className="text-xs text-[#4B6248] mt-0.5">
+                    <p className="text-xs text-[#8E9CAE] mt-0.5">
                       Notification-only, irregular and single annual payments remain visible as candidates. Irregular estimates use observed intervals; unknown schedules remain unpriced.
                     </p>
                   </div>
@@ -318,26 +318,26 @@ export default function FinancialImpactPage() {
             {/* Visual Analytics Grid: Category Distribution & Merchant Rankings */}
             <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Category Breakdown */}
-              <div className="rounded-xl border border-[#B7C4A6] bg-[#F0F2E3]/50 p-6 flex flex-col gap-4">
+              <div className="rounded-xl border border-[#1E293B] bg-[#0D1322]/50 p-6 flex flex-col gap-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-base font-semibold text-[#243C2D]">Expenditure by Category</h3>
-                  <span className="text-xs text-[#4B6248]">{categories.length} Categories Active</span>
+                  <h3 className="text-base font-semibold text-[#F4F7FB]">Expenditure by Category</h3>
+                  <span className="text-xs text-[#8E9CAE]">{categories.length} Categories Active</span>
                 </div>
 
                 <div className="space-y-4 pt-2">
                   {categories.map((cat) => (
                     <div key={cat.category} className="space-y-1.5">
                       <div className="flex justify-between text-xs font-mono">
-                        <span className="text-[#4B6248] font-sans font-medium">{cat.category_label}</span>
+                        <span className="text-[#8E9CAE] font-sans font-medium">{cat.category_label}</span>
                         <div className="flex items-center gap-3">
-                          <span className="text-[#4B6248] font-sans">{cat.commitment_count} services</span>
+                          <span className="text-[#8E9CAE] font-sans">{cat.commitment_count} services</span>
                           <span className="text-cyan-300 font-bold">
                             ₹{cat.annualized_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/yr
                           </span>
-                          <span className="text-[#4B6248] text-[11px] w-12 text-right">({cat.percentage_of_recurring}%)</span>
+                          <span className="text-[#8E9CAE] text-[11px] w-12 text-right">({cat.percentage_of_recurring}%)</span>
                         </div>
                       </div>
-                      <div className="w-full h-2 rounded-full bg-[#F0F2E3] overflow-hidden">
+                      <div className="w-full h-2 rounded-full bg-[#0D1322] overflow-hidden">
                         <div
                           className="h-full bg-gradient-to-r from-teal-500 to-cyan-400 rounded-full transition-all duration-500"
                           style={{ width: `${Math.min(100, Math.max(5, cat.percentage_of_recurring))}%` }}
@@ -346,31 +346,31 @@ export default function FinancialImpactPage() {
                     </div>
                   ))}
                   {categories.length === 0 && (
-                    <span className="text-xs text-[#4B6248]">No confirmed commitments categorized yet.</span>
+                    <span className="text-xs text-[#8E9CAE]">No confirmed commitments categorized yet.</span>
                   )}
                 </div>
               </div>
 
               {/* Merchant Cost Rankings */}
-              <div className="rounded-xl border border-[#B7C4A6] bg-[#F0F2E3]/50 p-6 flex flex-col gap-4">
+              <div className="rounded-xl border border-[#1E293B] bg-[#0D1322]/50 p-6 flex flex-col gap-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-base font-semibold text-[#243C2D]">Top Merchants by Recurring Outflow</h3>
-                  <span className="text-xs text-[#4B6248]">Canonical Identity Ranking</span>
+                  <h3 className="text-base font-semibold text-[#F4F7FB]">Top Merchants by Recurring Outflow</h3>
+                  <span className="text-xs text-[#8E9CAE]">Canonical Identity Ranking</span>
                 </div>
 
                 <div className="space-y-3 pt-2">
                   {merchants.slice(0, 5).map((m, idx) => (
                     <div
                       key={m.merchant_id || idx}
-                      className="flex items-center justify-between p-3 rounded-lg bg-[#E5E8CE]/60 border border-[#B7C4A6]/80 text-xs"
+                      className="flex items-center justify-between p-3 rounded-lg bg-[#040711]/60 border border-[#1E293B]/80 text-xs"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="w-5 h-5 rounded-full bg-[#F0F2E3] text-[#4B6248] flex items-center justify-center font-mono text-[10px] font-bold">
+                        <span className="w-5 h-5 rounded-full bg-[#0D1322] text-[#8E9CAE] flex items-center justify-center font-mono text-[10px] font-bold">
                           {idx + 1}
                         </span>
                         <div>
-                          <span className="font-semibold text-[#243C2D] block">{m.merchant_name}</span>
-                          <span className="text-[11px] text-[#4B6248]">
+                          <span className="font-semibold text-[#F4F7FB] block">{m.merchant_name}</span>
+                          <span className="text-[11px] text-[#8E9CAE]">
                             {m.commitment_count} mandate &bull; {m.category}
                           </span>
                         </div>
@@ -380,14 +380,14 @@ export default function FinancialImpactPage() {
                         <span className="text-cyan-300 font-bold block">
                           ₹{m.annualized_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/yr
                         </span>
-                        <span className="text-[11px] text-[#4B6248]">
+                        <span className="text-[11px] text-[#8E9CAE]">
                           ₹{m.monthly_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/mo
                         </span>
                       </div>
                     </div>
                   ))}
                   {merchants.length === 0 && (
-                    <span className="text-xs text-[#4B6248]">No merchant rankings available.</span>
+                    <span className="text-xs text-[#8E9CAE]">No merchant rankings available.</span>
                   )}
                 </div>
               </div>
@@ -395,15 +395,15 @@ export default function FinancialImpactPage() {
 
             {/* Upcoming Payment Obligations */}
             {upcoming && upcoming.items.length > 0 && (
-              <section className="rounded-xl border border-[#B7C4A6] bg-[#F0F2E3]/50 p-6 flex flex-col gap-4">
+              <section className="rounded-xl border border-[#1E293B] bg-[#0D1322]/50 p-6 flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-base font-semibold text-[#243C2D]">Upcoming Cadence Queue (Next 60 Days)</h3>
-                    <p className="text-xs text-[#4B6248] mt-0.5">
+                    <h3 className="text-base font-semibold text-[#F4F7FB]">Upcoming Cadence Queue (Next 60 Days)</h3>
+                    <p className="text-xs text-[#8E9CAE] mt-0.5">
                       Expected payment schedule derived from verified recurrence cadence.
                     </p>
                   </div>
-                  <span className="text-xs font-mono px-3 py-1 rounded-full bg-[#F0F2E3] border border-[#B7C4A6] text-[#4B6248]">
+                  <span className="text-xs font-mono px-3 py-1 rounded-full bg-[#0D1322] border border-[#1E293B] text-[#8E9CAE]">
                     60D Total: ₹{upcoming.total_upcoming_60d.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                   </span>
                 </div>
@@ -412,10 +412,10 @@ export default function FinancialImpactPage() {
                   {upcoming.items.slice(0, 8).map((up) => (
                     <div
                       key={up.commitment_id}
-                      className="p-3 rounded-lg bg-[#E5E8CE]/70 border border-[#B7C4A6] flex flex-col justify-between text-xs font-mono"
+                      className="p-3 rounded-lg bg-[#040711]/70 border border-[#1E293B] flex flex-col justify-between text-xs font-mono"
                     >
                       <div className="flex justify-between items-start gap-2">
-                        <span className="font-sans font-semibold text-[#4B6248] truncate">{up.display_name}</span>
+                        <span className="font-sans font-semibold text-[#8E9CAE] truncate">{up.display_name}</span>
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950/80 border border-cyan-800/40 text-cyan-300 uppercase">
                           {up.cadence}
                         </span>
@@ -424,7 +424,7 @@ export default function FinancialImpactPage() {
                         <span className="text-amber-400 font-bold">
                           ₹{up.estimated_amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                         </span>
-                        <span className="text-[11px] text-[#4B6248]">{up.expected_date}</span>
+                        <span className="text-[11px] text-[#8E9CAE]">{up.expected_date}</span>
                       </div>
                     </div>
                   ))}
@@ -433,24 +433,24 @@ export default function FinancialImpactPage() {
             )}
 
             {/* Commitment Cost Table */}
-            <section className="rounded-xl border border-[#B7C4A6] bg-[#F0F2E3]/50 p-6 flex flex-col gap-4">
+            <section className="rounded-xl border border-[#1E293B] bg-[#0D1322]/50 p-6 flex flex-col gap-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-base font-semibold text-[#243C2D]">Recurring Commitment Directory</h3>
-                  <p className="text-xs text-[#4B6248] mt-0.5">
+                  <h3 className="text-base font-semibold text-[#F4F7FB]">Recurring Commitment Directory</h3>
+                  <p className="text-xs text-[#8E9CAE] mt-0.5">
                     Individual commitment calculations, cadences, and monthly normalized equivalents.
                   </p>
                 </div>
 
                 {/* Filter Controls */}
                 <div className="flex items-center gap-2">
-                  <div className="flex rounded-lg bg-[#E5E8CE] border border-[#B7C4A6] p-0.5 text-xs font-medium">
+                  <div className="flex rounded-lg bg-[#040711] border border-[#1E293B] p-0.5 text-xs font-medium">
                     <button
                       onClick={() => setActiveTab("confirmed")}
                       className={`px-3 py-1 rounded-md transition-all ${
                         activeTab === "confirmed"
                           ? "bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30"
-                          : "text-[#4B6248] hover:text-[#243C2D]"
+                          : "text-[#8E9CAE] hover:text-[#F4F7FB]"
                       }`}
                     >
                       Confirmed ({commitments.filter((c) => c.is_confirmed).length})
@@ -460,7 +460,7 @@ export default function FinancialImpactPage() {
                       className={`px-3 py-1 rounded-md transition-all ${
                         activeTab === "candidates"
                           ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30"
-                          : "text-[#4B6248] hover:text-[#243C2D]"
+                          : "text-[#8E9CAE] hover:text-[#F4F7FB]"
                       }`}
                     >
                       Candidates ({commitments.filter((c) => c.is_candidate).length})
@@ -469,8 +469,8 @@ export default function FinancialImpactPage() {
                       onClick={() => setActiveTab("all")}
                       className={`px-3 py-1 rounded-md transition-all ${
                         activeTab === "all"
-                          ? "bg-[#F0F2E3] text-[#243C2D] font-bold"
-                          : "text-[#4B6248] hover:text-[#243C2D]"
+                          ? "bg-[#0D1322] text-[#F4F7FB] font-bold"
+                          : "text-[#8E9CAE] hover:text-[#F4F7FB]"
                       }`}
                     >
                       All ({commitments.length})
@@ -482,15 +482,15 @@ export default function FinancialImpactPage() {
                     placeholder="Search commitment..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="px-3 py-1 rounded-lg bg-[#E5E8CE] border border-[#B7C4A6] text-xs text-[#4B6248] placeholder:text-[#4B6248] focus:outline-none focus:border-cyan-500"
+                    className="px-3 py-1 rounded-lg bg-[#040711] border border-[#1E293B] text-xs text-[#8E9CAE] placeholder:text-[#8E9CAE] focus:outline-none focus:border-cyan-500"
                   />
                 </div>
               </div>
 
               {/* Table */}
-              <div className="overflow-x-auto rounded-lg border border-[#B7C4A6]/80">
+              <div className="overflow-x-auto rounded-lg border border-[#1E293B]/80">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-[#E5E8CE]/80 border-b border-[#B7C4A6] text-[#4B6248] uppercase text-[11px] font-mono">
+                  <thead className="bg-[#040711]/80 border-b border-[#1E293B] text-[#8E9CAE] uppercase text-[11px] font-mono">
                     <tr>
                       <th className="py-3 px-4">Merchant & Commitment</th>
                       <th className="py-3 px-4">Cadence</th>
@@ -501,30 +501,30 @@ export default function FinancialImpactPage() {
                       <th className="py-3 px-4">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#B7C4A6]/60">
+                  <tbody className="divide-y divide-[#1E293B]/60">
                     {filteredCommitments.map((c) => (
-                      <tr key={c.commitment_id} className="hover:bg-[#F0F2E3]/60 transition-colors">
+                      <tr key={c.commitment_id} className="hover:bg-[#0D1322]/60 transition-colors">
                         <td className="py-3 px-4">
                           <Link
                             href={`/commitments/${c.commitment_id}`}
-                            className="font-medium text-[#243C2D] hover:text-cyan-400 transition-colors block"
+                            className="font-medium text-[#F4F7FB] hover:text-cyan-400 transition-colors block"
                           >
                             {c.display_name}
                           </Link>
-                          <span className="text-[11px] text-[#4B6248] block">
+                          <span className="text-[11px] text-[#8E9CAE] block">
                             {c.merchant_name} &bull; {c.commitment_type}
                           </span>
                         </td>
-                        <td className="py-3 px-4 font-mono capitalize text-[#4B6248]">
+                        <td className="py-3 px-4 font-mono capitalize text-[#8E9CAE]">
                           {c.cadence.replace("_", " ")}
                         </td>
-                        <td className="py-3 px-4 font-mono text-[#4B6248]">
+                        <td className="py-3 px-4 font-mono text-[#8E9CAE]">
                           ₹{c.representative_amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                         </td>
                         <td className="py-3 px-4 font-mono font-semibold text-cyan-300">
                           ₹{c.normalized_monthly_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/mo
                         </td>
-                        <td className="py-3 px-4 font-mono font-bold text-[#243C2D]">
+                        <td className="py-3 px-4 font-mono font-bold text-[#F4F7FB]">
                           ₹{c.annualized_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/yr
                           <span className="mt-1 block max-w-xs font-sans text-[10px] font-normal text-slate-400">{c.annualized_cost === 0 ? "Awaiting billing amount or schedule evidence" : c.calculation_method}</span>
                         </td>
@@ -556,7 +556,7 @@ export default function FinancialImpactPage() {
                     ))}
                     {filteredCommitments.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="py-8 text-center text-[#4B6248] text-xs">
+                        <td colSpan={7} className="py-8 text-center text-[#8E9CAE] text-xs">
                           No commitments match the selected filter.
                         </td>
                       </tr>

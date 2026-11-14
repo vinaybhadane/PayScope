@@ -154,7 +154,7 @@ export function PayScopeDrawer({ isOpen, onClose }: PayScopeDrawerProps) {
     <div className="fixed inset-0 z-50 overflow-hidden" role="dialog" aria-modal="true" aria-label="Navigation Menu">
       {/* Dimmed Backdrop */}
       <div
-        className="fixed inset-0 bg-[#E5E8CE]/65 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
+        className="fixed inset-0 bg-[#040711]/65 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -162,16 +162,16 @@ export function PayScopeDrawer({ isOpen, onClose }: PayScopeDrawerProps) {
       {/* Slide-out Left Drawer Panel */}
       <div
         ref={drawerRef}
-        className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-[#E5E8CE] border-r border-[#B7C4A6] shadow-2xl flex flex-col z-50 transform transition-transform duration-300 ease-out animate-in slide-in-from-left"
+        className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-[#040711] border-r border-[#1E293B] shadow-2xl flex flex-col z-50 transform transition-transform duration-300 ease-out animate-in slide-in-from-left"
       >
         {/* Top Header of Drawer */}
-        <div className="h-16 px-5 border-b border-[#B7C4A6] flex items-center justify-between bg-[#E5E8CE]/60">
+        <div className="h-16 px-5 border-b border-[#1E293B] flex items-center justify-between bg-[#040711]/60">
           <Link href="/" onClick={onClose} className="hover:opacity-90 transition-opacity">
             <PayScopeLogo variant="compact" />
           </Link>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg bg-[#F0F2E3] hover:bg-[#F0F2E3] border border-[#B7C4A6] text-[#4B6248] hover:text-[#243C2D] transition-colors focus:outline-none focus:ring-2 focus:ring-[#789575]"
+            className="p-2 rounded-lg bg-[#0D1322] hover:bg-[#0D1322] border border-[#1E293B] text-[#8E9CAE] hover:text-[#F4F7FB] transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF5500]"
             aria-label="Close navigation menu"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -182,7 +182,7 @@ export function PayScopeDrawer({ isOpen, onClose }: PayScopeDrawerProps) {
 
         {/* Navigation Routes List */}
         <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-          <div className="px-3 pb-2 text-[11px] font-bold uppercase tracking-wider text-[#4B6248]">
+          <div className="px-3 pb-2 text-[11px] font-bold uppercase tracking-wider text-[#8E9CAE]">
             Platform Modules
           </div>
           {DRAWER_ROUTES.map((route) => {
@@ -196,15 +196,15 @@ export function PayScopeDrawer({ isOpen, onClose }: PayScopeDrawerProps) {
                 onClick={onClose}
                 className={`group flex items-start gap-3 px-3 py-2.5 rounded-xl transition-all ${
                   isActive
-                    ? "bg-[#F0F2E3] text-[#4B6248] border border-[#789575]/40 shadow-sm"
-                    : "text-[#4B6248] hover:text-[#4B6248] hover:bg-[#F0F2E3]/70 border border-transparent"
+                    ? "bg-[#0D1322] text-[#8E9CAE] border border-[#FF5500]/40 shadow-sm"
+                    : "text-[#8E9CAE] hover:text-[#8E9CAE] hover:bg-[#0D1322]/70 border border-transparent"
                 }`}
               >
                 <div
                   className={`mt-0.5 p-1.5 rounded-lg shrink-0 transition-colors ${
                     isActive
-                      ? "bg-[#789575]/20 text-[#4B6248]"
-                      : "bg-[#E5E8CE] text-[#4B6248] group-hover:text-[#4B6248] group-hover:bg-[#F0F2E3]"
+                      ? "bg-[#FF5500]/20 text-[#8E9CAE]"
+                      : "bg-[#040711] text-[#8E9CAE] group-hover:text-[#8E9CAE] group-hover:bg-[#0D1322]"
                   }`}
                 >
                   <IconComponent className="w-4 h-4" />
@@ -213,10 +213,10 @@ export function PayScopeDrawer({ isOpen, onClose }: PayScopeDrawerProps) {
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-semibold tracking-tight">{route.label}</span>
                     {isActive && (
-                      <span className="w-2 h-2 rounded-full bg-[#789575] animate-pulse shrink-0" />
+                      <span className="w-2 h-2 rounded-full bg-[#FF5500] animate-pulse shrink-0" />
                     )}
                   </div>
-                  <p className="text-[11px] text-[#4B6248] truncate mt-0.5 group-hover:text-slate-300">
+                  <p className="text-[11px] text-[#8E9CAE] truncate mt-0.5 group-hover:text-slate-300">
                     {route.description}
                   </p>
                 </div>
@@ -226,14 +226,14 @@ export function PayScopeDrawer({ isOpen, onClose }: PayScopeDrawerProps) {
         </div>
 
         {/* Drawer Bottom Status Footer */}
-        <div className="p-4 border-t border-[#B7C4A6] bg-[#E5E8CE]/80 flex flex-col gap-2">
-          <div className="flex items-center justify-between text-xs text-[#4B6248]">
+        <div className="p-4 border-t border-[#1E293B] bg-[#040711]/80 flex flex-col gap-2">
+          <div className="flex items-center justify-between text-xs text-[#8E9CAE]">
             <span>Mode</span>
-            <span className="text-[#4B6248] font-mono">Synthetic Bank Data</span>
+            <span className="text-[#8E9CAE] font-mono">Synthetic Bank Data</span>
           </div>
-          <div className="flex items-center justify-between text-xs text-[#4B6248]">
+          <div className="flex items-center justify-between text-xs text-[#8E9CAE]">
             <span>Engine</span>
-            <span className="text-[#4B6248] font-mono">PayScope v1.0</span>
+            <span className="text-[#8E9CAE] font-mono">PayScope v1.0</span>
           </div>
         </div>
       </div>

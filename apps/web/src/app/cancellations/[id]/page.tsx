@@ -144,9 +144,9 @@ export default function CancellationCaseDetailPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#E5E8CE] flex items-center justify-center text-[#4B6248]">
+      <div className="min-h-screen bg-[#040711] flex items-center justify-center text-[#8E9CAE]">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-6 h-6 border-2 border-[#789575] border-t-transparent rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-[#FF5500] border-t-transparent rounded-full animate-spin" />
           <span className="text-sm">Loading cancellation playbook...</span>
         </div>
       </div>
@@ -155,11 +155,11 @@ export default function CancellationCaseDetailPage({
 
   if (error || !caseDetail) {
     return (
-      <div className="min-h-screen bg-[#E5E8CE] text-[#243C2D] flex items-center justify-center p-4">
-        <div className="max-w-md w-full p-6 rounded-2xl bg-[#F0F2E3] border border-[#B7C4A6] text-center flex flex-col gap-4">
+      <div className="min-h-screen bg-[#040711] text-[#F4F7FB] flex items-center justify-center p-4">
+        <div className="max-w-md w-full p-6 rounded-2xl bg-[#0D1322] border border-[#1E293B] text-center flex flex-col gap-4">
           <h2 className="text-lg font-bold text-rose-400">Case Not Found</h2>
-          <p className="text-xs text-[#4B6248]">{error || "Could not retrieve details."}</p>
-          <Link href="/cancellations" className="px-4 py-2 rounded-xl bg-[#E5E8CE] border border-[#B7C4A6] text-xs font-semibold text-[#243C2D] hover:border-[#789575]">
+          <p className="text-xs text-[#8E9CAE]">{error || "Could not retrieve details."}</p>
+          <Link href="/cancellations" className="px-4 py-2 rounded-xl bg-[#040711] border border-[#1E293B] text-xs font-semibold text-[#F4F7FB] hover:border-[#FF5500]">
             ← Return to Cancellation Centre
           </Link>
         </div>
@@ -173,7 +173,7 @@ export default function CancellationCaseDetailPage({
   const progressPct = Math.min(100, Math.round((completedSteps.length / totalSteps) * 100));
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#E5E8CE] text-[#4B6248] selection:bg-[#789575] selection:text-[#243C2D]">
+    <div className="min-h-screen flex flex-col bg-[#040711] text-[#8E9CAE] selection:bg-[#FF5500] selection:text-[#F4F7FB]">
       {/* Top Navbar */}
       <AppHeader />
 
@@ -190,25 +190,25 @@ export default function CancellationCaseDetailPage({
         )}
 
         {/* Case Header Card */}
-        <div className="rounded-2xl bg-[#F0F2E3] border border-[#B7C4A6] p-6 sm:p-8 flex flex-col gap-4 shadow-xl">
+        <div className="rounded-2xl bg-[#0D1322] border border-[#1E293B] p-6 sm:p-8 flex flex-col gap-4 shadow-xl">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="px-2.5 py-0.5 rounded text-xs font-mono font-semibold bg-[#E5E8CE] text-[#4B6248] border border-[#B7C4A6]">
+                <span className="px-2.5 py-0.5 rounded text-xs font-mono font-semibold bg-[#040711] text-[#8E9CAE] border border-[#1E293B]">
                   {caseDetail.payment_mechanism.replace("_", " ")}
                 </span>
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                   caseDetail.status === "VERIFIED_CANCELLED" ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" :
                   caseDetail.status === "USER_REPORTED_CANCELLED" ? "bg-amber-500/15 text-amber-400 border border-amber-500/30" :
-                  "bg-[#789575]/15 text-[#4B6248] border border-[#789575]/30"
+                  "bg-[#FF5500]/15 text-[#8E9CAE] border border-[#FF5500]/30"
                 }`}>
                   {caseDetail.status.replace(/_/g, " ")}
                 </span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#243C2D]">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#F4F7FB]">
                 {pb?.title || `Cancel ${caseDetail.commitment_name}`}
               </h1>
-              <p className="text-sm text-[#4B6248] mt-1">
+              <p className="text-sm text-[#8E9CAE] mt-1">
                 {pb?.summary}
               </p>
             </div>
@@ -217,7 +217,7 @@ export default function CancellationCaseDetailPage({
               {caseDetail.status !== "USER_REPORTED_CANCELLED" && caseDetail.status !== "VERIFIED_CANCELLED" && (
                 <button
                   onClick={() => setReportingCancelled(true)}
-                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#789575] to-[#789575] hover:brightness-110 text-[#E5E8CE] font-bold text-xs transition-all cursor-pointer shadow-lg shadow-[#789575]/20"
+                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#FF5500] to-[#FF5500] hover:brightness-110 text-[#040711] font-bold text-xs transition-all cursor-pointer shadow-lg shadow-[#FF5500]/20"
                 >
                   Report Cancellation Completed →
                 </button>
@@ -231,14 +231,14 @@ export default function CancellationCaseDetailPage({
           </div>
 
           {/* Progress Bar */}
-          <div className="mt-4 pt-4 border-t border-[#B7C4A6] flex flex-col gap-2">
+          <div className="mt-4 pt-4 border-t border-[#1E293B] flex flex-col gap-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-[#4B6248] font-medium">Checklist Progress</span>
-              <span className="text-[#243C2D] font-mono font-bold">{progressPct}% ({completedSteps.length}/{totalSteps} steps completed)</span>
+              <span className="text-[#8E9CAE] font-medium">Checklist Progress</span>
+              <span className="text-[#F4F7FB] font-mono font-bold">{progressPct}% ({completedSteps.length}/{totalSteps} steps completed)</span>
             </div>
-            <div className="w-full h-2.5 rounded-full bg-[#E5E8CE] overflow-hidden border border-[#B7C4A6]">
+            <div className="w-full h-2.5 rounded-full bg-[#040711] overflow-hidden border border-[#1E293B]">
               <div
-                className="h-full bg-gradient-to-r from-[#789575] to-[#789575] transition-all duration-300"
+                className="h-full bg-gradient-to-r from-[#FF5500] to-[#FF5500] transition-all duration-300"
                 style={{ width: `${progressPct}%` }}
               />
             </div>
@@ -247,8 +247,8 @@ export default function CancellationCaseDetailPage({
 
         {/* Source Verification Box */}
         {pb?.official_source_url && (
-          <div className="p-4 rounded-xl bg-[#E5E8CE] border border-[#B7C4A6] flex items-center justify-between gap-4 text-xs">
-            <div className="flex items-center gap-2 text-[#4B6248]">
+          <div className="p-4 rounded-xl bg-[#040711] border border-[#1E293B] flex items-center justify-between gap-4 text-xs">
+            <div className="flex items-center gap-2 text-[#8E9CAE]">
               <span className="text-emerald-400 font-bold">✓</span>
               <span>
                 Verified Official Source:{" "}
@@ -256,14 +256,14 @@ export default function CancellationCaseDetailPage({
                   href={pb.official_source_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[#4B6248] underline hover:text-[#243C2D]"
+                  className="text-[#8E9CAE] underline hover:text-[#F4F7FB]"
                 >
                   {pb.official_source_url}
                 </a>
               </span>
             </div>
             {pb.source_verification_date && (
-              <span className="text-[#4B6248] font-mono shrink-0">
+              <span className="text-[#8E9CAE] font-mono shrink-0">
                 Verified: {pb.source_verification_date}
               </span>
             )}
@@ -273,10 +273,10 @@ export default function CancellationCaseDetailPage({
         {/* Important Warnings */}
         {pb?.important_warnings && pb.important_warnings.length > 0 && (
           <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 p-4 flex flex-col gap-2">
-            <h3 className="text-xs font-bold text-[#4B6248] flex items-center gap-1.5 uppercase tracking-wide">
+            <h3 className="text-xs font-bold text-[#8E9CAE] flex items-center gap-1.5 uppercase tracking-wide">
               <span>⚠ Important Procedural Notice</span>
             </h3>
-            <ul className="list-disc list-inside text-xs text-[#4B6248]/90 space-y-1">
+            <ul className="list-disc list-inside text-xs text-[#8E9CAE]/90 space-y-1">
               {pb.important_warnings.map((warn, idx) => (
                 <li key={idx}>{warn}</li>
               ))}
@@ -285,8 +285,8 @@ export default function CancellationCaseDetailPage({
         )}
 
         {/* Step-by-Step Checklist */}
-        <div className="rounded-2xl bg-[#F0F2E3] border border-[#B7C4A6] p-6 flex flex-col gap-4">
-          <h2 className="text-lg font-bold text-[#243C2D]">Actionable Cancellation Checklist</h2>
+        <div className="rounded-2xl bg-[#0D1322] border border-[#1E293B] p-6 flex flex-col gap-4">
+          <h2 className="text-lg font-bold text-[#F4F7FB]">Actionable Cancellation Checklist</h2>
 
           <div className="space-y-4">
             {pb?.steps.map((step) => {
@@ -296,8 +296,8 @@ export default function CancellationCaseDetailPage({
                   key={step.id}
                   className={`p-4 rounded-xl border transition-all ${
                     isDone
-                      ? "bg-[#E5E8CE]/60 border-emerald-500/30 opacity-80"
-                      : "bg-[#E5E8CE] border-[#B7C4A6] hover:border-[#789575]"
+                      ? "bg-[#040711]/60 border-emerald-500/30 opacity-80"
+                      : "bg-[#040711] border-[#1E293B] hover:border-[#FF5500]"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-4">
@@ -306,17 +306,17 @@ export default function CancellationCaseDetailPage({
                         onClick={() => handleStepComplete(step.id)}
                         className={`mt-0.5 w-6 h-6 rounded-lg border flex items-center justify-center font-bold text-xs transition-colors cursor-pointer shrink-0 ${
                           isDone
-                            ? "bg-emerald-500 text-[#E5E8CE] border-emerald-400"
-                            : "border-[#B7C4A6] hover:border-[#789575] text-transparent"
+                            ? "bg-emerald-500 text-[#040711] border-emerald-400"
+                            : "border-[#1E293B] hover:border-[#FF5500] text-transparent"
                         }`}
                       >
                         ✓
                       </button>
                       <div className="flex flex-col gap-1">
-                        <span className={`text-sm font-semibold ${isDone ? "line-through text-[#4B6248]" : "text-[#243C2D]"}`}>
+                        <span className={`text-sm font-semibold ${isDone ? "line-through text-[#8E9CAE]" : "text-[#F4F7FB]"}`}>
                           Step {step.step_number}: {step.title}
                         </span>
-                        <p className="text-xs text-[#4B6248] leading-relaxed">
+                        <p className="text-xs text-[#8E9CAE] leading-relaxed">
                           {step.instruction}
                         </p>
                         {step.warning && (
@@ -325,7 +325,7 @@ export default function CancellationCaseDetailPage({
                           </div>
                         )}
                         {step.verification_tip && (
-                          <div className="mt-0.5 text-[11px] text-[#4B6248]">
+                          <div className="mt-0.5 text-[11px] text-[#8E9CAE]">
                             Tip: {step.verification_tip}
                           </div>
                         )}
@@ -335,7 +335,7 @@ export default function CancellationCaseDetailPage({
                     {!isDone && (
                       <button
                         onClick={() => handleStepComplete(step.id)}
-                        className="px-3 py-1 rounded-lg border border-[#B7C4A6] bg-[#F0F2E3] text-[11px] font-semibold text-[#4B6248] hover:border-[#789575] cursor-pointer shrink-0"
+                        className="px-3 py-1 rounded-lg border border-[#1E293B] bg-[#0D1322] text-[11px] font-semibold text-[#8E9CAE] hover:border-[#FF5500] cursor-pointer shrink-0"
                       >
                         Mark Done
                       </button>
@@ -349,44 +349,44 @@ export default function CancellationCaseDetailPage({
 
         {/* Report Modal */}
         {reportingCancelled && (
-          <div className="fixed inset-0 bg-[#E5E8CE]/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="max-w-lg w-full bg-[#F0F2E3] border border-[#B7C4A6] rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
+          <div className="fixed inset-0 bg-[#040711]/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="max-w-lg w-full bg-[#0D1322] border border-[#1E293B] rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-[#243C2D]">Record Cancellation Outcome</h3>
+                <h3 className="text-lg font-bold text-[#F4F7FB]">Record Cancellation Outcome</h3>
                 <button
                   onClick={() => setReportingCancelled(false)}
-                  className="text-[#4B6248] hover:text-[#243C2D] text-sm"
+                  className="text-[#8E9CAE] hover:text-[#F4F7FB] text-sm"
                 >
                   ✕
                 </button>
               </div>
 
-              <p className="text-xs text-[#4B6248]">
+              <p className="text-xs text-[#8E9CAE]">
                 Recording this cancellation tells PayScope to flag any rogue post-cancellation debits on subsequent synthetic statements as anomalies.
               </p>
 
               <form onSubmit={handleReportCancelled} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="evidence-notes-input" className="text-xs font-semibold text-[#4B6248]">Evidence / Confirmation Reference</label>
+                  <label htmlFor="evidence-notes-input" className="text-xs font-semibold text-[#8E9CAE]">Evidence / Confirmation Reference</label>
                   <input
                     id="evidence-notes-input"
                     type="text"
                     placeholder="e.g. Email confirmation ref #88219 or UPI UMN screenshot"
                     value={evidenceText}
                     onChange={(e) => setEvidenceText(e.target.value)}
-                    className="px-3.5 py-2.5 rounded-xl bg-[#E5E8CE] border border-[#B7C4A6] text-sm text-[#243C2D] focus:outline-none focus:border-[#789575]"
+                    className="px-3.5 py-2.5 rounded-xl bg-[#040711] border border-[#1E293B] text-sm text-[#F4F7FB] focus:outline-none focus:border-[#FF5500]"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="user-notes-input" className="text-xs font-semibold text-[#4B6248]">User Notes</label>
+                  <label htmlFor="user-notes-input" className="text-xs font-semibold text-[#8E9CAE]">User Notes</label>
                   <textarea
                     id="user-notes-input"
                     rows={3}
                     placeholder="e.g. Cancelled via Google Pay AutoPay section; valid until end of month."
                     value={reportingNotes}
                     onChange={(e) => setReportingNotes(e.target.value)}
-                    className="px-3.5 py-2.5 rounded-xl bg-[#E5E8CE] border border-[#B7C4A6] text-sm text-[#243C2D] focus:outline-none focus:border-[#789575]"
+                    className="px-3.5 py-2.5 rounded-xl bg-[#040711] border border-[#1E293B] text-sm text-[#F4F7FB] focus:outline-none focus:border-[#FF5500]"
                   />
                 </div>
 
@@ -394,14 +394,14 @@ export default function CancellationCaseDetailPage({
                   <button
                     type="button"
                     onClick={() => setReportingCancelled(false)}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold text-[#4B6248] hover:text-[#243C2D]"
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-[#8E9CAE] hover:text-[#F4F7FB]"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={submittingAction}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#789575] to-[#789575] text-[#E5E8CE] font-bold text-xs hover:brightness-110 cursor-pointer"
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#FF5500] to-[#FF5500] text-[#040711] font-bold text-xs hover:brightness-110 cursor-pointer"
                   >
                     {submittingAction ? "Saving..." : "Confirm Reported Cancellation"}
                   </button>

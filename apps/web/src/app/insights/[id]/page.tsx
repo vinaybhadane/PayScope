@@ -176,7 +176,7 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#E5E8CE] text-[#4B6248] text-sm">
+      <div className="min-h-screen flex items-center justify-center bg-[#040711] text-[#8E9CAE] text-sm">
         Loading anomaly deep-dive...
       </div>
     );
@@ -184,10 +184,10 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
 
   if (error || !insight) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#E5E8CE] text-[#4B6248] p-6 gap-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#040711] text-[#8E9CAE] p-6 gap-4">
         <h2 className="text-xl font-bold text-rose-400">Insight Not Found</h2>
-        <p className="text-sm text-[#4B6248]">{error || "Requested insight does not exist."}</p>
-        <Link href="/insights" className="px-4 py-2 bg-[#F0F2E3] text-[#243C2D] rounded-lg text-sm hover:bg-[#F0F2E3]">
+        <p className="text-sm text-[#8E9CAE]">{error || "Requested insight does not exist."}</p>
+        <Link href="/insights" className="px-4 py-2 bg-[#0D1322] text-[#F4F7FB] rounded-lg text-sm hover:bg-[#0D1322]">
           &larr; Back to Insights
         </Link>
       </div>
@@ -195,7 +195,7 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#E5E8CE] text-[#4B6248] antialiased selection:bg-[#789575] selection:text-[#243C2D]">
+    <div className="min-h-screen flex flex-col bg-[#040711] text-[#8E9CAE] antialiased selection:bg-[#FF5500] selection:text-[#F4F7FB]">
       {/* Top Header */}
       <AppHeader />
 
@@ -212,10 +212,10 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
         )}
 
         {/* Insight Header Card */}
-        <div className="p-6 rounded-2xl bg-[#F0F2E3]/70 border border-[#B7C4A6] flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="p-6 rounded-2xl bg-[#0D1322]/70 border border-[#1E293B] flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-center gap-3">
-              <span className="text-xs font-semibold tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-[#F0F2E3] text-[#4B6248] border border-[#B7C4A6]">
+              <span className="text-xs font-semibold tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-[#0D1322] text-[#8E9CAE] border border-[#1E293B]">
                 {insight.insight_type.replace("_", " ").toUpperCase()}
               </span>
               <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
@@ -229,30 +229,30 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
                 insight.status === "open" ? "bg-rose-500/10 text-rose-400 border border-rose-500/20" :
                 insight.status === "acknowledged" ? "bg-sky-500/10 text-sky-400 border border-sky-500/20" :
                 insight.status === "resolved" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" :
-                "bg-[#F0F2E3] text-[#4B6248] border border-[#B7C4A6]"
+                "bg-[#0D1322] text-[#8E9CAE] border border-[#1E293B]"
               }`}>
                 {insight.status.toUpperCase()}
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#243C2D] mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#F4F7FB] mt-1">
               {insight.title}
             </h1>
 
-            <div className="text-xs text-[#4B6248] flex items-center gap-2">
+            <div className="text-xs text-[#8E9CAE] flex items-center gap-2">
               <span className="text-emerald-400 font-medium">{insight.commitment_name}</span>
-              {insight.merchant_name && <span className="text-[#4B6248]">• {insight.merchant_name}</span>}
-              <span className="text-[#4B6248]">• Detected on {new Date(insight.detected_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</span>
+              {insight.merchant_name && <span className="text-[#8E9CAE]">• {insight.merchant_name}</span>}
+              <span className="text-[#8E9CAE]">• Detected on {new Date(insight.detected_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</span>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row md:flex-col gap-2 shrink-0">
-            <div className="p-3 rounded-xl bg-[#E5E8CE]/60 border border-[#B7C4A6] text-right">
-              <div className="text-[11px] text-[#4B6248]">Detector Version</div>
-              <div className="text-xs font-mono font-medium text-[#4B6248]">{insight.detector_version}</div>
+            <div className="p-3 rounded-xl bg-[#040711]/60 border border-[#1E293B] text-right">
+              <div className="text-[11px] text-[#8E9CAE]">Detector Version</div>
+              <div className="text-xs font-mono font-medium text-[#8E9CAE]">{insight.detector_version}</div>
             </div>
-            <div className="p-3 rounded-xl bg-[#E5E8CE]/60 border border-[#B7C4A6] text-right">
-              <div className="text-[11px] text-[#4B6248]">Confidence Band</div>
+            <div className="p-3 rounded-xl bg-[#040711]/60 border border-[#1E293B] text-right">
+              <div className="text-[11px] text-[#8E9CAE]">Confidence Band</div>
               <div className="text-xs font-medium text-emerald-400">{insight.confidence_band.toUpperCase()} ({insight.confidence_score}%)</div>
             </div>
           </div>
@@ -260,9 +260,9 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
 
         {/* Deep Explanation Card */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 p-6 rounded-2xl bg-[#F0F2E3]/60 border border-[#B7C4A6] flex flex-col gap-4">
-            <h2 className="text-base font-semibold text-[#243C2D]">Algorithmic Rationale & Explanation</h2>
-            <div className="p-4 rounded-xl bg-[#E5E8CE]/60 border border-[#B7C4A6] text-[#4B6248] text-sm leading-relaxed whitespace-pre-line">
+          <div className="lg:col-span-2 p-6 rounded-2xl bg-[#0D1322]/60 border border-[#1E293B] flex flex-col gap-4">
+            <h2 className="text-base font-semibold text-[#F4F7FB]">Algorithmic Rationale & Explanation</h2>
+            <div className="p-4 rounded-xl bg-[#040711]/60 border border-[#1E293B] text-[#8E9CAE] text-sm leading-relaxed whitespace-pre-line">
               {insight.explanation || insight.summary}
             </div>
 
@@ -274,22 +274,22 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
                   <div>
-                    <div className="text-[#4B6248]">Previous Regime</div>
-                    <div className="text-sm font-semibold text-[#243C2D] mt-0.5">₹{insight.price_event.previous_amount}</div>
+                    <div className="text-[#8E9CAE]">Previous Regime</div>
+                    <div className="text-sm font-semibold text-[#F4F7FB] mt-0.5">₹{insight.price_event.previous_amount}</div>
                   </div>
                   <div>
-                    <div className="text-[#4B6248]">New Regime</div>
+                    <div className="text-[#8E9CAE]">New Regime</div>
                     <div className="text-sm font-semibold text-amber-300 mt-0.5">₹{insight.price_event.new_amount}</div>
                   </div>
                   <div>
-                    <div className="text-[#4B6248]">Change</div>
+                    <div className="text-[#8E9CAE]">Change</div>
                     <div className="text-sm font-semibold text-rose-400 mt-0.5">
                       +₹{insight.price_event.absolute_change} (+{Number(insight.price_event.percentage_change).toFixed(1)}%)
                     </div>
                   </div>
                   <div>
-                    <div className="text-[#4B6248]">Effective Date</div>
-                    <div className="text-sm font-semibold text-[#243C2D] mt-0.5">
+                    <div className="text-[#8E9CAE]">Effective Date</div>
+                    <div className="text-sm font-semibold text-[#F4F7FB] mt-0.5">
                       {new Date(insight.price_event.effective_or_detected_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
                     </div>
                   </div>
@@ -299,31 +299,31 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
           </div>
 
           {/* User Review Action Panel */}
-          <div className="p-6 rounded-2xl bg-[#F0F2E3]/60 border border-[#B7C4A6] flex flex-col justify-between gap-6">
+          <div className="p-6 rounded-2xl bg-[#0D1322]/60 border border-[#1E293B] flex flex-col justify-between gap-6">
             <div className="flex flex-col gap-4">
-              <h2 className="text-base font-semibold text-[#243C2D]">Review & Actions</h2>
-              <p className="text-xs text-[#4B6248]">
+              <h2 className="text-base font-semibold text-[#F4F7FB]">Review & Actions</h2>
+              <p className="text-xs text-[#8E9CAE]">
                 Record your decision to either acknowledge this change, dismiss it as expected, or resolve it after contacting the provider.
               </p>
 
               <div className="flex flex-col gap-2">
-                <label className="text-xs text-[#4B6248]">Add User Notes (Optional)</label>
+                <label className="text-xs text-[#8E9CAE]">Add User Notes (Optional)</label>
                 <textarea
                   value={reviewNote}
                   onChange={(e) => setReviewNote(e.target.value)}
                   placeholder="e.g. Plan upgrade accepted on call..."
                   rows={2}
-                  className="px-3 py-2 text-xs rounded-lg bg-[#E5E8CE] border border-[#B7C4A6] text-[#4B6248] placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                  className="px-3 py-2 text-xs rounded-lg bg-[#040711] border border-[#1E293B] text-[#8E9CAE] placeholder-slate-600 focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
               {insight.status === "open" && (
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs text-[#4B6248]">Dismiss Reason (if dismissing)</label>
+                  <label className="text-xs text-[#8E9CAE]">Dismiss Reason (if dismissing)</label>
                   <select
                     value={dismissReason}
                     onChange={(e) => setDismissReason(e.target.value)}
-                    className="px-3 py-2 text-xs rounded-lg bg-[#E5E8CE] border border-[#B7C4A6] text-[#4B6248] focus:outline-none focus:border-indigo-500"
+                    className="px-3 py-2 text-xs rounded-lg bg-[#040711] border border-[#1E293B] text-[#8E9CAE] focus:outline-none focus:border-indigo-500"
                   >
                     <option value="Intended to continue paid tier">Intended to continue paid tier</option>
                     <option value="Agreed with price increase">Agreed with price increase</option>
@@ -335,13 +335,13 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
               )}
             </div>
 
-            <div className="flex flex-col gap-2 pt-4 border-t border-[#B7C4A6]">
+            <div className="flex flex-col gap-2 pt-4 border-t border-[#1E293B]">
               {insight.status === "open" ? (
                 <>
                   <button
                     onClick={handleAcknowledge}
                     disabled={actionSubmitting}
-                    className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-[#243C2D] bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 transition-colors cursor-pointer"
+                    className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-[#F4F7FB] bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 transition-colors cursor-pointer"
                   >
                     Acknowledge Anomaly
                   </button>
@@ -356,15 +356,15 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
                     <button
                       onClick={handleDismiss}
                       disabled={actionSubmitting}
-                      className="py-2 px-3 rounded-xl text-xs font-medium text-[#4B6248] bg-[#F0F2E3] border border-[#B7C4A6] hover:text-[#243C2D] disabled:opacity-50 transition-colors cursor-pointer"
+                      className="py-2 px-3 rounded-xl text-xs font-medium text-[#8E9CAE] bg-[#0D1322] border border-[#1E293B] hover:text-[#F4F7FB] disabled:opacity-50 transition-colors cursor-pointer"
                     >
                       Dismiss
                     </button>
                   </div>
                 </>
               ) : (
-                <div className="p-3 rounded-xl bg-[#E5E8CE] border border-[#B7C4A6] text-xs text-[#4B6248] text-center">
-                  Insight status is <span className="text-[#243C2D] font-medium">{insight.status.toUpperCase()}</span>
+                <div className="p-3 rounded-xl bg-[#040711] border border-[#1E293B] text-xs text-[#8E9CAE] text-center">
+                  Insight status is <span className="text-[#F4F7FB] font-medium">{insight.status.toUpperCase()}</span>
                 </div>
               )}
             </div>
@@ -372,11 +372,11 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
         </div>
 
         {/* Supporting Evidence Ledger */}
-        <div className="p-6 rounded-2xl bg-[#F0F2E3]/60 border border-[#B7C4A6] flex flex-col gap-4">
+        <div className="p-6 rounded-2xl bg-[#0D1322]/60 border border-[#1E293B] flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-[#243C2D] flex items-center gap-2">
+            <h2 className="text-base font-semibold text-[#F4F7FB] flex items-center gap-2">
               Supporting Evidence Ledger
-              <span className="px-2 py-0.5 rounded-full text-xs font-normal bg-[#F0F2E3] text-[#4B6248]">
+              <span className="px-2 py-0.5 rounded-full text-xs font-normal bg-[#0D1322] text-[#8E9CAE]">
                 {insight.evidence_items.length} records
               </span>
             </h2>
@@ -384,7 +384,7 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-[#B7C4A6] text-[#4B6248] uppercase tracking-wider text-[10px]">
+              <thead className="border-b border-[#1E293B] text-[#8E9CAE] uppercase tracking-wider text-[10px]">
                 <tr>
                   <th className="pb-3 font-semibold">Evidence Role</th>
                   <th className="pb-3 font-semibold">Type</th>
@@ -392,23 +392,23 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
                   <th className="pb-3 font-semibold">Summary & Description</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#B7C4A6]/60 text-[#4B6248]">
+              <tbody className="divide-y divide-[#1E293B]/60 text-[#8E9CAE]">
                 {insight.evidence_items.map((ev) => (
-                  <tr key={ev.id} className="hover:bg-[#F0F2E3]/20">
+                  <tr key={ev.id} className="hover:bg-[#0D1322]/20">
                     <td className="py-3 font-mono text-[11px] text-indigo-400 font-medium">
                       {ev.role}
                     </td>
                     <td className="py-3">
-                      <span className="px-2 py-0.5 rounded bg-[#F0F2E3] text-[#4B6248] text-[11px]">
+                      <span className="px-2 py-0.5 rounded bg-[#0D1322] text-[#8E9CAE] text-[11px]">
                         {ev.evidence_type}
                       </span>
                     </td>
-                    <td className="py-3 text-[#4B6248] font-mono text-[11px]">
+                    <td className="py-3 text-[#8E9CAE] font-mono text-[11px]">
                       {ev.timestamp
                         ? new Date(ev.timestamp).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
                         : "—"}
                     </td>
-                    <td className="py-3 text-[#4B6248]">
+                    <td className="py-3 text-[#8E9CAE]">
                       {ev.summary}
                     </td>
                   </tr>

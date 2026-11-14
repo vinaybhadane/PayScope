@@ -49,6 +49,11 @@ test-results/
 *.zip
 *.tar.gz
 
+# Test screenshots and visual artifacts
+artifacts/*.png
+artifacts/*.webp
+artifacts/*.cjs
+
 # Logs and runtime artifacts
 logs/
 *.log

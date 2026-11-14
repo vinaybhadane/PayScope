@@ -139,9 +139,8 @@ export function IntroSequence({ onComplete, headerLogoRef }: IntroSequenceProps)
     >
       {/* 1. CINEMATIC VIDEO BACKGROUND */}
       <div
-        className={`absolute inset-0 bg-[#E5E8CE] transition-opacity duration-700 ${
-          stage === "FLYING" ? "opacity-0" : "opacity-100"
-        }`}
+        className={`absolute inset-0 bg-[#040711] transition-opacity duration-700 ${stage === "FLYING" ? "opacity-0" : "opacity-100"
+          }`}
       >
         <video
           id="intro-video"
@@ -154,7 +153,7 @@ export function IntroSequence({ onComplete, headerLogoRef }: IntroSequenceProps)
           className="w-full h-full object-contain md:object-cover pointer-events-none"
         />
 
-        <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-[#E5E8CE] to-transparent pointer-events-none" />
+        <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-[#040711] to-transparent pointer-events-none" />
       </div>
 
       {/* 2. 3D EMERGING BRAND LOGO OVERLAY */}
@@ -166,7 +165,7 @@ export function IntroSequence({ onComplete, headerLogoRef }: IntroSequenceProps)
           }}
         >
           <div
-            className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center gap-3.5 px-6 py-4 rounded-2xl bg-gradient-to-r from-[#A9BDA0] via-[#B7C4A6] to-[#E5E8CE] border border-[#789575]/60 shadow-[0_25px_60px_rgba(229, 232, 206, 0.85),0_0_40px_rgba(120, 149, 117, 0.35)] backdrop-blur-md"
+            className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center gap-3.5 px-6 py-4 rounded-2xl bg-gradient-to-r from-[#008299] via-[#006e82] to-[#040711] border border-[#00E0E0]/60 shadow-[0_25px_60px_rgba(0,0,0,0.85),0_0_40px_rgba(0,224,224,0.35)] backdrop-blur-md"
             style={{
               left: "49.34%",
               top: "69.51%",
@@ -191,11 +190,11 @@ export function IntroSequence({ onComplete, headerLogoRef }: IntroSequenceProps)
       {skipVisible && stage !== "FLYING" && (
         <button
           onClick={finishIntro}
-          className="absolute top-6 right-6 z-50 pointer-events-auto px-4 py-2 rounded-full bg-[#E5E8CE]/85 hover:bg-[#F0F2E3] border border-[#B7C4A6] text-xs font-semibold text-[#4B6248] hover:text-[#243C2D] transition-all shadow-lg backdrop-blur-md flex items-center gap-1.5 hover:scale-105 active:scale-95 cursor-pointer"
+          className="absolute top-6 right-6 z-50 pointer-events-auto px-4 py-2 rounded-full bg-[#040711]/85 hover:bg-[#0D1322] border border-[#1E293B] text-xs font-semibold text-[#8E9CAE] hover:text-[#F4F7FB] transition-all shadow-lg backdrop-blur-md flex items-center gap-1.5 hover:scale-105 active:scale-95 cursor-pointer"
           aria-label="Skip introduction animation"
         >
           <span>Skip intro</span>
-          <span className="text-[#4B6248]">⏭</span>
+          <span className="text-[#8E9CAE]">⏭</span>
         </button>
       )}
     </div>

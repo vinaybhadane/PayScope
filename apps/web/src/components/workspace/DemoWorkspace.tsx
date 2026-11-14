@@ -77,26 +77,26 @@ function SpendChart() {
     period === "6 months"
       ? ["Jun", "Jul", "Aug", "Sep", "Oct", "Nov"]
       : [
-          "Dec",
-          "Jan",
-          "Feb",
-          "Mar",
-          "Apr",
-          "May",
-          "Jun",
-          "Jul",
-          "Aug",
-          "Sep",
-          "Oct",
-          "Nov",
-        ];
+        "Dec",
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+      ];
   const amounts =
     period === "6 months"
       ? [3400, 3890, 3680, 4690, 4490, 4290]
       : [
-          3190, 3250, 3490, 3290, 3590, 3390, 3400, 3890, 3680, 4690, 4490,
-          4290,
-        ];
+        3190, 3250, 3490, 3290, 3590, 3390, 3400, 3890, 3680, 4690, 4490,
+        4290,
+      ];
   return (
     <div className="surface">
       <div className="surface-heading">
@@ -162,7 +162,7 @@ function Categories() {
   const categories = ["Productivity", "Entertainment", "Storage"].map(
     (name, i) => ({
       name,
-      color: ["#789575", "#4B6248", "#A9BDA0"][i],
+      color: ["#FF5500", "#00E0E0", "#9333EA"][i],
       amount: subscriptions
         .filter((s) => s.category === name)
         .reduce((a, b) => a + b.amount, 0),
@@ -178,13 +178,13 @@ function Categories() {
           <h2>Where your money goes</h2>
           <p>Every category, accounted for.</p>
         </div>
-        <Icon name="chart" size={16} style={{ color: "#789575" }} />
+        <Icon name="chart" size={16} style={{ color: "#FF5500" }} />
       </div>
       <div className="category-donut">
         <div
           className="donut"
           style={{
-            background: `conic-gradient(#789575 0 ${prodPercent}%, #4B6248 ${prodPercent}% ${entertainmentEnd}%, #A9BDA0 ${entertainmentEnd}% 100%)`,
+            background: `conic-gradient(#FF5500 0 ${prodPercent}%, #00E0E0 ${prodPercent}% ${entertainmentEnd}%, #9333EA ${entertainmentEnd}% 100%)`,
           }}
         >
           <div className="donut-center">
@@ -304,7 +304,7 @@ function SubscriptionTable({
                 <td className="amount-cell">
                   {inr(sub.amount)}
                   <small
-                    style={{ fontSize: 8, color: "#789575", marginLeft: 3 }}
+                    style={{ fontSize: 8, color: "#FF5500", marginLeft: 3 }}
                   >
                     / mo
                   </small>
@@ -383,7 +383,7 @@ function Savings() {
             </span>
             <strong style={{ fontWeight: 450 }}>
               {inr(sub.amount)}
-              <small style={{ fontSize: 8, color: "#789575" }}>/mo</small>
+              <small style={{ fontSize: 8, color: "#FF5500" }}>/mo</small>
             </strong>
           </label>
         ))}
@@ -425,7 +425,7 @@ function Savings() {
           <div className="surface-heading">
             <h2>A possibility, not a promise.</h2>
           </div>
-          <p style={{ fontSize: 10, color: "#789575", lineHeight: 1.8 }}>
+          <p style={{ fontSize: 10, color: "#FF5500", lineHeight: 1.8 }}>
             This simulator helps you explore choices. Selecting a subscription
             here does not cancel it or change your real accounts.
           </p>
@@ -603,7 +603,7 @@ export function DemoWorkspace() {
                 className="surface"
                 style={{
                   background:
-                    "radial-gradient(at 100% 100%, #B7C4A628, transparent 85%), #F0F2E3",
+                    "radial-gradient(at 100% 100%, #1E293B28, transparent 85%), #0D1322",
                 }}
               >
                 <span className="icon-tile">
@@ -625,7 +625,7 @@ export function DemoWorkspace() {
                   style={{
                     fontSize: 10,
                     lineHeight: 1.9,
-                    color: "#789575",
+                    color: "#FF5500",
                     marginBottom: 19,
                   }}
                 >
@@ -665,7 +665,7 @@ export function DemoWorkspace() {
                   </button>
                 ))}
               </div>
-              <span style={{ fontSize: 10, color: "#789575" }}>
+              <span style={{ fontSize: 10, color: "#FF5500" }}>
                 {insights.length} open insights
               </span>
             </div>
@@ -675,13 +675,13 @@ export function DemoWorkspace() {
                 <article className="surface insight-card" key={i.id}>
                   <div className="surface-heading" style={{ marginBottom: 10 }}>
                     <span className="status-pill warning">{i.type}</span>
-                    <span style={{ fontSize: 10, color: "#789575" }}>
+                    <span style={{ fontSize: 10, color: "#FF5500" }}>
                       {i.amount}
                     </span>
                   </div>
                   <h3>{i.title}</h3>
                   <p>
-                    <strong style={{ color: "#789575", fontWeight: 450 }}>
+                    <strong style={{ color: "#FF5500", fontWeight: 450 }}>
                       {i.merchant}
                     </strong>{" "}
                     · {i.text}
@@ -715,22 +715,22 @@ export function DemoWorkspace() {
             {insights.filter(
               (i) => filter === "All insights" || i.type === filter,
             ).length === 0 && (
-              <div className="surface empty-state">
-                <Icon name="check" size={28} />
-                You’re all caught up in this category.
-                <br />
-                <button
-                  className="text-link"
-                  style={{ marginTop: 15 }}
-                  onClick={() => {
-                    setDismissed([]);
-                    setFilter("All insights");
-                  }}
-                >
-                  Reset sample insights
-                </button>
-              </div>
-            )}
+                <div className="surface empty-state">
+                  <Icon name="check" size={28} />
+                  You’re all caught up in this category.
+                  <br />
+                  <button
+                    className="text-link"
+                    style={{ marginTop: 15 }}
+                    onClick={() => {
+                      setDismissed([]);
+                      setFilter("All insights");
+                    }}
+                  >
+                    Reset sample insights
+                  </button>
+                </div>
+              )}
           </>
         )}
         {section === "financial-impact" && (
@@ -769,7 +769,7 @@ export function DemoWorkspace() {
                           display: "block",
                           marginTop: 5,
                           fontSize: 9,
-                          color: "#789575",
+                          color: "#FF5500",
                         }}
                       >
                         {sub.account} · {inr(sub.amount)} / month
@@ -822,7 +822,7 @@ export function DemoWorkspace() {
                     key={i}
                     d={`M300 165 Q${x} 165 ${x} ${y}`}
                     fill="none"
-                    stroke="#78957544"
+                    stroke="#FF550044"
                     strokeWidth="1"
                     strokeDasharray="4 6"
                   />
@@ -885,7 +885,7 @@ export function DemoWorkspace() {
                 <p
                   style={{
                     fontSize: 10,
-                    color: "#789575",
+                    color: "#FF5500",
                     lineHeight: 1.8,
                     marginTop: 20,
                   }}
@@ -924,7 +924,7 @@ export function DemoWorkspace() {
         <footer
           style={{
             fontSize: 8,
-            color: "#A9BDA0",
+            color: "#1E293B",
             marginTop: 30,
             display: "flex",
             justifyContent: "space-between",
@@ -981,17 +981,17 @@ export function DemoWorkspace() {
           </p>
           {(playbook.account.includes("UPI")
             ? [
-                "Open your UPI payment app and find AutoPay or Mandates under your profile or payment settings.",
-                `Locate the ${playbook.name} recurring mandate and check its details.`,
-                "Choose revoke or cancel, follow the app’s confirmation steps, and keep a record.",
-                "Also check your merchant account for any remaining subscription or billing obligation.",
-              ]
+              "Open your UPI payment app and find AutoPay or Mandates under your profile or payment settings.",
+              `Locate the ${playbook.name} recurring mandate and check its details.`,
+              "Choose revoke or cancel, follow the app’s confirmation steps, and keep a record.",
+              "Also check your merchant account for any remaining subscription or billing obligation.",
+            ]
             : [
-                `Sign in to your ${playbook.name} account through its official website.`,
-                "Open your account’s billing or subscription settings and locate your active plan.",
-                "Follow the cancellation flow. Review the effective date and any fees before confirming.",
-                "Keep your confirmation and check future statements for unexpected charges.",
-              ]
+              `Sign in to your ${playbook.name} account through its official website.`,
+              "Open your account’s billing or subscription settings and locate your active plan.",
+              "Follow the cancellation flow. Review the effective date and any fees before confirming.",
+              "Keep your confirmation and check future statements for unexpected charges.",
+            ]
           ).map((step, i) => (
             <div className="playbook-step" key={step}>
               <span>0{i + 1}</span>

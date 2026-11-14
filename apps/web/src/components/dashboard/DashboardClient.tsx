@@ -122,8 +122,8 @@ function SpendTimeline({ data }: { data: DashboardData }) {
         >
           <defs>
             <linearGradient id={gradient} x1="0" y1="0" x2="0" y2="1">
-              <stop stopColor="#789575" stopOpacity=".2" />
-              <stop offset="1" stopColor="#789575" stopOpacity="0" />
+              <stop stopColor="#FF5500" stopOpacity=".2" />
+              <stop offset="1" stopColor="#FF5500" stopOpacity="0" />
             </linearGradient>
           </defs>
           {[0, 1, 2, 3].map((i) => (
@@ -133,7 +133,7 @@ function SpendTimeline({ data }: { data: DashboardData }) {
                 x2="633"
                 y1={26 + i * 52.5}
                 y2={26 + i * 52.5}
-                stroke="#243C2D09"
+                stroke="#FFFFFF09"
                 strokeDasharray="3 5"
               />
               <text x="0" y={30 + i * 52.5} className="timeline-axis">
@@ -145,7 +145,7 @@ function SpendTimeline({ data }: { data: DashboardData }) {
             d={`${line} L${points[points.length - 1].x},185 L52,185 Z`}
             fill={`url(#${gradient})`}
           />
-          <path className="timeline-stroke" pathLength="1" d={line} fill="none" stroke="#789575" strokeWidth="3" />
+          <path className="timeline-stroke" pathLength="1" d={line} fill="none" stroke="#FF5500" strokeWidth="3" />
           {points.map((p, i) => (
             <g
               key={i}
@@ -161,7 +161,7 @@ function SpendTimeline({ data }: { data: DashboardData }) {
               onMouseEnter={() => setHovered(i)}
               onMouseLeave={() => setHovered(null)}
             >
-              {hovered === i && <line className="timeline-crosshair" x1={p.x} x2={p.x} y1="20" y2="185" stroke="#789575" strokeOpacity=".35" strokeDasharray="3 4" />}
+              {hovered === i && <line className="timeline-crosshair" x1={p.x} x2={p.x} y1="20" y2="185" stroke="#FF5500" strokeOpacity=".35" strokeDasharray="3 4" />}
               <rect
                 x={p.x - 22}
                 y="0"
@@ -173,8 +173,8 @@ function SpendTimeline({ data }: { data: DashboardData }) {
                 cx={p.x}
                 cy={p.y}
                 r={hovered === i ? 5 : 3}
-                fill="#789575"
-                stroke="#F0F2E3"
+                fill="#FF5500"
+                stroke="#0D1322"
                 strokeWidth="3"
               />
               <text
@@ -211,7 +211,7 @@ function CategoryCard({ data }: { data: DashboardData }) {
     (a, b) => Number(b[1]) - Number(a[1]),
   );
   const total = categories.reduce((sum, [, value]) => sum + Number(value), 0);
-  const colors = ["#789575", "#A9BDA0", "#4B6248", "#C6D1B5", "#536D50", "#8FA586"];
+  const colors = ["#FF5500", "#00E0E0", "#00B8C7", "#9333EA", "#F59E0B", "#10B981", "#3B82F6", "#EC4899"];
   const slices = categories.map(([, value], i) => {
     const start = total ? categories.slice(0, i).reduce((sum, [, amount]) => sum + Number(amount), 0) / total * 100 : 0;
     const angle = start + (total ? Number(value) / total * 100 : 0);
@@ -231,7 +231,7 @@ function CategoryCard({ data }: { data: DashboardData }) {
         style={{
           background: slices.length
             ? `conic-gradient(${slices.join(",")})`
-            : "#B7C4A6",
+            : "#1E293B",
         }}
       >
         <div>

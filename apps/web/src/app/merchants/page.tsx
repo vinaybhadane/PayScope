@@ -170,7 +170,7 @@ export default function MerchantsPage() {
   const categories = Array.from(new Set(merchants.map((m) => m.category))).filter(Boolean);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#E5E8CE] text-[#4B6248] antialiased selection:bg-[#789575] selection:text-[#243C2D]">
+    <div className="min-h-screen flex flex-col bg-[#040711] text-[#8E9CAE] antialiased selection:bg-[#FF5500] selection:text-[#F4F7FB]">
       {/* Top Header */}
       <AppHeader />
 
@@ -179,10 +179,10 @@ export default function MerchantsPage() {
         {/* Title & Introduction */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#243C2D]">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#F4F7FB]">
               Merchant Reference Catalogue
             </h1>
-            <p className="mt-1 text-sm text-[#4B6248]">
+            <p className="mt-1 text-sm text-[#8E9CAE]">
               Curated merchant registry, descriptor alias mapping, and RapidFuzz resolution engine.
             </p>
           </div>
@@ -190,11 +190,11 @@ export default function MerchantsPage() {
           <button
             onClick={handleReprocess}
             disabled={reprocessing}
-            className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-[#243C2D] text-xs font-semibold shadow-sm transition-all flex items-center gap-2 self-start sm:self-auto"
+            className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-[#F4F7FB] text-xs font-semibold shadow-sm transition-all flex items-center gap-2 self-start sm:self-auto"
           >
             {reprocessing ? (
               <>
-                <span className="w-3.5 h-3.5 border-2 border-[#789575]/30 border-t-white rounded-full animate-spin" />
+                <span className="w-3.5 h-3.5 border-2 border-[#FF5500]/30 border-t-white rounded-full animate-spin" />
                 <span>Reprocessing Transactions...</span>
               </>
             ) : (
@@ -207,29 +207,29 @@ export default function MerchantsPage() {
         {reprocessResult && (
           <div className="rounded-xl border border-emerald-500/40 bg-emerald-950/20 p-4 text-xs text-emerald-300 flex items-center justify-between">
             <div>
-              <p className="font-semibold text-[#243C2D]">Reprocessing Completed Successfully</p>
-              <p className="text-[#4B6248] mt-0.5">
-                Examined: <strong className="text-[#243C2D]">{reprocessResult.examined_count}</strong> | Matched: <strong className="text-emerald-400">{reprocessResult.matched_count}</strong> | Queued for Review: <strong className="text-amber-400">{reprocessResult.review_required_count}</strong> | Skipped User Confirmed: <strong className="text-[#4B6248]">{reprocessResult.skipped_user_confirmed_count}</strong>
+              <p className="font-semibold text-[#F4F7FB]">Reprocessing Completed Successfully</p>
+              <p className="text-[#8E9CAE] mt-0.5">
+                Examined: <strong className="text-[#F4F7FB]">{reprocessResult.examined_count}</strong> | Matched: <strong className="text-emerald-400">{reprocessResult.matched_count}</strong> | Queued for Review: <strong className="text-amber-400">{reprocessResult.review_required_count}</strong> | Skipped User Confirmed: <strong className="text-[#8E9CAE]">{reprocessResult.skipped_user_confirmed_count}</strong>
               </p>
             </div>
-            <button onClick={() => setReprocessResult(null)} className="text-[#4B6248] hover:text-[#243C2D]">✕</button>
+            <button onClick={() => setReprocessResult(null)} className="text-[#8E9CAE] hover:text-[#F4F7FB]">✕</button>
           </div>
         )}
 
         {/* DIAGNOSTIC MATCH PREVIEW CARD */}
-        <section className="rounded-xl border border-[#B7C4A6] bg-[#F0F2E3]/50 p-6 flex flex-col gap-4">
+        <section className="rounded-xl border border-[#1E293B] bg-[#0D1322]/50 p-6 flex flex-col gap-4">
           <div>
-            <h3 className="text-base font-semibold text-[#243C2D] flex items-center gap-2">
+            <h3 className="text-base font-semibold text-[#F4F7FB] flex items-center gap-2">
               Diagnostic Match Preview & Test Sandbox
             </h3>
-            <p className="text-xs text-[#4B6248]">
+            <p className="text-xs text-[#8E9CAE]">
               Enter any raw bank statement descriptor to test the multi-stage resolution pipeline (exact, regex, RapidFuzz).
             </p>
           </div>
 
           {/* Quick preset chips */}
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-[#4B6248] text-[11px]">Example Descriptors:</span>
+            <span className="text-[#8E9CAE] text-[11px]">Example Descriptors:</span>
             {[
               "UPI/STREAMPULSE/BILLPAY/982138",
               "CLOUDDESKK PRO SUBSCRPTN",
@@ -242,7 +242,7 @@ export default function MerchantsPage() {
                 key={chip}
                 type="button"
                 onClick={() => setPreviewInput(chip)}
-                className="px-2.5 py-1 rounded-md bg-[#F0F2E3]/80 hover:bg-slate-750 text-[#4B6248] text-[11px] font-mono border border-[#B7C4A6]/60 transition-colors"
+                className="px-2.5 py-1 rounded-md bg-[#0D1322]/80 hover:bg-slate-750 text-[#8E9CAE] text-[11px] font-mono border border-[#1E293B]/60 transition-colors"
               >
                 {chip}
               </button>
@@ -255,12 +255,12 @@ export default function MerchantsPage() {
               value={previewInput}
               onChange={(e) => setPreviewInput(e.target.value)}
               placeholder="e.g. UPI/STREAMPULSE/BILLPAY/982138"
-              className="flex-1 rounded-lg border border-[#B7C4A6] bg-[#E5E8CE] px-3 py-2 text-xs font-mono text-[#243C2D] placeholder-slate-600 focus:border-emerald-500 focus:outline-none"
+              className="flex-1 rounded-lg border border-[#1E293B] bg-[#040711] px-3 py-2 text-xs font-mono text-[#F4F7FB] placeholder-slate-600 focus:border-emerald-500 focus:outline-none"
             />
             <button
               onClick={handleTestMatch}
               disabled={testingMatch || !previewInput.trim()}
-              className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-[#243C2D] text-xs font-semibold transition-colors shrink-0"
+              className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-[#F4F7FB] text-xs font-semibold transition-colors shrink-0"
             >
               {testingMatch ? "Testing..." : "Test Resolution"}
             </button>
@@ -274,10 +274,10 @@ export default function MerchantsPage() {
 
           {/* Diagnostic Result Display */}
           {testResult && (
-            <div className="rounded-lg bg-[#E5E8CE]/80 border border-[#B7C4A6] p-4 space-y-3 font-mono text-xs">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#B7C4A6] pb-2">
+            <div className="rounded-lg bg-[#040711]/80 border border-[#1E293B] p-4 space-y-3 font-mono text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1E293B] pb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-[#4B6248]">Status:</span>
+                  <span className="text-[#8E9CAE]">Status:</span>
                   <span
                     className={`px-2.5 py-0.5 rounded text-[11px] font-bold uppercase border ${
                       testResult.status.startsWith("MATCHED")
@@ -291,46 +291,46 @@ export default function MerchantsPage() {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-3 text-[#4B6248]">
-                  <span>Score: <strong className="text-[#243C2D]">{testResult.score.toFixed(1)}%</strong></span>
-                  <span>Confidence: <strong className="text-[#4B6248]">{testResult.confidence_band}</strong></span>
-                  <span>Method: <strong className="text-[#4B6248]">{testResult.match_method || "—"}</strong></span>
+                <div className="flex items-center gap-3 text-[#8E9CAE]">
+                  <span>Score: <strong className="text-[#F4F7FB]">{testResult.score.toFixed(1)}%</strong></span>
+                  <span>Confidence: <strong className="text-[#8E9CAE]">{testResult.confidence_band}</strong></span>
+                  <span>Method: <strong className="text-[#8E9CAE]">{testResult.match_method || "—"}</strong></span>
                 </div>
               </div>
 
               <div className="space-y-1">
                 <div className="flex justify-between">
-                  <span className="text-[#4B6248]">Raw Descriptor:</span>
-                  <span className="text-[#4B6248]">{testResult.raw_descriptor}</span>
+                  <span className="text-[#8E9CAE]">Raw Descriptor:</span>
+                  <span className="text-[#8E9CAE]">{testResult.raw_descriptor}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#4B6248]">Normalised Tokens:</span>
+                  <span className="text-[#8E9CAE]">Normalised Tokens:</span>
                   <span className="text-emerald-400">{testResult.normalised_descriptor || "—"}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#4B6248]">Resolved Merchant:</span>
-                  <span className="text-[#243C2D] font-sans font-semibold">{testResult.merchant_name || "(Unresolved)"}</span>
+                  <span className="text-[#8E9CAE]">Resolved Merchant:</span>
+                  <span className="text-[#F4F7FB] font-sans font-semibold">{testResult.merchant_name || "(Unresolved)"}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#4B6248]">Category:</span>
-                  <span className="text-[#4B6248]">{testResult.category || "—"}</span>
+                  <span className="text-[#8E9CAE]">Category:</span>
+                  <span className="text-[#8E9CAE]">{testResult.category || "—"}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#4B6248]">Explanation:</span>
-                  <span className="text-[#4B6248] font-sans text-[11px]">{testResult.explanation}</span>
+                  <span className="text-[#8E9CAE]">Explanation:</span>
+                  <span className="text-[#8E9CAE] font-sans text-[11px]">{testResult.explanation}</span>
                 </div>
               </div>
 
               {testResult.candidates.length > 0 && (
-                <div className="pt-2 border-t border-[#B7C4A6]/80 space-y-1.5">
-                  <span className="text-[11px] text-[#4B6248] uppercase tracking-wider block">
+                <div className="pt-2 border-t border-[#1E293B]/80 space-y-1.5">
+                  <span className="text-[11px] text-[#8E9CAE] uppercase tracking-wider block">
                     Ranked Match Candidates ({testResult.candidates.length})
                   </span>
                   <div className="space-y-1">
                     {testResult.candidates.map((c, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-2 rounded bg-[#F0F2E3] border border-[#B7C4A6] text-[11px]">
-                        <span className="text-[#243C2D] font-sans font-medium">{c.canonical_name} ({c.category})</span>
-                        <div className="flex items-center gap-3 text-[#4B6248] font-mono">
+                      <div key={idx} className="flex items-center justify-between p-2 rounded bg-[#0D1322] border border-[#1E293B] text-[11px]">
+                        <span className="text-[#F4F7FB] font-sans font-medium">{c.canonical_name} ({c.category})</span>
+                        <div className="flex items-center gap-3 text-[#8E9CAE] font-mono">
                           <span>{c.method}</span>
                           <span className="font-bold text-emerald-400">{c.score.toFixed(1)}%</span>
                         </div>
@@ -350,13 +350,13 @@ export default function MerchantsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search merchants by name or category..."
-            className="flex-1 w-full rounded-lg border border-[#B7C4A6] bg-[#F0F2E3]/60 px-3 py-2 text-xs text-[#243C2D] placeholder-[#4B6248]/60 focus:border-emerald-500 focus:outline-none"
+            className="flex-1 w-full rounded-lg border border-[#1E293B] bg-[#0D1322]/60 px-3 py-2 text-xs text-[#F4F7FB] placeholder-[#8E9CAE]/60 focus:border-emerald-500 focus:outline-none"
           />
 
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full sm:w-56 rounded-lg border border-[#B7C4A6] bg-[#F0F2E3]/60 px-3 py-2 text-xs text-[#4B6248] focus:border-emerald-500 focus:outline-none"
+            className="w-full sm:w-56 rounded-lg border border-[#1E293B] bg-[#0D1322]/60 px-3 py-2 text-xs text-[#8E9CAE] focus:border-emerald-500 focus:outline-none"
           >
             <option value="">All Categories</option>
             {categories.map((cat) => (
@@ -369,11 +369,11 @@ export default function MerchantsPage() {
 
         {/* MERCHANT CATALOGUE GRID */}
         {loading ? (
-          <div className="py-12 text-center text-xs text-[#4B6248]">
+          <div className="py-12 text-center text-xs text-[#8E9CAE]">
             Loading merchant catalogue...
           </div>
         ) : merchants.length === 0 ? (
-          <div className="py-12 text-center text-xs text-[#4B6248] border border-dashed border-[#B7C4A6] rounded-xl">
+          <div className="py-12 text-center text-xs text-[#8E9CAE] border border-dashed border-[#1E293B] rounded-xl">
             No merchants found matching your query.
           </div>
         ) : (
@@ -382,11 +382,11 @@ export default function MerchantsPage() {
               <Link
                 key={m.id}
                 href={`/merchants/${m.id}`}
-                className="group rounded-xl border border-[#B7C4A6] bg-[#F0F2E3]/50 hover:bg-[#F0F2E3]/80 hover:border-emerald-500/40 p-5 transition-all flex flex-col justify-between gap-4 shadow-sm"
+                className="group rounded-xl border border-[#1E293B] bg-[#0D1322]/50 hover:bg-[#0D1322]/80 hover:border-emerald-500/40 p-5 transition-all flex flex-col justify-between gap-4 shadow-sm"
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-[#F0F2E3] text-[#4B6248] border border-[#B7C4A6]">
+                    <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-[#0D1322] text-[#8E9CAE] border border-[#1E293B]">
                       {m.category.replace("_", " ")}
                     </span>
                     <span className="text-[10px] text-emerald-400 font-medium">
@@ -394,19 +394,19 @@ export default function MerchantsPage() {
                     </span>
                   </div>
 
-                  <h3 className="text-sm font-semibold text-[#243C2D] group-hover:text-emerald-300 transition-colors">
+                  <h3 className="text-sm font-semibold text-[#F4F7FB] group-hover:text-emerald-300 transition-colors">
                     {m.canonical_name}
                   </h3>
 
                   {m.commitment_type_default && (
-                    <p className="text-[11px] text-[#4B6248]">
-                      Default Cadence: <span className="text-[#4B6248] font-mono capitalize">{m.commitment_type_default.replace("_", " ")}</span>
+                    <p className="text-[11px] text-[#8E9CAE]">
+                      Default Cadence: <span className="text-[#8E9CAE] font-mono capitalize">{m.commitment_type_default.replace("_", " ")}</span>
                     </p>
                   )}
                 </div>
 
-                <div className="flex items-center justify-between text-xs text-[#4B6248] pt-3 border-t border-[#B7C4A6]/80 font-mono">
-                  <span>Aliases: <strong className="text-[#243C2D]">{m.alias_count}</strong></span>
+                <div className="flex items-center justify-between text-xs text-[#8E9CAE] pt-3 border-t border-[#1E293B]/80 font-mono">
+                  <span>Aliases: <strong className="text-[#F4F7FB]">{m.alias_count}</strong></span>
                   <span>Linked Txns: <strong className="text-emerald-400">{m.transaction_count}</strong></span>
                   <span className="text-emerald-400 group-hover:translate-x-0.5 transition-transform">→</span>
                 </div>
@@ -417,7 +417,7 @@ export default function MerchantsPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-900 bg-[#E5E8CE]/80 py-6 text-center text-xs text-[#4B6248]">
+      <footer className="border-t border-slate-900 bg-[#040711]/80 py-6 text-center text-xs text-[#8E9CAE]">
         PayScope Prototype — Synthetic financial data only. No real banking connectivity.
       </footer>
     </div>

@@ -13,15 +13,15 @@ import { useWorkspaceResource } from "@/lib/useWorkspaceResource";
 import { getApiBaseUrl } from "@/lib/api";
 
 const kinds: Record<string, { label: string; color: string; icon: string }> = {
-  User: { label: "Workspace", color: "#789575", icon: "grid" },
-  Account: { label: "Accounts", color: "#789575", icon: "card" },
-  Transaction: { label: "Evidence", color: "#789575", icon: "file" },
-  Commitment: { label: "Subscriptions", color: "#789575", icon: "repeat" },
-  Merchant: { label: "Merchants", color: "#789575", icon: "globe" },
-  CommitmentInsight: { label: "Insights", color: "#789575", icon: "spark" },
+  User: { label: "Workspace", color: "#00E0E0", icon: "grid" },
+  Account: { label: "Accounts", color: "#3B82F6", icon: "card" },
+  Transaction: { label: "Evidence", color: "#8E9CAE", icon: "file" },
+  Commitment: { label: "Subscriptions", color: "#FF5500", icon: "repeat" },
+  Merchant: { label: "Merchants", color: "#A855F7", icon: "globe" },
+  CommitmentInsight: { label: "Insights", color: "#F59E0B", icon: "spark" },
   CancellationEvent: {
     label: "Cancellations",
-    color: "#789575",
+    color: "#EF4444",
     icon: "shield",
   },
 };
@@ -123,22 +123,22 @@ export default function RelationshipExplorer({
       ? ["Account", "Commitment", "Merchant"]
       : mode === "Evidence"
         ? [
-            "User",
-            "Account",
-            "Transaction",
-            "Commitment",
-            "Merchant",
-            "CommitmentInsight",
-            "CancellationEvent",
-          ]
+          "User",
+          "Account",
+          "Transaction",
+          "Commitment",
+          "Merchant",
+          "CommitmentInsight",
+          "CancellationEvent",
+        ]
         : [
-            "User",
-            "Account",
-            "Commitment",
-            "Merchant",
-            "CommitmentInsight",
-            "CancellationEvent",
-          ];
+          "User",
+          "Account",
+          "Commitment",
+          "Merchant",
+          "CommitmentInsight",
+          "CancellationEvent",
+        ];
     const nodes = graph.nodes.filter(
       (n) => keep.has(n.data.id) && columns.includes(n.data.node_type),
     );
@@ -405,7 +405,7 @@ export default function RelationshipExplorer({
                     <path
                       d="M0 1 7 4 0 7"
                       fill="none"
-                      stroke="#789575"
+                      stroke="#FF5500"
                       strokeWidth="1.3"
                     />
                   </marker>
@@ -416,7 +416,7 @@ export default function RelationshipExplorer({
                       x={
                         26 +
                         (i * (model.width - 220)) /
-                          Math.max(model.columns.length - 1, 1)
+                        Math.max(model.columns.length - 1, 1)
                       }
                       y="25"
                       className="graph-column-heading"
@@ -503,8 +503,8 @@ export default function RelationshipExplorer({
                         {n.data.amount !== undefined
                           ? inr(n.data.amount)
                           : n.data.category ||
-                            kinds[n.data.node_type]?.label ||
-                            n.data.node_type}
+                          kinds[n.data.node_type]?.label ||
+                          n.data.node_type}
                       </text>
                       <title>{n.data.name}</title>
                     </g>

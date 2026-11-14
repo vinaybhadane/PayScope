@@ -150,23 +150,23 @@ function CancellationCentreContent() {
       case "USER_REPORTED_CANCELLED":
         return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30">User Reported</span>;
       case "IN_PROGRESS":
-        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#789575]/15 text-[#4B6248] border border-[#789575]/30">In Progress</span>;
+        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FF5500]/15 text-[#8E9CAE] border border-[#FF5500]/30">In Progress</span>;
       default:
-        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#F0F2E3] text-[#4B6248] border border-[#B7C4A6]">Not Started</span>;
+        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#0D1322] text-[#8E9CAE] border border-[#1E293B]">Not Started</span>;
     }
   };
 
   const getMechanismBadge = (mech: string) => {
     const formatted = mech.replace("_", " ");
     return (
-      <span className="px-2 py-0.5 rounded text-[11px] font-mono tracking-wide bg-[#F0F2E3] text-[#4B6248] border border-[#B7C4A6]">
+      <span className="px-2 py-0.5 rounded text-[11px] font-mono tracking-wide bg-[#0D1322] text-[#8E9CAE] border border-[#1E293B]">
         {formatted}
       </span>
     );
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#E5E8CE] text-[#4B6248] selection:bg-[#789575] selection:text-[#243C2D]">
+    <div className="min-h-screen flex flex-col bg-[#040711] text-[#8E9CAE] selection:bg-[#FF5500] selection:text-[#F4F7FB]">
       {/* Top Navbar */}
       <AppHeader />
 
@@ -181,24 +181,24 @@ function CancellationCentreContent() {
         )}
 
         {/* Hero Notice */}
-        <div className="rounded-2xl bg-gradient-to-br from-[#F0F2E3] via-[#E5E8CE] to-[#E5E8CE] border border-[#B7C4A6] p-6 sm:p-8 flex flex-col gap-4 shadow-xl">
+        <div className="rounded-2xl bg-gradient-to-br from-[#0D1322] via-[#040711] to-[#040711] border border-[#1E293B] p-6 sm:p-8 flex flex-col gap-4 shadow-xl">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#789575]/15 text-[#4B6248] border border-[#789575]/30 mb-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#FF5500]/15 text-[#8E9CAE] border border-[#FF5500]/30 mb-2">
                 User-Guided Cancellation Playbooks
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#243C2D] tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#F4F7FB] tracking-tight">
                 Mechanism-Aware Cancellation Centre
               </h1>
-              <p className="text-sm text-[#4B6248] mt-1 max-w-2xl">
+              <p className="text-sm text-[#8E9CAE] mt-1 max-w-2xl">
                 Structured, step-by-step guidance to stop recurring commitments across UPI AutoPay, Card Standing Instructions, and e-NACH mandates.
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-[#E5E8CE] border border-[#B7C4A6] text-xs text-[#4B6248] max-w-sm flex items-start gap-2.5">
-              <span className="text-[#4B6248] font-bold text-base leading-none">🛡</span>
+            <div className="p-4 rounded-xl bg-[#040711] border border-[#1E293B] text-xs text-[#8E9CAE] max-w-sm flex items-start gap-2.5">
+              <span className="text-[#8E9CAE] font-bold text-base leading-none">🛡</span>
               <div>
-                <strong className="text-[#243C2D] block font-medium">Informational Safety Notice:</strong>
+                <strong className="text-[#F4F7FB] block font-medium">Informational Safety Notice:</strong>
                 PayScope provides verified procedural guidance only. We do not access banking credentials, execute debit cancellations, or revoke mandates directly.
               </div>
             </div>
@@ -206,20 +206,20 @@ function CancellationCentreContent() {
         </div>
 
         {/* Start Cancellation Section */}
-        <div className="rounded-2xl bg-[#F0F2E3] border border-[#B7C4A6] p-6">
-          <h2 className="text-lg font-bold text-[#4B6248] mb-4 flex items-center gap-2">
+        <div className="rounded-2xl bg-[#0D1322] border border-[#1E293B] p-6">
+          <h2 className="text-lg font-bold text-[#8E9CAE] mb-4 flex items-center gap-2">
             <span>Start Cancellation Guidance</span>
           </h2>
           <form onSubmit={handleCreateCase} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             <div className="md:col-span-2 flex flex-col gap-1.5">
-              <label htmlFor="commitment-select" className="text-xs font-medium text-[#4B6248]">Select Recurring Commitment</label>
+              <label htmlFor="commitment-select" className="text-xs font-medium text-[#8E9CAE]">Select Recurring Commitment</label>
               <select
                 id="commitment-select"
                 aria-label="Select Recurring Commitment"
                 value={selectedCommitmentId}
                 onChange={(e) => setSelectedCommitmentId(e.target.value)}
                 required
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#E5E8CE] border border-[#B7C4A6] text-sm text-[#243C2D] focus:outline-none focus:border-[#789575]"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#040711] border border-[#1E293B] text-sm text-[#F4F7FB] focus:outline-none focus:border-[#FF5500]"
               >
                 <option value="">-- Choose a recurring commitment --</option>
                 {commitments.map((c) => (
@@ -231,13 +231,13 @@ function CancellationCentreContent() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="payment-mechanism-select" className="text-xs font-medium text-[#4B6248]">Payment Channel</label>
+              <label htmlFor="payment-mechanism-select" className="text-xs font-medium text-[#8E9CAE]">Payment Channel</label>
               <select
                 id="payment-mechanism-select"
                 aria-label="Payment Channel"
                 value={selectedMechanism}
                 onChange={(e) => setSelectedMechanism(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#E5E8CE] border border-[#B7C4A6] text-sm text-[#243C2D] focus:outline-none focus:border-[#789575]"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#040711] border border-[#1E293B] text-sm text-[#F4F7FB] focus:outline-none focus:border-[#FF5500]"
               >
                 <option value="UPI_AUTOPAY">UPI AutoPay</option>
                 <option value="CARD_SI">Card Standing Instruction</option>
@@ -249,7 +249,7 @@ function CancellationCentreContent() {
             <button
               type="submit"
               disabled={creatingCase || !selectedCommitmentId}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#789575] to-[#789575] hover:brightness-110 text-[#E5E8CE] font-bold text-sm transition-all disabled:opacity-50 cursor-pointer shadow-lg shadow-[#789575]/20"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF5500] to-[#FF5500] hover:brightness-110 text-[#040711] font-bold text-sm transition-all disabled:opacity-50 cursor-pointer shadow-lg shadow-[#FF5500]/20"
             >
               {creatingCase ? "Loading Playbook..." : "Get Playbook →"}
             </button>
@@ -257,22 +257,22 @@ function CancellationCentreContent() {
         </div>
 
         {/* Existing Cancellation Cases */}
-        <div className="rounded-2xl bg-[#F0F2E3] border border-[#B7C4A6] p-6 flex flex-col gap-4">
+        <div className="rounded-2xl bg-[#0D1322] border border-[#1E293B] p-6 flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-[#243C2D]">Your Cancellation Cases</h2>
-            <span className="text-xs text-[#4B6248]">{cases.length} active or recorded cases</span>
+            <h2 className="text-lg font-bold text-[#F4F7FB]">Your Cancellation Cases</h2>
+            <span className="text-xs text-[#8E9CAE]">{cases.length} active or recorded cases</span>
           </div>
 
           {loading ? (
-            <div className="py-12 flex flex-col items-center justify-center gap-3 text-[#4B6248]">
-              <div className="w-6 h-6 border-2 border-[#789575] border-t-transparent rounded-full animate-spin" />
+            <div className="py-12 flex flex-col items-center justify-center gap-3 text-[#8E9CAE]">
+              <div className="w-6 h-6 border-2 border-[#FF5500] border-t-transparent rounded-full animate-spin" />
               <span className="text-xs">Loading cases...</span>
             </div>
           ) : cases.length === 0 ? (
-            <div className="py-12 border border-dashed border-[#B7C4A6] rounded-xl text-center flex flex-col items-center gap-2">
+            <div className="py-12 border border-dashed border-[#1E293B] rounded-xl text-center flex flex-col items-center gap-2">
               <span className="text-2xl">📋</span>
-              <p className="text-sm font-semibold text-[#243C2D]">No Cancellation Cases Active</p>
-              <p className="text-xs text-[#4B6248] max-w-sm">
+              <p className="text-sm font-semibold text-[#F4F7FB]">No Cancellation Cases Active</p>
+              <p className="text-xs text-[#8E9CAE] max-w-sm">
                 Select any recurring commitment above to generate a tailored, mechanism-aware cancellation playbook.
               </p>
             </div>
@@ -280,7 +280,7 @@ function CancellationCentreContent() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm border-collapse">
                 <thead>
-                  <tr className="border-b border-[#B7C4A6] text-xs font-semibold text-[#4B6248]">
+                  <tr className="border-b border-[#1E293B] text-xs font-semibold text-[#8E9CAE]">
                     <th className="py-3 px-4">Commitment</th>
                     <th className="py-3 px-4">Mechanism</th>
                     <th className="py-3 px-4">Status</th>
@@ -288,20 +288,20 @@ function CancellationCentreContent() {
                     <th className="py-3 px-4 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#B7C4A6]/50">
+                <tbody className="divide-y divide-[#1E293B]/50">
                   {cases.map((c) => {
                     const totalSteps = c.playbook?.steps?.length || 5;
                     const completed = c.completed_steps?.length || 0;
                     const pct = Math.min(100, Math.round((completed / totalSteps) * 100));
 
                     return (
-                      <tr key={c.id} className="hover:bg-[#F0F2E3]/40 transition-colors">
-                        <td className="py-4 px-4 font-semibold text-[#243C2D]">
-                          <Link href={`/cancellations/${c.id}`} className="hover:text-[#4B6248] transition-colors">
+                      <tr key={c.id} className="hover:bg-[#0D1322]/40 transition-colors">
+                        <td className="py-4 px-4 font-semibold text-[#F4F7FB]">
+                          <Link href={`/cancellations/${c.id}`} className="hover:text-[#8E9CAE] transition-colors">
                             {c.commitment_name}
                           </Link>
                           {c.user_reported_at && (
-                            <div className="text-[11px] text-[#4B6248] mt-0.5">
+                            <div className="text-[11px] text-[#8E9CAE] mt-0.5">
                               Reported: {new Date(c.user_reported_at).toLocaleDateString()}
                             </div>
                           )}
@@ -310,19 +310,19 @@ function CancellationCentreContent() {
                         <td className="py-4 px-4">{getStatusBadge(c.status)}</td>
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-2">
-                            <div className="w-24 h-2 rounded-full bg-[#E5E8CE] overflow-hidden border border-[#B7C4A6]">
+                            <div className="w-24 h-2 rounded-full bg-[#040711] overflow-hidden border border-[#1E293B]">
                               <div
-                                className="h-full bg-gradient-to-r from-[#789575] to-[#789575] transition-all"
+                                className="h-full bg-gradient-to-r from-[#FF5500] to-[#FF5500] transition-all"
                                 style={{ width: `${pct}%` }}
                               />
                             </div>
-                            <span className="text-xs text-[#4B6248] font-mono">{pct}%</span>
+                            <span className="text-xs text-[#8E9CAE] font-mono">{pct}%</span>
                           </div>
                         </td>
                         <td className="py-4 px-4 text-right">
                           <Link
                             href={`/cancellations/${c.id}`}
-                            className="inline-flex items-center px-3 py-1.5 rounded-lg border border-[#789575]/30 bg-[#789575]/10 text-[#4B6248] hover:bg-[#789575]/20 text-xs font-semibold transition-colors"
+                            className="inline-flex items-center px-3 py-1.5 rounded-lg border border-[#FF5500]/30 bg-[#FF5500]/10 text-[#8E9CAE] hover:bg-[#FF5500]/20 text-xs font-semibold transition-colors"
                           >
                             View Checklist →
                           </Link>
@@ -342,7 +342,7 @@ function CancellationCentreContent() {
 
 export default function CancellationCentrePage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#E5E8CE] text-[#243C2D] p-8">Loading Cancellation Centre...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#040711] text-[#F4F7FB] p-8">Loading Cancellation Centre...</div>}>
       <CancellationCentreContent />
     </Suspense>
   );

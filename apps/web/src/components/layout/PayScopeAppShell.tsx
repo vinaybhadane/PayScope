@@ -19,7 +19,7 @@ export function PayScopeAppShell({
     maxWidth === "full" ? "max-w-full" : maxWidth === "5xl" ? "max-w-5xl" : "max-w-7xl";
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#E5E8CE] text-[#4B6248] selection:bg-[#789575] selection:text-[#243C2D] antialiased">
+    <div className="min-h-screen flex flex-col bg-[#040711] text-[#8E9CAE] selection:bg-[#FF5500] selection:text-[#F4F7FB] antialiased">
       {/* Global Header */}
       <AppHeader apiConnected={apiConnected} />
 
@@ -29,17 +29,17 @@ export function PayScopeAppShell({
       </main>
 
       {/* Shared Footer */}
-      <footer className="border-t border-[#B7C4A6]/60 bg-[#E5E8CE]/60 py-6 text-xs text-[#4B6248]">
+      <footer className="border-t border-[#1E293B]/60 bg-[#040711]/60 py-6 text-xs text-[#8E9CAE]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p>© {new Date().getFullYear()} PayScope — Recurring Payment Intelligence Platform.</p>
+          <p>© 2026 PayScope — Recurring Payment Intelligence Platform.</p>
           <div className="flex items-center gap-6 text-[12px]">
-            <Link href="/" className="hover:text-[#243C2D] transition-colors">
+            <Link href="/" className="hover:text-[#F4F7FB] transition-colors">
               Home
             </Link>
-            <Link href="/about" className="hover:text-[#243C2D] transition-colors">
+            <Link href="/about" className="hover:text-[#F4F7FB] transition-colors">
               About Us
             </Link>
-            <Link href="/privacy" className="hover:text-[#243C2D] transition-colors">
+            <Link href="/privacy" className="hover:text-[#F4F7FB] transition-colors">
               Privacy Policy
             </Link>
           </div>
