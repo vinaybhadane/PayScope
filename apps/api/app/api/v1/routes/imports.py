@@ -8,6 +8,8 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.ingestion.import_service import ImportService
 from app.ingestion.file_validator import MAX_FILE_SIZE_BYTES
+from app.ingestion.refresh_service import refresh_imported_workspace
+from starlette.concurrency import run_in_threadpool
 from app.repositories.import_repository import ImportRepository
 from app.repositories.user_repository import UserRepository, resolve_workspace_user_id
 
@@ -114,7 +116,7 @@ async def create_import(
     user = UserRepository.get_or_create_demo_user(db)
 
     try:
-        result = ImportService.execute_import(
+        result = await run_in_threadpool(ImportService.execute_import,
             db=db,
             user_id=user.id,
             filename=file.filename or "uploaded_file",
@@ -123,6 +125,8 @@ async def create_import(
             synthetic_confirmed=synthetic_confirmed,
             column_overrides=overrides_dict,
         )
+        if result["status"] != "failed":
+            result["workspace_refresh"] = await run_in_threadpool(refresh_imported_workspace, db, user.id)
         return result
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The operation could not be completed. Please retry.")
@@ -173,6 +177,15 @@ def list_imports(
         "limit": limit,
         "offset": offset,
     }
+
+
+@router.post("/{import_id}/refresh")
+def retry_import_refresh(import_id: uuid.UUID, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    user_id = resolve_workspace_user_id(db)
+    record = ImportRepository.get_by_id(db, import_id)
+    if not record or record.user_id != user_id:
+        raise HTTPException(404, "Import not found.")
+    return refresh_imported_workspace(db, user_id)
 
 
 @router.get("/{import_id}/status", status_code=status.HTTP_200_OK)

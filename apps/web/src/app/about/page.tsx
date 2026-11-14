@@ -17,7 +17,7 @@ export default function AboutUsPage() {
       <PayScopeLandingHeader />
 
       {/* Main Content */}
-      <main className="relative z-10 flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20 flex flex-col gap-16">
+      <main className="public-content relative z-10 flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20 flex flex-col gap-16">
         {/* Hero Section */}
         <div className="text-left space-y-4 max-w-3xl">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#F0F2E3]/[0.05] border border-[#789575]/10 text-[#4B6248]">

@@ -1,6 +1,6 @@
 "use client";
 import { authFetch } from "@/lib/authFetch";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { getApiBaseUrl } from "./api";
 import { useWorkspaceMode } from "./useWorkspaceMode";
@@ -8,6 +8,14 @@ import { useWorkspaceMode } from "./useWorkspaceMode";
 const snapshots = new Map<string, { value: unknown; at: number }>();
 const pending = new Map<string, Promise<unknown>>();
 const FRESH_MS = 15_000;
+let revision = 0;
+const listeners = new Set<() => void>();
+const subscribe = (notify: () => void) => { listeners.add(notify); return () => { listeners.delete(notify); }; };
+export function invalidateWorkspaceResources() {
+  revision += 1;
+  snapshots.clear();
+  listeners.forEach((notify) => notify());
+}
 async function request(key: string, endpoint: string) {
   if (pending.has(key)) return pending.get(key)!;
   const operation = (async () => {
@@ -41,8 +49,9 @@ async function request(key: string, endpoint: string) {
 export function useWorkspaceResource<T>(endpoint: string, sample: T) {
   const { user, loading: authLoading } = useAuth();
   const mode = useWorkspaceMode();
+  const version = useSyncExternalStore(subscribe, () => revision, () => 0);
   const isDemo = !!user?.isDemo && mode === "sample";
-  const key = `${getApiBaseUrl()}:${user?.uid || "anonymous"}:${endpoint}`;
+  const key = `${getApiBaseUrl()}:${user?.uid || "anonymous"}:${endpoint}:${version}`;
   const [snapshot, setSnapshot] = useState<{
     key: string;
     value: T;

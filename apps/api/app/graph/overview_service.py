@@ -5,7 +5,7 @@ from threading import Lock
 from time import monotonic
 import uuid
 from neo4j import Query, READ_ACCESS
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import joinedload, Session
 from app.graph.config import neo4j_settings as settings
 from app.graph.driver import get_neo4j_driver
@@ -21,6 +21,7 @@ from app.models.commitment import Commitment
 from app.models.commitment_insight import CommitmentInsight
 from app.models.commitment_transaction import CommitmentTransaction
 from app.models.transaction import Transaction
+from app.models.import_record import ImportRecord
 
 _retry_after = 0.0
 _circuit_lock = Lock()
@@ -144,7 +145,12 @@ def get_overview(db: Session, user_id: uuid.UUID, limit=50):
                         limit=limit,
                     ).single()
                     if record:
-                        return serialize_neo4j(record, limit)
+                        graph = serialize_neo4j(record, limit)
+                        latest_import = db.scalar(select(func.max(ImportRecord.finished_at)).where(
+                            ImportRecord.user_id == user_id, ImportRecord.status.in_(["completed", "partially_completed"])))
+                        # Never serve an old projection after a saved import whose sync failed.
+                        if not latest_import or (graph.last_sync_at and graph.last_sync_at >= latest_import):
+                            return graph
         except Exception:
             with _circuit_lock:
                 _retry_after = monotonic() + 30

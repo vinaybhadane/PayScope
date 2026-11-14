@@ -302,23 +302,6 @@ export function LandingClientContainer({}: { apiConnected: boolean }) {
   };
   const start = () => (user ? router.push("/dashboard") : openAuthModal());
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("revealed");
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.12 },
-    );
-    root.current
-      ?.querySelectorAll("[data-reveal]")
-      .forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, []);
-  useEffect(() => {
     if (
       !window.matchMedia(
         "(hover: hover) and (prefers-reduced-motion: no-preference)",
@@ -343,7 +326,7 @@ export function LandingClientContainer({}: { apiConnected: boolean }) {
       <PayScopeLandingHeader />
       <main>
         <section className="hero-section">
-          <div className="hero-atmosphere" aria-hidden="true" />
+          <div className="hero-atmosphere" aria-hidden="true" /><div className="hero-fine-grid" aria-hidden="true" />
           <div className="hero-copy page-width">
             <span className="eyebrow-chip hero-enter">
               <span className="live-dot" />A LITTLE CLARITY GOES A LONG WAY
@@ -380,6 +363,8 @@ export function LandingClientContainer({}: { apiConnected: boolean }) {
             <div className="horizon-glow" aria-hidden="true">
               <div />
             </div>
+            <div className="hero-floating-note note-left" aria-hidden="true"><span><Icon name="shield" size={19} /></span><div><strong>A little peace of mind.</strong><small>No bank login needed.</small></div></div>
+            <div className="hero-floating-note note-right" aria-hidden="true"><span><Icon name="spark" size={19} /></span><div><strong>Make room for more.</strong><small>Your next chapter starts here.</small></div></div>
             <div className="preview-frame">
               <div className="preview-window-dots">
                 <i />

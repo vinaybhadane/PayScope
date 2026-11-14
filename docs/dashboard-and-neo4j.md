@@ -20,7 +20,15 @@ Sync covers users, accounts, merchants, descriptor aliases, commitments, transac
 
 The graph view labels its actual source. If Neo4j is disabled, empty, or unreachable, it shows the PostgreSQL projection. An unreachable server opens a 30-second circuit so subsequent graph reads do not repeat the failing connection attempt. Successful sync resets that circuit and invalidates graph snapshots.
 
-## Performance behavior
+## Import updates
+
+Successful imports now run recurring-payment discovery and insight detection against the authenticated workspace before synchronizing its Neo4j projection. Statement rows receive a reusable “Imported statements” source account, so account → transaction → merchant and commitment → evidence paths remain connected. Duplicate-only imports rerun the idempotent analysis and sync, allowing recovery without duplicate records.
+
+The import response includes `workspace_refresh` with separate analysis and graph statuses. Saved imports survive analysis or Neo4j failures; the upload result offers a retry through `POST /api/v1/imports/{id}/refresh`. A failed graph refresh falls back to current SQL records instead of serving a projection older than the latest completed import. Neo4j must be enabled and reachable for a completed graph status.
+
+After a successful upload the browser switches to Connected mode and invalidates its account-scoped snapshots. Dashboard metrics and relationship views fetch the stored records. `node scripts/check-import-refresh.cjs` verifies a synthetic upload through the browser against the configured local services, including a real Neo4j sync.
+
+## Read performance
 
 - Dashboard normalization runs once and is reused by savings and upcoming projections. Totals retain the existing confidence, cadence, verified-usage, and savings safeguards.
 - The spending timeline is grouped in SQL. Insight counts, recent insights, cancellation counts, and pending review counts share one database round-trip. Recent insights and top commitments are bounded.

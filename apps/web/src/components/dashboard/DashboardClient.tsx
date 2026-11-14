@@ -87,6 +87,7 @@ function SpendTimeline({ data }: { data: DashboardData }) {
             <button
               key={p}
               className={period === p ? "active" : ""}
+              aria-pressed={period === p}
               onClick={() => {
                 setPeriod(p);
                 setHovered(null);
@@ -114,7 +115,7 @@ function SpendTimeline({ data }: { data: DashboardData }) {
         <svg
           className="timeline-svg"
           viewBox="0 0 650 225"
-          role="img"
+          role="group"
           aria-label={months
             .map((m, i) => `${m}: ${inr(values[i])}`)
             .join(", ")}
@@ -144,13 +145,23 @@ function SpendTimeline({ data }: { data: DashboardData }) {
             d={`${line} L${points[points.length - 1].x},185 L52,185 Z`}
             fill={`url(#${gradient})`}
           />
-          <path d={line} fill="none" stroke="#789575" strokeWidth="2.5" />
+          <path className="timeline-stroke" pathLength="1" d={line} fill="none" stroke="#789575" strokeWidth="3" />
           {points.map((p, i) => (
             <g
               key={i}
+              role="button"
+              tabIndex={0}
+              aria-label={`${months[i]}: ${inr(values[i])}`}
+              onFocus={() => setHovered(i)}
+              onBlur={() => setHovered(null)}
+              onClick={() => setHovered(i)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setHovered(i); }
+              }}
               onMouseEnter={() => setHovered(i)}
               onMouseLeave={() => setHovered(null)}
             >
+              {hovered === i && <line className="timeline-crosshair" x1={p.x} x2={p.x} y1="20" y2="185" stroke="#789575" strokeOpacity=".35" strokeDasharray="3 4" />}
               <rect
                 x={p.x - 22}
                 y="0"
@@ -288,12 +299,12 @@ export default function DashboardClient() {
   return (
     <div className="dashboard-v2">
       <AppHeader />
-      <main className="dashboard-main">
+      <main id="workspace-content" tabIndex={-1} className="dashboard-main">
         <header className="dashboard-title">
           <div>
-            <span className="dash-eyebrow">
-              <span className="live-dot" />
-              YOUR FINANCIAL COMMAND CENTRE
+            <span className="dash-eyebrow dashboard-intro-label">
+              <Icon name="spark" size={13} />
+              A LITTLE CLARITY. A LOT OF CONTROL.
             </span>
             <h1>
               Your money, in focus<span>.</span>
@@ -303,7 +314,9 @@ export default function DashboardClient() {
               clarity.
             </p>
           </div>
-          <div className="dashboard-actions">
+          <div className="dashboard-title-tools">
+            <span className="dashboard-perspective"><Icon name="calendar" size={14} />Your recurring picture <span>INR</span></span>
+            <div className="dashboard-actions">
             <button
               className="icon-button"
               aria-label="Refresh dashboard"
@@ -328,6 +341,7 @@ export default function DashboardClient() {
               <Icon name="plus" size={17} />
               Import statement
             </Link>
+            </div>
           </div>
         </header>
         <div className="dashboard-status">
@@ -382,6 +396,7 @@ export default function DashboardClient() {
           </div>
         ) : (
           <>
+            <div className="dashboard-section-label"><span>At a glance</span><span>Small details. A clearer perspective.</span></div>
             <section
               className="dashboard-metrics"
               aria-label="Financial summary"
@@ -427,7 +442,7 @@ export default function DashboardClient() {
                 >
                   <div>
                     <span>{s.label}</span>
-                    <Icon name={s.icon} size={19} />
+                    <span className="metric-icon"><Icon name={s.icon} size={19} /></span>
                   </div>
                   <strong>{s.value}</strong>
                   <footer>

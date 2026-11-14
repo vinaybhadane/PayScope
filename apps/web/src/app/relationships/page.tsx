@@ -7,7 +7,7 @@ export default function RelationshipsPage() {
     <ProtectedRoute>
       <div className="dashboard-v2">
         <AppHeader />
-        <main className="dashboard-main relationships-page">
+        <main id="workspace-content" tabIndex={-1} className="workspace-content dashboard-main relationships-page">
           <header className="dashboard-title">
             <div>
               <span className="dash-eyebrow">

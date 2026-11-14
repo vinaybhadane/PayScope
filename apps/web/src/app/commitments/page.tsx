@@ -226,7 +226,7 @@ export default function CommitmentsPage() {
       <AppHeader />
 
       {/* Main Content */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
+      <main id="workspace-content" tabIndex={-1} className="workspace-content flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
         {/* Title and Discovery Action */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>

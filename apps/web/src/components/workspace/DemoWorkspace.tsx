@@ -529,7 +529,7 @@ export function DemoWorkspace() {
   return (
     <div className="demo-workspace">
       <AppHeader />
-      <main className="workspace-main">
+      <main id="workspace-content" tabIndex={-1} className="workspace-main" key={section}>
         <div className="workspace-page-title">
           <div>
             <span className="section-eyebrow">

@@ -20,6 +20,7 @@ from app.matching.review_service import ReviewService
 from app.models.import_record import ImportRecord
 from app.models.payment_notification import PaymentNotification
 from app.models.transaction import Transaction
+from app.models.account import Account
 from app.repositories.import_repository import ImportRepository
 
 logger = logging.getLogger(__name__)
@@ -246,6 +247,17 @@ class ImportService:
         if not rows:
             raise ValueError(f"File '{filename}' contains no readable data rows.")
 
+        # Keep a source account so imported payment evidence has connected paths.
+        if import_type == "statement" and account_id is None:
+            account = db.scalar(select(Account).where(
+                Account.user_id == user_id, Account.label == "Imported statements"
+            ).order_by(Account.created_at).limit(1))
+            if account is None:
+                account = Account(user_id=user_id, label="Imported statements", is_synthetic=True)
+                db.add(account)
+                db.flush()
+            account_id = account.id
+
         # 3. Create ImportRecord in DB
         storage_key = f"synthetic/{user_id}/{uuid.uuid4()}_{filename}"
         import_record = ImportRepository.create(
@@ -345,6 +357,8 @@ class ImportService:
                         matched_at=now,
                     )
                     new_records.append(txn)
+                    if r.get("external_synthetic_id"):
+                        existing_ids.add(r["external_synthetic_id"])
 
                     if resolution.status in ("NEEDS_REVIEW", "UNRESOLVED"):
                         review_items_to_queue.append((txn, resolution))
@@ -397,6 +411,8 @@ class ImportService:
                         is_synthetic=True,
                     )
                     new_records.append(notif)
+                    if r.get("external_synthetic_id"):
+                        existing_ids.add(r["external_synthetic_id"])
 
                 if new_records:
                     db.add_all(new_records)

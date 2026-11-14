@@ -1,5 +1,8 @@
 "use client";
 import { authFetch } from "@/lib/authFetch";
+import Link from "next/link";
+import { setWorkspaceMode } from "@/lib/useWorkspaceMode";
+import { invalidateWorkspaceResources } from "@/lib/useWorkspaceResource";
 
 import { getApiBaseUrl } from "@/lib/api";
 import React, { useState, useEffect, useCallback, useId } from "react";
@@ -70,6 +73,7 @@ interface ImportResult {
   duplicate_count: number;
   rejected_count: number;
   errors: RowErrorItem[];
+  workspace_refresh?: { analysis_status: string; graph_status: string; message: string };
 }
 
 interface ImportHistoryItem {
@@ -267,6 +271,10 @@ export default function UploadPage() {
         setExecutionError(data.detail || data.error || "Failed to persist import.");
       } else {
         setImportResult(data);
+        if (data.status !== "failed") {
+          invalidateWorkspaceResources();
+          setWorkspaceMode("connected");
+        }
         fetchHistory(); // Refresh history table
       }
     } catch (err) {
@@ -282,7 +290,7 @@ export default function UploadPage() {
       <AppHeader />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
+      <main id="workspace-content" tabIndex={-1} className="workspace-content flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
         {/* Title & Introduction */}
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#243C2D]">
@@ -756,7 +764,7 @@ export default function UploadPage() {
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold text-[#243C2D]">
-                    Import Succeeded
+                    {importResult.status === "failed" ? "No rows imported" : "Import saved"}
                   </h3>
                   <p className="text-xs text-[#4B6248] font-mono">
                     Import ID: {importResult.import_id}
@@ -768,6 +776,25 @@ export default function UploadPage() {
               </span>
             </div>
 
+            {importResult.workspace_refresh && <div role="status" className="text-sm text-[#4B6248] leading-relaxed">
+              <p>{importResult.workspace_refresh.message}</p>
+              <div className="flex flex-wrap gap-3 mt-3">
+                <Link href="/dashboard" className="button button-primary">View updated dashboard →</Link>
+                <Link href="/relationships" className="button button-subtle">Explore relationships →</Link>
+                {(importResult.workspace_refresh.analysis_status === "failed" || importResult.workspace_refresh.graph_status === "failed") &&
+                  <button disabled={importing} className="button button-subtle" onClick={async () => {
+                    setImporting(true);
+                    try {
+                      const response = await authFetch(`${apiBase}/api/v1/imports/${importResult.import_id}/refresh`, { method: "POST" });
+                      if (!response.ok) throw new Error("Refresh failed. Please retry.");
+                      const workspace_refresh = await response.json();
+                      setImportResult({ ...importResult, workspace_refresh });
+                      invalidateWorkspaceResources();
+                    } catch (error) { setExecutionError(error instanceof Error ? error.message : "Refresh failed."); }
+                    finally { setImporting(false); }
+                  }}>{importing ? "Updating…" : "Retry workspace update"}</button>}
+              </div>
+            </div>}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
               <div className="rounded bg-[#F0F2E3]/80 p-3 border border-[#B7C4A6]">
                 <span className="text-[11px] text-[#4B6248] block">Total Rows</span>
