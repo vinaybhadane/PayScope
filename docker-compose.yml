@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: mandatelens-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-mandatelens}
+      POSTGRES_USER: ${POSTGRES_USER:-mandatelens_dev}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mandatelens_dev_password}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mandatelens-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mandatelens_dev} -d ${POSTGRES_DB:-mandatelens}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  neo4j:
+    image: neo4j:5-community
+    container_name: payscope-neo4j
+    restart: unless-stopped
+    environment:
+      - NEO4J_AUTH=${NEO4J_AUTH:-neo4j/payscope_password}
+      - NEO4J_PLUGINS=["apoc"]
+    ports:
+      - "127.0.0.1:7474:7474"
+      - "127.0.0.1:7687:7687"
+    volumes:
+      - neo4j_data:/data
+    networks:
+      - mandatelens-network
+
+volumes:
+  postgres_data:
+    name: mandatelens_postgres_data
+  neo4j_data:
+    name: payscope_neo4j_data
+
+networks:
+  mandatelens-network:
+    name: mandatelens_network
+    driver: bridge
