@@ -43,7 +43,9 @@ All financial, import, graph, and mutation APIs require `Authorization: Bearer <
 
 `POST /api/v1/auth/guest` creates a guest session. `GET /api/v1/auth/me` returns the authenticated workspace ID. Caller-supplied `user_id` values must match this ID. Source queries, record lookups, writes, and read caches are scoped to that workspace. Merchant reference data is shared; user-created aliases are private and curated aliases are read-only.
 
-The sample workspace is illustrative data stored in the frontend. **Connected** displays the authenticated API workspace, which starts empty. Import synthetic records or use authenticated `POST /api/v1/demo/seed` to populate it. Public sample downloads and health/readiness checks require no session.
+The guest sample workspace uses predefined synthetic records. Google-authenticated workspaces start empty; import synthetic records to populate them. Public sample downloads and health/readiness checks require no session.
+
+Guest demo entry seeds six predefined subscriptions into its isolated API workspace: Netflix, Amazon Prime, YouTube Premium, ChatGPT Plus, Claude Pro, and Gemini Pro. The dashboard and subscription list read the same records. Sample INR amounts are illustrative and are not current plan prices. Guest analysis uses built-in rules and predefined report text without calling Gemini; Google-authenticated workspaces continue to use the existing AI review flow. Company logos are served locally and fall back to an initial when unavailable. The relationship overview follows Account → Subscription → Company; Payment evidence focuses on one subscription's recorded payments.
 
 CORS allows configured origins only. Set `BACKEND_CORS_ORIGINS` for your frontend host and remove unused production defaults when deploying. Unexpected server errors return a generic message; details stay in server logs.
 

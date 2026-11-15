@@ -1,4 +1,6 @@
+"use client";
 import Image from "next/image";
+import { useState } from "react";
 
 type MerchantBrand = {
   src: string;
@@ -6,6 +8,9 @@ type MerchantBrand = {
 };
 
 const brands: { matches: string[]; src: string; color: string }[] = [
+  { matches: ["chatgpt", "openai"], src: "/merchant-logos/chatgpt.png", color: "#111111" },
+  { matches: ["claude", "anthropic"], src: "/merchant-logos/claude.png", color: "#c87958" },
+  { matches: ["gemini", "google"], src: "/merchant-logos/gemini.png", color: "#4285f4" },
   { matches: ["netflix"], src: "/merchant-logos/netflix.svg", color: "#e50914" },
   { matches: ["spotify"], src: "/merchant-logos/spotify.svg", color: "#1db954" },
   { matches: ["adobe"], src: "/merchant-logos/adobe.png", color: "#eb1000" },
@@ -34,6 +39,7 @@ export function MerchantLogo({
   fallbackMark?: string;
 }) {
   const brand = getMerchantBrand(name);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
   return (
     <span
       aria-hidden="true"
@@ -52,8 +58,8 @@ export function MerchantLogo({
         fontWeight: 700,
       }}
     >
-      {brand ? (
-        <Image src={brand.src} alt="" width={Math.round(size * 0.66)} height={Math.round(size * 0.66)} />
+      {brand && failedSrc !== brand.src ? (
+        <Image src={brand.src} alt="" width={Math.round(size * 0.66)} height={Math.round(size * 0.66)} onError={() => setFailedSrc(brand.src)} />
       ) : (
         <span style={{ fontSize: Math.round(size * 0.48), lineHeight: 1 }}>
           {fallbackMark || name.trim().charAt(0).toUpperCase() || "?"}

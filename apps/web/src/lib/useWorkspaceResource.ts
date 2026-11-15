@@ -10,6 +10,9 @@ const FRESH_MS = 15_000;
 let revision = 0;
 const listeners = new Set<() => void>();
 const subscribe = (notify: () => void) => { listeners.add(notify); return () => { listeners.delete(notify); }; };
+export function useWorkspaceRevision() {
+  return useSyncExternalStore(subscribe, () => revision, () => 0);
+}
 export function invalidateWorkspaceResources() {
   revision += 1;
   snapshots.clear();
@@ -19,7 +22,7 @@ async function request(key: string, endpoint: string) {
   if (pending.has(key)) return pending.get(key)!;
   const operation = (async () => {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8000);
+    const timer = setTimeout(() => controller.abort(), 30000);
     try {
       const response = await authFetch(`${getApiBaseUrl()}${endpoint}`, {
         signal: controller.signal,

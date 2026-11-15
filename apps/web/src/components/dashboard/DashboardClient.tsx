@@ -516,7 +516,7 @@ export default function DashboardClient() {
                         <tr key={c.id}>
                           <td>
                             <MerchantLogo
-                              name={c.merchant_name || c.display_name}
+                              name={c.display_name}
                               className="dashboard-merchant"
                             />
                             <div>

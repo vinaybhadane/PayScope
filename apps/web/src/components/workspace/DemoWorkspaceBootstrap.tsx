@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { authFetch } from "@/lib/authFetch";
+import { authFetch, DEMO_VERSION } from "@/lib/authFetch";
 import { getApiBaseUrl } from "@/lib/apiBase";
 import { invalidateWorkspaceResources } from "@/lib/useWorkspaceResource";
 
@@ -11,7 +11,7 @@ export function DemoWorkspaceBootstrap() {
 
   useEffect(() => {
     if (!user?.isDemo) return;
-    const seedKey = `payscope_demo_seed_${user.uid}`;
+    const seedKey = `payscope_demo_seed_${DEMO_VERSION}_${user.uid}`;
     if (sessionStorage.getItem(seedKey)) return;
 
     sessionStorage.setItem(seedKey, "pending");

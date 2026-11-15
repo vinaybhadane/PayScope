@@ -8,63 +8,14 @@ export interface DemoSubscription {
   day: number;
   account: string;
 }
+// Sample amounts illustrate the demo; they are not current plan prices.
 export const demoSubscriptions: DemoSubscription[] = [
-  {
-    id: "netflix", name: "Netflix Premium", mark: "N", color: "#E50914",
-    category: "Entertainment",
-    amount: 649,
-    day: 16,
-    account: "Visa ·· 4242",
-  },
-  {
-    id: "spotify", name: "Spotify Premium", mark: "≈", color: "#1DB954",
-    category: "Entertainment",
-    amount: 119,
-    day: 18,
-    account: "UPI AutoPay",
-  },
-  {
-    id: "adobe", name: "Adobe Creative Cloud", mark: "A", color: "#FF0000",
-    category: "Productivity",
-    amount: 1699,
-    day: 21,
-    account: "Visa ·· 4242",
-  },
-  {
-    id: "notion", name: "Notion Plus", mark: "N", color: "#CBD5E1",
-    category: "Productivity",
-    amount: 330,
-    day: 24,
-    account: "Visa ·· 4242",
-  },
-  {
-    id: "icloud", name: "iCloud+", mark: "☁", color: "#0284C7",
-    category: "Storage",
-    amount: 75,
-    day: 25,
-    account: "Visa ·· 4242",
-  },
-  {
-    id: "youtube", name: "YouTube Premium", mark: "▶", color: "#FF0000",
-    category: "Entertainment",
-    amount: 129,
-    day: 26,
-    account: "UPI AutoPay",
-  },
-  {
-    id: "figma", name: "Figma Professional", mark: "F", color: "#A259FF",
-    category: "Productivity",
-    amount: 990,
-    day: 27,
-    account: "Visa ·· 4242",
-  },
-  {
-    id: "prime", name: "Amazon Prime", mark: "a", color: "#00A8E1",
-    category: "Entertainment",
-    amount: 299,
-    day: 28,
-    account: "UPI AutoPay",
-  },
+  { id: "netflix", name: "Netflix", mark: "N", color: "#E50914", category: "Entertainment", amount: 649, day: 16, account: "Demo Visa ?? 4242" },
+  { id: "prime", name: "Amazon Prime", mark: "A", color: "#00A8E1", category: "Entertainment", amount: 299, day: 18, account: "Demo Visa ?? 4242" },
+  { id: "youtube", name: "YouTube Premium", mark: "Y", color: "#FF0000", category: "Entertainment", amount: 129, day: 20, account: "Demo Visa ?? 4242" },
+  { id: "chatgpt", name: "ChatGPT Plus", mark: "C", color: "#111111", category: "Productivity", amount: 1999, day: 22, account: "Demo Visa ?? 4242" },
+  { id: "claude", name: "Claude Pro", mark: "C", color: "#C87958", category: "Productivity", amount: 1999, day: 24, account: "Demo Visa ?? 4242" },
+  { id: "gemini", name: "Gemini Pro", mark: "G", color: "#4285F4", category: "Productivity", amount: 1950, day: 26, account: "Demo Visa ?? 4242" },
 ];
 export const demoMonthly = demoSubscriptions.reduce(
   (sum, sub) => sum + sub.amount,
@@ -77,34 +28,6 @@ export const inr = (amount: number | string) =>
     maximumFractionDigits: 0,
   }).format(Number(amount) || 0);
 export const demoInsights = [
-  {
-    id: "adobe-price",
-    icon: "trend",
-    title: "A price increase worth reviewing",
-    merchant: "Adobe Creative Cloud",
-    text: "Your monthly payment moved from ₹1,499 to ₹1,699. That’s an extra ₹2,400 over a year.",
-    type: "Price increase",
-    amount: "₹2,400 / year",
-    subId: "adobe",
-  },
-  {
-    id: "notion-review",
-    icon: "clock",
-    title: "Does this still earn its place?",
-    merchant: "Notion Plus",
-    text: "A recurring charge worth checking. Review whether this plan still fits your needs before the next renewal.",
-    type: "Review suggested",
-    amount: "₹3,960 / year",
-    subId: "notion",
-  },
-  {
-    id: "trial",
-    icon: "repeat",
-    title: "Keep an eye on your renewal",
-    merchant: "Figma Professional",
-    text: "This sample illustrates a trial converting to a monthly subscription. Check your plan before the next charge.",
-    type: "Trial conversion",
-    amount: "₹990 / month",
-    subId: "figma",
-  },
+  { id: "ai-plans", icon: "spark", title: "Review your AI plans together", merchant: "ChatGPT Plus", text: "This sample includes three AI subscriptions. Compare their features and choose the plans that fit your needs.", type: "Review suggested", amount: "Illustrative sample", subId: "chatgpt" },
+  { id: "prime-review", icon: "clock", title: "Check before your next renewal", merchant: "Amazon Prime", text: "Review your plan before the next sample payment. Selecting a plan in the simulator does not cancel it.", type: "Review suggested", amount: "Illustrative sample", subId: "prime" },
 ];

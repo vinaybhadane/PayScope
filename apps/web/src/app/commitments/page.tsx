@@ -8,6 +8,7 @@ import Link from "next/link";
 import AppHeader from "@/components/navigation/AppHeader";
 import { MerchantLogo } from "@/components/workspace/MerchantLogo";
 import { formatPeriod } from "@/lib/formatPeriod";
+import { useWorkspaceRevision } from "@/lib/useWorkspaceResource";
 
 interface CommitmentItem {
   id: string;
@@ -53,6 +54,7 @@ interface CommitmentSummary {
 }
 
 export default function CommitmentsPage() {
+  const workspaceRevision = useWorkspaceRevision();
   const [commitments, setCommitments] = useState<CommitmentItem[]>([]);
   const [summary, setSummary] = useState<CommitmentSummary | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -138,7 +140,7 @@ export default function CommitmentsPage() {
     return () => {
       ignore = true;
     };
-  }, [apiBase, searchQuery, cadenceFilter, typeFilter, statusFilter, confidenceFilter]);
+  }, [apiBase, searchQuery, cadenceFilter, typeFilter, statusFilter, confidenceFilter, workspaceRevision]);
 
   // Run discovery
   const handleDiscover = async () => {

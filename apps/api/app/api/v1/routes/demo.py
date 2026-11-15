@@ -129,6 +129,11 @@ def generate_sample_data(req: GenerateRequest) -> Dict[str, Any]:
 @router.post("/seed", dependencies=[Depends(require_identity)], status_code=status.HTTP_200_OK)
 def seed_demo_workspace(db: Session = Depends(get_db)) -> Dict[str, Any]:
     """Idempotently seed canonical merchants, synthetic bank transactions, recurring commitments, and insights."""
+    from app.core.auth import current_identity
+    if current_identity.get() and current_identity.get().is_demo:
+        from app.generators.subscription_demo import seed_subscription_demo
+        from app.repositories.user_repository import UserRepository
+        return seed_subscription_demo(db, UserRepository.get_or_create_demo_user(db).id)
     from datetime import datetime, timezone
     from app.matching.seed_merchants import seed_canonical_merchants
     from app.ingestion.import_service import ImportService

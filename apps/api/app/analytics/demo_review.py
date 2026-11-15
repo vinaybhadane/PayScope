@@ -53,12 +53,14 @@ def save_predefined_demo_report(db: Session, user_id: uuid.UUID) -> dict:
             "This is a what-if calculation; it does not cancel a service or change an account."
         ),
         "limitations": [
+            "Sample subscription amounts are illustrative INR values, not current company plan prices.",
             "Demo analysis uses synthetic sample data and deterministic rules; no Gemini key or AI provider is used.",
             "The sample findings are illustrative and are not a review of real financial records.",
         ],
         "transaction_count": int(transaction_count),
         "subscriptions": [
             {
+                "commitment_id": str(commitment.id),
                 "name": commitment.display_name,
                 "currency": commitment.currency,
                 "amount": str(commitment.representative_amount or 0),
@@ -69,6 +71,7 @@ def save_predefined_demo_report(db: Session, user_id: uuid.UUID) -> dict:
                 "explanation": commitment.detection_explanation
                 or "Recurring pattern identified in synthetic sample payments.",
                 "insights": [],
+                "savings_recommendation": "Illustrative demo: select this sample plan to estimate the cost avoided if you cancelled it.",
             }
             for commitment in commitments
         ],
@@ -89,6 +92,13 @@ def save_predefined_demo_report(db: Session, user_id: uuid.UUID) -> dict:
 
 def review_demo_workspace(db: Session, user_id: uuid.UUID) -> dict:
     """Recompute a guest workspace with local rules and predefined report copy."""
+    preset = db.scalar(select(func.count(Commitment.id)).where(
+        Commitment.user_id == user_id, Commitment.detector_version == 'predefined-demo-v2'))
+    if preset:
+        save_predefined_demo_report(db, user_id)
+        return {'analysis_status': 'completed', 'commitments_discovered': int(preset),
+                'active_count': int(preset), 'model': 'predefined-demo-v1',
+                'message': 'Predefined sample analysis refreshed. Sample amounts are illustrative.'}
     discovery = CommitmentDetector(db).discover_user_commitments(user_id)
     insight_summary = run_insight_detection(db, user_id)
     save_predefined_demo_report(db, user_id)

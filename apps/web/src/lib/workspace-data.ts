@@ -78,10 +78,10 @@ export interface DashboardData {
 export const sampleDashboard: DashboardData = {
   data_status: "demo",
   kpis: {
-    active_commitments_count: 8,
+    active_commitments_count: demoSubscriptions.length,
     monthly_recurring_spend: demoMonthly,
     annualized_recurring_spend: demoMonthly * 12,
-    open_insights_count: 3,
+    open_insights_count: demoInsights.length,
     potential_annual_savings: 7548,
     cancellations_attention_count: 0,
   },
@@ -149,7 +149,7 @@ export const sampleDashboard: DashboardData = {
   insight_type_counts: { price_increase: 1, trial_conversion: 1, review: 1 },
   cancellation_summary: {},
   merchant_review_pending: 1,
-  canonical_merchants_count: 8,
+  canonical_merchants_count: demoSubscriptions.length,
 };
 function makeDemoGraph(): GraphData {
   const nodes: GraphNode[] = [

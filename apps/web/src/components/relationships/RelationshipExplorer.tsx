@@ -4,6 +4,8 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 import { inr } from "@/lib/demo-data";
+import { formatPeriod } from "@/lib/formatPeriod";
+import { useAuth } from "@/context/AuthContext";
 import {
   sampleGraph,
   type GraphData,
@@ -17,7 +19,7 @@ const kinds: Record<string, { label: string; color: string; icon: string }> = {
   Account: { label: "Accounts", color: "#3B82F6", icon: "card" },
   Transaction: { label: "Evidence", color: "#8E9CAE", icon: "file" },
   Commitment: { label: "Subscriptions", color: "#FF5500", icon: "repeat" },
-  Merchant: { label: "Merchants", color: "#A855F7", icon: "globe" },
+  Merchant: { label: "Companies", color: "#A855F7", icon: "globe" },
   CommitmentInsight: { label: "Insights", color: "#F59E0B", icon: "spark" },
   CancellationEvent: {
     label: "Cancellations",
@@ -27,11 +29,11 @@ const kinds: Record<string, { label: string; color: string; icon: string }> = {
 };
 const edgeLabels: Record<string, string> = {
   OWNS_ACCOUNT: "owns",
-  FUNDS: "funds",
+  FUNDS: "pays for",
   HAS_COMMITMENT: "commits to",
   ASSOCIATED_WITH: "billed by",
   HAS_INSIGHT: "flagged by",
-  SUPPORTED_BY: "evidenced by",
+  SUPPORTED_BY: "payment record",
   HAS_TRANSACTION: "debited from",
   PAID_TO: "paid to",
   HAS_CANCELLATION_EVENT: "cancelled via",
@@ -42,11 +44,13 @@ export default function RelationshipExplorer({
 }: {
   compact?: boolean;
 }) {
+  const { user } = useAuth();
   const resource = useWorkspaceResource<GraphData>(
     "/api/v1/graph/explorer?limit=50",
     sampleGraph,
   );
   const [mode, setMode] = useState("Overview");
+  const [evidenceSubscription, setEvidenceSubscription] = useState("");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All categories");
   const [selected, setSelected] = useState<string | null>(null);
@@ -68,6 +72,8 @@ export default function RelationshipExplorer({
             n.data.node_type === "Commitment" &&
             (category === "All categories" || n.data.category === category),
         )
+        .sort((a, b) => a.data.name.localeCompare(b.data.name))
+        .filter((n, index, all) => mode !== "Evidence" || compact || (evidenceSubscription ? n.data.id === evidenceSubscription : index === 0 && all.length > 0))
         .slice(0, compact ? 4 : 100)
         .map((n) => n.data.id),
     );
@@ -119,45 +125,18 @@ export default function RelationshipExplorer({
         },
       });
     }
-    const columns = compact
-      ? ["Account", "Commitment", "Merchant"]
-      : mode === "Evidence"
-        ? [
-          "User",
-          "Account",
-          "Transaction",
-          "Commitment",
-          "Merchant",
-          "CommitmentInsight",
-          "CancellationEvent",
-        ]
-        : [
-          "User",
-          "Account",
-          "Commitment",
-          "Merchant",
-          "CommitmentInsight",
-          "CancellationEvent",
-        ];
+    const columns = mode === "Evidence" && !compact
+      ? ["Account", "Commitment", "Transaction"]
+      : ["Account", "Commitment", "Merchant"];
     const nodes = graph.nodes.filter(
       (n) => keep.has(n.data.id) && columns.includes(n.data.node_type),
     );
     const ids = new Set(nodes.map((n) => n.data.id));
-    const funded = new Set([...funding.values()].map((e) => e.data.target));
     const edges = [
       ...graph.edges,
-      ...(mode !== "Evidence" || compact ? funding.values() : []),
-    ].filter(
-      (e) =>
-        ids.has(e.data.source) &&
-        ids.has(e.data.target) &&
-        e.data.relationship_type !== "HAS_MERCHANT" &&
-        !(
-          e.data.relationship_type === "HAS_COMMITMENT" &&
-          funded.has(e.data.target) &&
-          mode !== "Evidence"
-        ),
-    );
+      ...funding.values(),
+    ].filter((e) => ids.has(e.data.source) && ids.has(e.data.target) &&
+      ["FUNDS", "ASSOCIATED_WITH", "SUPPORTED_BY"].includes(e.data.relationship_type));
     const nonemptyColumns = columns.filter((c) =>
       nodes.some((n) => n.data.node_type === c),
     );
@@ -167,10 +146,10 @@ export default function RelationshipExplorer({
       ),
       1,
     );
-    const height = Math.max(compact ? 295 : 440, maxRows * 78 + 90);
+    const height = Math.max(compact ? 295 : 440, maxRows * 92 + 100);
     const width = Math.max(
       compact ? 760 : 1040,
-      nonemptyColumns.length * 235 + 30,
+      nonemptyColumns.length * 300 + 30,
     );
     const position = new Map<string, { x: number; y: number }>();
     nonemptyColumns.forEach((kind, ci) => {
@@ -185,6 +164,19 @@ export default function RelationshipExplorer({
         }),
       );
     });
+    // Keep each company on the same row as the subscription it bills.
+    // Shared accounts sit centrally among their connected subscriptions.
+    for (const kind of ["Merchant", "Account"]) {
+      for (const node of nodes.filter((n) => n.data.node_type === kind)) {
+        const linkedRows = edges.flatMap((edge) => {
+          const other = edge.data.source === node.data.id ? edge.data.target
+            : edge.data.target === node.data.id ? edge.data.source : null;
+          return other && nodes.some((n) => n.data.id === other && n.data.node_type === "Commitment")
+            ? [position.get(other)!.y] : [];
+        });
+        if (linkedRows.length) position.get(node.data.id)!.y = linkedRows.reduce((a, b) => a + b, 0) / linkedRows.length;
+      }
+    }
     return {
       nodes,
       edges,
@@ -194,7 +186,7 @@ export default function RelationshipExplorer({
       categories,
       columns: nonemptyColumns,
     };
-  }, [graph, mode, category, compact]);
+  }, [graph, mode, category, compact, evidenceSubscription]);
   const selectedNode = model?.nodes.find((n) => n.data.id === selected);
   useEffect(() => {
     if (query.trim().length < 2 || !model) return;
@@ -272,7 +264,9 @@ export default function RelationshipExplorer({
           <p>
             {compact
               ? "From the account it leaves to the subscription it supports."
-              : "Select a node to see its details and trace the evidence behind a payment."}
+              : mode === "Evidence"
+                ? "Choose a subscription to see its account and the individual payments that support it."
+                : "Read left to right: your account pays for a subscription, which is billed by a company. Select a box for details."}
           </p>
         </div>
         <span className={`data-source source-${graph?.source || "loading"}`}>
@@ -298,10 +292,14 @@ export default function RelationshipExplorer({
                   setSelected(null);
                 }}
               >
-                {m}
+                {m === "Evidence" ? "Payment evidence" : "Overview"}
               </button>
             ))}
           </div>
+          {mode === "Evidence" && <select aria-label="Subscription to inspect" value={evidenceSubscription} onChange={(event) => { setEvidenceSubscription(event.target.value); setSelected(null); }}>
+            <option value="">First subscription</option>
+            {graph?.nodes.filter((n) => n.data.node_type === "Commitment").sort((a, b) => a.data.name.localeCompare(b.data.name)).map((n) => <option key={n.data.id} value={n.data.id}>{n.data.name}</option>)}
+          </select>}
           <label className="relation-search">
             <Icon name="search" size={16} />
             <input
@@ -335,7 +333,7 @@ export default function RelationshipExplorer({
           >
             <Icon name="repeat" size={16} />
           </button>
-          {!resource.isDemo && (
+          {!user?.isDemo && !resource.isDemo && (
             <button
               className="button button-subtle relation-sync"
               onClick={sync}
@@ -500,8 +498,10 @@ export default function RelationshipExplorer({
                           : n.data.name}
                       </text>
                       <text x="30" y="36" className="graph-node-subtitle">
-                        {n.data.amount !== undefined
-                          ? inr(n.data.amount)
+                        {n.data.node_type === "Transaction" && n.data.metadata?.transaction_date
+                          ? `${new Date(String(n.data.metadata.transaction_date)).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} · ${inr(n.data.amount || 0)}`
+                          : ["Commitment", "Transaction"].includes(n.data.node_type) && n.data.amount !== undefined
+                          ? `${inr(n.data.amount)}${n.data.cadence ? ` · ${formatPeriod(n.data.cadence)}` : ""}`
                           : n.data.category ||
                           kinds[n.data.node_type]?.label ||
                           n.data.node_type}
@@ -543,7 +543,7 @@ export default function RelationshipExplorer({
                     <dl>
                       {[
                         ["Status", selectedNode.data.status],
-                        ["Cadence", selectedNode.data.cadence],
+                        ["Period", selectedNode.data.cadence ? formatPeriod(selectedNode.data.cadence) : undefined],
                         ["Category", selectedNode.data.category],
                         ["Confidence", selectedNode.data.confidence_band],
                       ]

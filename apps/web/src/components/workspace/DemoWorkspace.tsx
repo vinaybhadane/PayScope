@@ -26,7 +26,7 @@ function Stats({ savings = 7548 }: { savings?: number }) {
           label: "Monthly recurring spend",
           value: inr(demoMonthly),
           icon: "wallet",
-          note: "Across 8 active subscriptions",
+          note: "Across 6 active subscriptions",
           featured: true,
         },
         {
@@ -43,7 +43,7 @@ function Stats({ savings = 7548 }: { savings?: number }) {
         },
         {
           label: "Active subscriptions",
-          value: "08",
+          value: "06",
           icon: "repeat",
           note: "Next payment: Netflix · Nov 16",
         },
@@ -236,7 +236,7 @@ function SubscriptionTable({
           <p>
             {compact
               ? "A heads-up for what’s coming."
-              : "8 sample subscriptions · November 2026"}
+              : "6 sample subscriptions · November 2026"}
           </p>
         </div>
         {compact && (
@@ -343,7 +343,7 @@ function SubscriptionTable({
 function Savings() {
   const [selected, setSelected] = useDemoSessionState<string[]>(
     "savings-selection",
-    ["notion", "prime"],
+    ["chatgpt", "prime"],
   );
   const monthly = subscriptions
     .filter((s) => selected.includes(s.id))

@@ -2,6 +2,7 @@ import { auth } from "./firebase";
 import { getApiBaseUrl } from "./apiBase";
 
 export const GUEST_SESSION_KEY = "payscope_guest_session";
+export const DEMO_VERSION = "subscriptions-v2";
 let guestRequest: Promise<string> | null = null;
 
 export async function ensureGuestSession(): Promise<string> {
@@ -9,7 +10,7 @@ export async function ensureGuestSession(): Promise<string> {
   if (stored) {
     try {
       const session = JSON.parse(stored);
-      if (session.expiresAt > Date.now()) return session.access_token;
+      if (session.demoVersion === DEMO_VERSION && session.expiresAt > Date.now()) return session.access_token;
     } catch { sessionStorage.removeItem(GUEST_SESSION_KEY); }
   }
   if (!guestRequest) {
@@ -17,7 +18,7 @@ export async function ensureGuestSession(): Promise<string> {
       const response = await globalThis.fetch(`${getApiBaseUrl()}/api/v1/auth/guest`, { method: "POST" });
       if (!response.ok) throw new Error("Demo access is temporarily unavailable. Please retry.");
       const session = await response.json();
-      sessionStorage.setItem(GUEST_SESSION_KEY, JSON.stringify({ ...session, expiresAt: Date.now() + session.expires_in * 1000 }));
+      sessionStorage.setItem(GUEST_SESSION_KEY, JSON.stringify({ ...session, demoVersion: DEMO_VERSION, expiresAt: Date.now() + session.expires_in * 1000 }));
       return session.access_token as string;
     })().finally(() => { guestRequest = null; });
   }
