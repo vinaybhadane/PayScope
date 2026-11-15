@@ -105,7 +105,7 @@ export const DRAWER_ROUTES: DrawerRoute[] = [
     ),
   },
   {
-    label: "Upload Centre",
+    label: "Import statement",
     href: "/upload",
     description: "Ingest CSV, XLSX or JSON statements",
     icon: ({ className }) => (
@@ -185,7 +185,7 @@ export function PayScopeDrawer({ isOpen, onClose }: PayScopeDrawerProps) {
           <div className="px-3 pb-2 text-[11px] font-bold uppercase tracking-wider text-[#8E9CAE]">
             Platform Modules
           </div>
-          {DRAWER_ROUTES.map((route) => {
+          {DRAWER_ROUTES.filter(route => !["/merchants", "/merchant-review"].includes(route.href)).sort((a, b) => Number(b.href === "/upload") - Number(a.href === "/upload")).map((route) => {
             const isActive = pathname === route.href || (route.href !== "/" && pathname.startsWith(route.href));
             const IconComponent = route.icon;
 

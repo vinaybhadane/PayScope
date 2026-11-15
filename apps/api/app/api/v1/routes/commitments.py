@@ -71,15 +71,19 @@ def discover_commitments(
 ) -> DiscoveryResultResponse:
     """Run recurring cadence discovery on all imported transactions for current workspace user."""
     user = UserRepository.get_or_create_demo_user(db)
-    detector = CommitmentDetector(db)
-    result = detector.discover_user_commitments(user.id)
-
+    from app.analytics.ai_review import review_workspace
+    try:
+        result = review_workspace(db, user.id)
+    except ValueError as exc:
+        db.rollback()
+        raise HTTPException(503, str(exc)) from exc
+    count = result['commitments_discovered']
     return DiscoveryResultResponse(
-        total_discovered=result.total_discovered,
-        active_count=result.active_count,
-        candidate_count=result.candidate_count,
-        needs_review_count=result.needs_review_count,
-        message=f"Discovered {result.total_discovered} recurring commitments ({result.active_count} active, {result.candidate_count} candidates, {result.needs_review_count} requiring review).",
+        total_discovered=count,
+        active_count=count,
+        candidate_count=0,
+        needs_review_count=0,
+        message=f"AI reviewed {count} recurring commitments from uploaded evidence.",
     )
 
 
@@ -111,7 +115,7 @@ def list_commitments(
     query = (
         select(Commitment, func.coalesce(count_subq.c.tx_count, 0))
         .outerjoin(count_subq, Commitment.id == count_subq.c.commitment_id)
-        .where(Commitment.user_id == user.id)
+        .where(Commitment.user_id == user.id, Commitment.detector_version == 'gemini-v1')
     )
 
     if cadence:
@@ -141,7 +145,7 @@ def get_commitments_summary(
     user = UserRepository.get_or_create_demo_user(db)
 
     all_commitments = list(
-        db.execute(select(Commitment).where(Commitment.user_id == user.id)).scalars().all()
+        db.execute(select(Commitment).where(Commitment.user_id == user.id, Commitment.detector_version == 'gemini-v1')).scalars().all()
     )
 
     total = len(all_commitments)
@@ -173,6 +177,10 @@ def get_commitments_summary(
         by_type[c.commitment_type] = by_type.get(c.commitment_type, 0) + 1
         by_band[c.confidence_band] = by_band.get(c.confidence_band, 0) + 1
 
+    from app.analytics.financial_impact.commitment_costs import get_user_commitment_costs
+    costs = [item for item in get_user_commitment_costs(db, user.id) if item.is_confirmed]
+    monthly_spend = sum((item.normalized_monthly_cost for item in costs), Decimal('0.00'))
+    annual_spend = sum((item.annualized_cost for item in costs), Decimal('0.00'))
     return CommitmentSummaryResponse(
         total_commitments=total,
         active_commitments=active,

@@ -47,6 +47,7 @@ class Commitment(Base):
         index=True,
     )
     display_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    category: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     commitment_type: Mapped[str] = mapped_column(
         String(50),
         default="subscription",

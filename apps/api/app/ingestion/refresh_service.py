@@ -2,8 +2,7 @@
 import logging
 import uuid
 from sqlalchemy.orm import Session
-from app.analytics.commitment_detector import CommitmentDetector
-from app.analytics.insights.insight_orchestrator import run_insight_detection
+from app.analytics.ai_review import review_workspace
 from app.core.read_cache import invalidate_read_caches
 from app.graph.config import neo4j_settings
 from app.graph.overview_service import reset_neo4j_circuit
@@ -17,16 +16,39 @@ def refresh_imported_workspace(db: Session, user_id: uuid.UUID) -> dict:
     # misreport the upload as failed; retrying this projection is idempotent.
     result = {"analysis_status": "failed", "graph_status": "not_started"}
     try:
-        discovery = CommitmentDetector(db).discover_user_commitments(user_id)
-        run_insight_detection(db, user_id)
-        db.commit()
-        result.update(analysis_status="completed", commitments_discovered=discovery.total_discovered)
-    except Exception:
+        result.update(review_workspace(db, user_id))
+    except Exception as exc:
         db.rollback()
         logger.exception("Post-import analysis failed for workspace %s", user_id)
-        result["message"] = "Your file is saved. Analysis needs a retry before the dashboard is current."
+        from app.models.workspace_intelligence import WorkspaceIntelligence
+        from app.core.config import settings
+        state = db.get(WorkspaceIntelligence, user_id)
+        if not state:
+            state = WorkspaceIntelligence(user_id=user_id, model=settings.GEMINI_MODEL, report={})
+            db.add(state)
+        state.status, state.error = 'failed', str(exc) if isinstance(exc, ValueError) else 'AI review failed. Retry analysis.'
+        db.commit()
+        result["message"] = state.error
         invalidate_read_caches()
         return result
+    try:
+        from app.core.auth import current_identity
+        from app.models.workspace_intelligence import EmailPreference
+        from app.analytics.email_alerts import enqueue_report
+        identity = current_identity.get()
+        if identity and identity.email:
+            pref = db.get(EmailPreference, user_id)
+            if not pref:
+                db.add(EmailPreference(user_id=user_id, recipient=identity.email, reports_enabled=True, reminders_enabled=True))
+            else:
+                pref.recipient = identity.email
+            db.commit()
+            result['email_status'] = 'queued' if enqueue_report(db, user_id) else 'disabled_or_already_queued'
+            db.commit()
+    except Exception:
+        db.rollback()
+        logger.exception("Report email could not be queued for workspace %s", user_id)
+        result["email_status"] = "failed"
     if not neo4j_settings.ENABLED:
         result.update(graph_status="disabled", message="Dashboard updated. Neo4j is disabled; relationships use database records.")
     else:

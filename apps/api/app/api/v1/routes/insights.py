@@ -105,7 +105,18 @@ def detect_insights(
 ):
     """Execute all anomaly, price-change, trial, and usage detectors across user commitments."""
     target_user_id = resolve_workspace_user_id(db, user_id)
-    return run_insight_detection(db, target_user_id)
+    from app.analytics.ai_review import review_workspace
+    try:
+        review_workspace(db, target_user_id)
+    except ValueError as exc:
+        db.rollback()
+        raise HTTPException(503, str(exc)) from exc
+    insights = list(db.scalars(select(CommitmentInsight).where(CommitmentInsight.user_id == target_user_id)).all())
+    counts = lambda kind: sum(i.insight_type == kind for i in insights)
+    return InsightDetectionSummary(status='completed', total_detected=len(insights),
+        price_increases_detected=counts('price_increase'), trial_conversions_detected=counts('trial_conversion'),
+        potentially_unused_detected=0, post_cancellation_charges_detected=0,
+        unusual_amounts_detected=counts('unusual_amount'), duration_ms=0)
 
 
 @router.get("/summary", response_model=InsightSummaryResponse, status_code=status.HTTP_200_OK)

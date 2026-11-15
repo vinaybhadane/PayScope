@@ -3,7 +3,6 @@ import { authFetch } from "@/lib/authFetch";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { getApiBaseUrl } from "./api";
-import { useWorkspaceMode } from "./useWorkspaceMode";
 
 const snapshots = new Map<string, { value: unknown; at: number }>();
 const pending = new Map<string, Promise<unknown>>();
@@ -48,9 +47,8 @@ async function request(key: string, endpoint: string) {
 /** Memory-only, user-scoped cache. Keep visible data while revalidating; coalesce concurrent requests. */
 export function useWorkspaceResource<T>(endpoint: string, sample: T) {
   const { user, loading: authLoading } = useAuth();
-  const mode = useWorkspaceMode();
   const version = useSyncExternalStore(subscribe, () => revision, () => 0);
-  const isDemo = !!user?.isDemo && mode === "sample";
+  const isDemo = false;
   const key = `${getApiBaseUrl()}:${user?.uid || "anonymous"}:${endpoint}:${version}`;
   const [snapshot, setSnapshot] = useState<{
     key: string;

@@ -9,15 +9,9 @@ const subscribe = (notify: () => void) => {
     window.removeEventListener("storage", notify);
   };
 };
-const snapshot = () => {
-  try {
-    return sessionStorage.getItem(key) === "connected" ? "connected" : "sample";
-  } catch {
-    return "sample";
-  }
-};
+const snapshot = () => "connected" as const;
 export function useWorkspaceMode() {
-  return useSyncExternalStore(subscribe, snapshot, () => "sample");
+  return useSyncExternalStore(subscribe, snapshot, () => "connected");
 }
 export function setWorkspaceMode(mode: "sample" | "connected") {
   try {

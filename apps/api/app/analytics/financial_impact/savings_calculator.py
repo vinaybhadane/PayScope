@@ -31,251 +31,33 @@ def get_user_savings_opportunities(
     user_id: uuid.UUID,
     cost_items: Optional[List[CommitmentCostItem]] = None,
 ) -> List[SavingsOpportunityItem]:
-    """Discover explainable savings opportunities for the user.
-
-    Sources:
-    1. Sustained price increases (Price events & insights).
-    2. Potentially unused commitments (Verified usage coverage only).
-    3. Category duplicate services (Multiple active commitments in same category).
-
-    Guarantees:
-    - Never labels potential savings as realized.
-    - Excludes unverified or insufficient usage coverage.
-    - Preserves links to insights, price events, and coverage evidence.
-    """
+    """AI recommendations paired with recorded costs for explicit cancellation scenarios."""
     if cost_items is None:
         cost_items = get_user_commitment_costs(db, user_id)
     cost_map = {item.commitment_id: item for item in cost_items}
-    confirmed_items = [item for item in cost_items if item.is_confirmed]
+    # AI chooses relevant product-specific scenarios. Currency arithmetic uses
+    # persisted observations; Gemini never supplies an invented savings amount.
+    from app.models.workspace_intelligence import WorkspaceIntelligence
+    review = db.get(WorkspaceIntelligence, user_id)
+    if review:
+        result = []
+        for sub in review.report.get('subscriptions', []):
+            item = cost_map.get(uuid.UUID(sub['commitment_id']))
+            recommendation = sub.get('savings_recommendation')
+            if not item or not item.is_confirmed or not recommendation:
+                continue
+            result.append(SavingsOpportunityItem(id=f'opp_ai_{item.commitment_id}', opportunity_type='AI_REVIEW',
+                classification=SAVINGS_CLASS_POTENTIAL, commitment_id=item.commitment_id,
+                commitment_name=item.display_name, merchant_name=item.merchant_name,
+                category=item.category or item.commitment_type,
+                current_monthly_cost=item.normalized_monthly_cost, current_annual_cost=item.annualized_cost,
+                potential_monthly_saving=item.normalized_monthly_cost, potential_annual_saving=item.annualized_cost,
+                evidence_summary=recommendation + ' Simulator assumption: full cancellation of this subscription, not a plan discount. No cancellation is performed.',
+                details={'source': review.model, 'assumption': 'User-selected cancellation; full observed recurring cost avoided. No cancellation has been performed.'}))
+        return result
 
-    opportunities: List[SavingsOpportunityItem] = []
+    return []
 
-    # ----------------------------------------------------
-    # 1. Price Increase Opportunities
-    # ----------------------------------------------------
-    price_events_stmt = (
-        select(PriceEvent)
-        .join(Commitment, PriceEvent.commitment_id == Commitment.id)
-        .options(joinedload(PriceEvent.commitment).joinedload(Commitment.merchant))
-        .where(
-            Commitment.user_id == user_id,
-            PriceEvent.event_type.in_(["amount_increase", "PRICE_INCREASE"]),
-        )
-        .order_by(PriceEvent.effective_or_detected_at.desc())
-    )
-    price_events = db.scalars(price_events_stmt).unique().all()
-
-    price_insights_stmt = select(CommitmentInsight).where(
-        CommitmentInsight.user_id == user_id,
-        CommitmentInsight.insight_type.ilike("%price%"),
-        CommitmentInsight.status.in_(["open", "acknowledged", "OPEN", "ACKNOWLEDGED"]),
-    )
-    price_insights = db.scalars(price_insights_stmt).all()
-    c_insight_map = {pi.commitment_id: pi for pi in price_insights}
-
-    seen_price_commitment_ids: Set[uuid.UUID] = set()
-
-    for pe in price_events:
-        c = pe.commitment
-        if not c or c.id in seen_price_commitment_ids:
-            continue
-        seen_price_commitment_ids.add(c.id)
-
-        c_item = cost_map.get(c.id)
-        # Safeguard: Exclude unconfirmed/candidate commitments from confirmed savings opportunities
-        if not c_item or not c_item.is_confirmed:
-            continue
-        current_monthly = c_item.normalized_monthly_cost
-        current_annual = c_item.annualized_cost
-
-        monthly_increase = pe.absolute_change or Decimal("0.00")
-        annual_impact = monthly_increase * Decimal("12")
-
-        merchant_name = c.merchant.canonical_name if c.merchant else c.display_name
-        linked_insight = c_insight_map.get(c.id)
-        insight_id = linked_insight.id if linked_insight else None
-
-        opp_id = f"opp_price_{pe.id}"
-        pct_change = float(pe.percentage_change or 0.0)
-        prev_amt = pe.previous_amount or Decimal("0.00")
-        new_amt = pe.new_amount or Decimal("0.00")
-        dt_str = pe.effective_or_detected_at.strftime("%d-%b-%Y")
-
-        opportunities.append(
-            SavingsOpportunityItem(
-                id=opp_id,
-                opportunity_type="PRICE_INCREASE",
-                classification=SAVINGS_CLASS_POTENTIAL,
-                commitment_id=c.id,
-                commitment_name=c.display_name,
-                merchant_name=merchant_name,
-                category=c.commitment_type,
-                current_monthly_cost=round_currency(current_monthly),
-                current_annual_cost=round_currency(current_annual),
-                potential_monthly_saving=round_currency(monthly_increase),
-                potential_annual_saving=round_currency(annual_impact),
-                evidence_summary=(
-                    f"Price increased from ₹{prev_amt:,.2f} to ₹{new_amt:,.2f} "
-                    f"(+{pct_change:.1f}%) on {dt_str}. "
-                    f"Annual incremental impact is ₹{annual_impact:,.2f}."
-                ),
-                insight_id=insight_id,
-                price_event_id=pe.id,
-                details={
-                    "previous_amount": float(prev_amt),
-                    "new_amount": float(new_amt),
-                    "absolute_increase": float(monthly_increase),
-                    "percentage_increase": pct_change,
-                    "detected_at": pe.effective_or_detected_at.isoformat(),
-                },
-            )
-        )
-
-    # ----------------------------------------------------
-    # 2. Potentially Unused Commitments (Verified Coverage Only)
-    # ----------------------------------------------------
-    unused_insights_stmt = (
-        select(CommitmentInsight)
-        .options(
-            joinedload(CommitmentInsight.commitment).joinedload(Commitment.merchant),
-            joinedload(CommitmentInsight.evidence_items).joinedload(
-                InsightEvidence.usage_coverage
-            ),
-        )
-        .where(
-            CommitmentInsight.user_id == user_id,
-            CommitmentInsight.insight_type.ilike("%unused%"),
-            CommitmentInsight.status.in_(
-                ["open", "acknowledged", "OPEN", "ACKNOWLEDGED"]
-            ),
-        )
-    )
-    unused_insights = db.scalars(unused_insights_stmt).unique().all()
-
-    for ui in unused_insights:
-        c = ui.commitment
-        if not c:
-            continue
-
-        cov: Optional[UsageCoverage] = None
-        for ev in ui.evidence_items:
-            if ev.usage_coverage:
-                cov = ev.usage_coverage
-                break
-
-        if not cov:
-            cov_stmt = (
-                select(UsageCoverage)
-                .where(UsageCoverage.commitment_id == c.id)
-                .order_by(UsageCoverage.coverage_end.desc())
-            )
-            cov = db.scalars(cov_stmt).first()
-
-        if not cov:
-            continue
-
-        # STRICT REQUIREMENT: Only verified coverage (coverage_complete == True)
-        # Exclude incomplete, unverified or absent coverage
-        is_complete = getattr(cov, "coverage_complete", False)
-        if not is_complete:
-            continue
-
-        c_item = cost_map.get(c.id)
-        # Safeguard: Exclude unconfirmed/candidate commitments from confirmed savings opportunities
-        if not c_item or not c_item.is_confirmed:
-            continue
-        current_monthly = c_item.normalized_monthly_cost
-        current_annual = c_item.annualized_cost
-
-        merchant_name = c.merchant.canonical_name if c.merchant else c.display_name
-
-        cov_start = getattr(cov, "coverage_start", None)
-        cov_end = getattr(cov, "coverage_end", None)
-        days_inactive = (
-            (cov_end - cov_start).days
-            if (cov_start and cov_end)
-            else getattr(cov, "days_without_activity", 0)
-        )
-        src_label = getattr(cov, "source_label", "activity_tracker")
-        cov_start_str = cov_start.strftime("%d-%b-%Y") if cov_start else ""
-        cov_end_str = cov_end.strftime("%d-%b-%Y") if cov_end else ""
-
-        opp_id = f"opp_unused_{ui.id}"
-        opportunities.append(
-            SavingsOpportunityItem(
-                id=opp_id,
-                opportunity_type="POTENTIALLY_UNUSED",
-                classification=SAVINGS_CLASS_POTENTIAL,
-                commitment_id=c.id,
-                commitment_name=c.display_name,
-                merchant_name=merchant_name,
-                category=c.commitment_type,
-                current_monthly_cost=round_currency(current_monthly),
-                current_annual_cost=round_currency(current_annual),
-                potential_monthly_saving=round_currency(current_monthly),
-                potential_annual_saving=round_currency(current_annual),
-                evidence_summary=(
-                    f"No recorded activity detected across {days_inactive} days "
-                    f"({cov_start_str} to {cov_end_str}) via {src_label}. "
-                    f"Potential annual saving of ₹{current_annual:,.2f} if discontinued."
-                ),
-                insight_id=ui.id,
-                usage_coverage_id=cov.id,
-                details={
-                    "coverage_source": src_label,
-                    "coverage_complete": is_complete,
-                    "coverage_status": "COMPLETE",
-                    "days_without_activity": days_inactive,
-                    "coverage_start": cov_start.isoformat() if cov_start else None,
-                    "coverage_end": cov_end.isoformat() if cov_end else None,
-                },
-            )
-        )
-
-    # ----------------------------------------------------
-    # 3. Category Duplicate Services (Multiple Active Services)
-    # ----------------------------------------------------
-    category_map: Dict[str, List[Any]] = {}
-    for item in confirmed_items:
-        cat = (item.commitment_type or "other").lower()
-        category_map.setdefault(cat, []).append(item)
-
-    for cat, items in category_map.items():
-        if len(items) > 1:
-            sorted_items = sorted(items, key=lambda x: x.annualized_cost)
-            for secondary in sorted_items[:-1]:
-                opp_id = f"opp_dup_{secondary.commitment_id}"
-                opportunities.append(
-                    SavingsOpportunityItem(
-                        id=opp_id,
-                        opportunity_type="CATEGORY_DUPLICATE",
-                        classification=SAVINGS_CLASS_POTENTIAL,
-                        commitment_id=secondary.commitment_id,
-                        commitment_name=secondary.display_name,
-                        merchant_name=secondary.merchant_name,
-                        category=secondary.commitment_type,
-                        current_monthly_cost=secondary.normalized_monthly_cost,
-                        current_annual_cost=secondary.annualized_cost,
-                        potential_monthly_saving=secondary.normalized_monthly_cost,
-                        potential_annual_saving=secondary.annualized_cost,
-                        evidence_summary=(
-                            f"Multiple active commitments found in category '{cat.title()}' "
-                            f"({len(items)} services active). Review whether {secondary.display_name} "
-                            f"is duplicative."
-                        ),
-                        details={
-                            "category": cat,
-                            "active_category_count": len(items),
-                            "other_services": [
-                                x.display_name
-                                for x in items
-                                if x.commitment_id != secondary.commitment_id
-                            ],
-                        },
-                    )
-                )
-
-    return opportunities
 
 
 def get_user_savings_summary(

@@ -35,7 +35,7 @@ def get_user_historical_spend(
     # Fetch all transactions for this user
     all_txs_stmt = (
         select(Transaction)
-        .where(Transaction.user_id == user_id)
+        .where(Transaction.user_id == user_id, Transaction.currency == 'INR')
         .order_by(Transaction.transaction_date.desc())
     )
     all_txs = db.scalars(all_txs_stmt).all()

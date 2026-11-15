@@ -25,6 +25,7 @@ class Identity:
     workspace_key: str
     display_name: str
     is_demo: bool = False
+    email: Optional[str] = None
 
 
 current_identity: ContextVar[Optional[Identity]] = ContextVar("identity", default=None)
@@ -50,7 +51,8 @@ def verify_token(token: str) -> Identity:
         if not claims.get("sub") or claims.get("iss") != f"https://securetoken.google.com/{settings.FIREBASE_PROJECT_ID}":
             raise ValueError("Invalid identity")
         key = hashlib.sha256(claims["sub"].encode()).hexdigest()
-        return Identity(f"firebase:{key}", str(claims.get("name", "PayScope User"))[:255])
+        email = claims.get("email") if claims.get("email_verified") else None
+        return Identity(f"firebase:{key}", str(claims.get("name", "PayScope User"))[:255], email=email)
     except Exception as exc:
         raise HTTPException(401, "Your session is invalid or expired. Please sign in again.",
                             headers={"WWW-Authenticate": "Bearer"}) from exc

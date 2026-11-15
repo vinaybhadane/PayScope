@@ -1,5 +1,7 @@
 """PayScope FastAPI Application Entry Point."""
 from contextlib import asynccontextmanager
+import asyncio
+from contextlib import suppress
 import logging
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,7 +28,15 @@ async def lifespan(app: FastAPI):
     from starlette.concurrency import run_in_threadpool
     if settings.RUN_MIGRATIONS:
         await run_in_threadpool(run_migrations)
-    yield
+    from app.analytics.email_alerts import email_worker
+    worker = asyncio.create_task(email_worker()) if settings.EMAIL_WORKER_ENABLED else None
+    try:
+        yield
+    finally:
+        if worker:
+            worker.cancel()
+            with suppress(asyncio.CancelledError):
+                await worker
     from app.graph.driver import close_neo4j_driver
     close_neo4j_driver()
 

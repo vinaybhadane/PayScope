@@ -2,6 +2,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { AIWorkspacePanel } from "@/components/workspace/AIWorkspacePanel";
 import AppHeader from "@/components/navigation/AppHeader";
 import { Icon } from "@/components/ui/Icon";
 import { inr } from "@/lib/demo-data";
@@ -302,10 +303,7 @@ export default function DashboardClient() {
       <main id="workspace-content" tabIndex={-1} className="dashboard-main">
         <header className="dashboard-title">
           <div>
-            <span className="dash-eyebrow dashboard-intro-label">
-              <Icon name="spark" size={13} />
-              A LITTLE CLARITY. A LOT OF CONTROL.
-            </span>
+
             <h1>
               Your money, in focus<span>.</span>
             </h1>
@@ -344,6 +342,7 @@ export default function DashboardClient() {
             </div>
           </div>
         </header>
+        <AIWorkspacePanel controls />
         <div className="dashboard-status">
           <span
             className={`data-source source-${resource.isDemo ? "demo" : resource.error ? "offline" : "live"}`}

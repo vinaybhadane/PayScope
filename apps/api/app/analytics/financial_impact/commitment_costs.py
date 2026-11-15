@@ -55,7 +55,7 @@ def get_user_commitment_costs(
     stmt = (
         select(Commitment)
         .options(joinedload(Commitment.merchant))
-        .where(Commitment.user_id == user_id)
+        .where(Commitment.user_id == user_id, Commitment.detector_version == 'gemini-v1', Commitment.currency == 'INR')
         .order_by(Commitment.representative_amount.desc())
     )
     commitments = db.scalars(stmt).unique().all()
@@ -102,7 +102,7 @@ def get_user_commitment_costs(
                 commitment_id=c.id,
                 merchant_id=c.merchant_id,
                 merchant_name=merchant_name,
-                category=c.merchant.category if c.merchant else None,
+                category=c.category or (c.merchant.category if c.merchant else None),
                 display_name=c.display_name,
                 commitment_type=c.commitment_type,
                 cadence=c.cadence,

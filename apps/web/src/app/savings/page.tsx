@@ -5,6 +5,7 @@ import { getApiBaseUrl } from "@/lib/api";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { AIWorkspacePanel } from "@/components/workspace/AIWorkspacePanel";
 import AppHeader from "@/components/navigation/AppHeader";
 
 interface SavingsOpportunity {
@@ -108,7 +109,7 @@ export default function SavingsPage() {
           setSavedScenarios(scenData);
           // By default, select all price increase and unused opportunities for initial simulation
           const initialSelected = sumData.opportunities
-            .filter((o) => o.opportunity_type === "PRICE_INCREASE" || o.opportunity_type === "POTENTIALLY_UNUSED")
+            .filter((o) => o.opportunity_type === "AI_REVIEW")
             .map((o) => o.id);
           setSelectedIds(initialSelected);
         }
@@ -253,6 +254,7 @@ export default function SavingsPage() {
 
       {/* Main Container */}
       <main id="workspace-content" tabIndex={-1} className="workspace-content flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
+        <AIWorkspacePanel section="savings_analysis" />
         {/* Title */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -260,7 +262,7 @@ export default function SavingsPage() {
               Savings Intelligence & What-If Financial Projections
             </h1>
             <p className="text-sm text-[#8E9CAE] mt-1">
-              Simulate expenditure reductions from price increase renegotiations, verified unused cancellations, and duplicate service consolidations.
+              Explore AI-generated subscription recommendations and calculate what you could save from the services you choose to cancel.
             </p>
           </div>
 
@@ -305,62 +307,16 @@ export default function SavingsPage() {
 
         {!loading && summary && (
           <>
-            {/* Top Savings Breakdown Cards */}
-            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="rounded-xl border border-teal-500/30 bg-teal-950/20 p-5 flex flex-col justify-between">
-                <span className="text-xs font-semibold text-teal-300">Total Potential Annual Savings</span>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-2xl lg:text-3xl font-bold text-teal-300 font-mono">
-                    ₹{summary.total_potential_annual_savings.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                  </span>
-                  <span className="text-xs text-teal-400/80 font-normal">/yr</span>
-                </div>
-                <div className="mt-3 pt-2 border-t border-teal-900/40 flex items-center justify-between text-[11px] text-[#8E9CAE]">
-                  <span>{summary.opportunities_count} Total Opportunities</span>
-                  <span className="text-teal-400 font-mono">Deduped Max</span>
-                </div>
+            <section className="grid grid-cols-1 sm:grid-cols-2 gap-4" aria-label="AI savings scenarios">
+              <div className="rounded-xl border border-cyan-500/30 bg-[#0D1322] p-5">
+                <span className="text-xs text-[#8E9CAE]">Annual cancellation scenario</span>
+                <strong className="block mt-2 text-3xl text-cyan-300">?{Number(summary.total_potential_annual_savings).toLocaleString("en-IN")}</strong>
+                <p className="mt-3 text-xs text-[#8E9CAE]">If you cancel every AI-recommended subscription. No savings have been realized.</p>
               </div>
-
-              <div className="rounded-xl border border-[#1E293B] bg-[#0D1322]/50 p-5 flex flex-col justify-between">
-                <span className="text-xs font-medium text-[#8E9CAE]">Price Increase Reversions</span>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-2xl lg:text-3xl font-bold text-amber-300 font-mono">
-                    ₹{summary.price_increase_savings.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                  </span>
-                  <span className="text-xs text-[#8E9CAE] font-normal">/yr</span>
-                </div>
-                <div className="mt-3 pt-2 border-t border-[#1E293B] flex items-center justify-between text-[11px] text-[#8E9CAE]">
-                  <span>Incremental Step Hikes</span>
-                  <span className="text-amber-400/80">Sustained Alerts</span>
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-[#1E293B] bg-[#0D1322]/50 p-5 flex flex-col justify-between">
-                <span className="text-xs font-medium text-[#8E9CAE]">Verified Unused Cancellations</span>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-2xl lg:text-3xl font-bold text-cyan-300 font-mono">
-                    ₹{summary.unused_commitment_savings.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                  </span>
-                  <span className="text-xs text-[#8E9CAE] font-normal">/yr</span>
-                </div>
-                <div className="mt-3 pt-2 border-t border-[#1E293B] flex items-center justify-between text-[11px] text-[#8E9CAE]">
-                  <span>Zero Activity Logged</span>
-                  <span className="text-cyan-400">Verified Coverage</span>
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-[#1E293B] bg-[#0D1322]/50 p-5 flex flex-col justify-between">
-                <span className="text-xs font-medium text-[#8E9CAE]">Category Consolidation</span>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-2xl lg:text-3xl font-bold text-indigo-300 font-mono">
-                    ₹{summary.duplicate_service_savings.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                  </span>
-                  <span className="text-xs text-[#8E9CAE] font-normal">/yr</span>
-                </div>
-                <div className="mt-3 pt-2 border-t border-[#1E293B] flex items-center justify-between text-[11px] text-[#8E9CAE]">
-                  <span>Overlapping Subscriptions</span>
-                  <span className="text-indigo-400">Review Required</span>
-                </div>
+              <div className="rounded-xl border border-cyan-500/30 bg-[#0D1322] p-5">
+                <span className="text-xs text-[#8E9CAE]">Monthly equivalent</span>
+                <strong className="block mt-2 text-3xl text-[#F4F7FB]">?{Number(summary.total_potential_monthly_savings).toLocaleString("en-IN")}</strong>
+                <p className="mt-3 text-xs text-[#8E9CAE]">{summary.opportunities_count} recommendations generated from your reviewed payment records.</p>
               </div>
             </section>
 
@@ -467,9 +423,7 @@ export default function SavingsPage() {
                       className="px-2.5 py-1 rounded-md bg-[#0D1322] border border-[#1E293B] text-xs text-[#8E9CAE] focus:outline-none focus:border-cyan-500"
                     >
                       <option value="ALL">All Types</option>
-                      <option value="PRICE_INCREASE">Price Increases</option>
-                      <option value="POTENTIALLY_UNUSED">Unused Services</option>
-                      <option value="CATEGORY_DUPLICATE">Duplicates</option>
+                      <option value="AI_REVIEW">AI review</option>
                     </select>
                   </div>
                 </div>

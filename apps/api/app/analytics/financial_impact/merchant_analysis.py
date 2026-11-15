@@ -29,11 +29,12 @@ def get_user_merchant_analysis(
     merchant_groups: Dict[Optional[uuid.UUID], Dict[str, Any]] = {}
 
     for item in confirmed_items:
-        m_id = item.merchant_id
+        m_id = item.merchant_id or item.commitment_id
         if m_id not in merchant_groups:
             merchant_groups[m_id] = {
                 "name": item.merchant_name,
-                "category": item.commitment_type,
+                "merchant_id": item.merchant_id,
+                "category": item.category or item.commitment_type,
                 "monthly": Decimal("0.00"),
                 "annual": Decimal("0.00"),
                 "count": 0,
@@ -45,7 +46,7 @@ def get_user_merchant_analysis(
         merchant_groups[m_id]["commitment_ids"].append(item.commitment_id)
 
     # Fetch aliases for known merchants
-    known_m_ids = [m_id for m_id in merchant_groups.keys() if m_id is not None]
+    known_m_ids = [grp['merchant_id'] for grp in merchant_groups.values() if grp['merchant_id'] is not None]
     alias_map: Dict[uuid.UUID, List[str]] = {}
     if known_m_ids:
         aliases_stmt = select(DescriptorAlias).where(DescriptorAlias.merchant_id.in_(known_m_ids))
@@ -80,7 +81,7 @@ def get_user_merchant_analysis(
 
         result.append(
             MerchantCostRanking(
-                merchant_id=m_id,
+                merchant_id=grp['merchant_id'],
                 merchant_name=grp["name"] or "Unresolved Merchant",
                 category=grp["category"],
                 monthly_cost=round_currency(grp["monthly"]),

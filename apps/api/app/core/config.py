@@ -16,6 +16,12 @@ class Settings(BaseSettings):
     API_SESSION_SECRET: str = ""
     ALLOW_GUEST_SESSIONS: bool = True
     RUN_MIGRATIONS: bool = True
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-3.5-flash-lite"
+    BREVO_API_KEY: str = ""
+    BREVO_SENDER_EMAIL: str = "patilsakshi18027@gmail.com"
+    EMAIL_REMINDER_INTERVAL_SECONDS: int = 3600
+    EMAIL_WORKER_ENABLED: bool = True
 
     # Server configuration
     API_HOST: str = "0.0.0.0"

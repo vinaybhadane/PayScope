@@ -140,6 +140,7 @@ def _build_dashboard_summary(db: Session, user_id: Optional[uuid.UUID]) -> Dashb
     period = func.date_trunc("month", Transaction.transaction_date)
     history = db.execute(select(period.label("month"), func.sum(Transaction.amount).label("amount"))
         .where(Transaction.user_id == target, Transaction.direction.ilike("debit"),
+               Transaction.currency == 'INR',
                Transaction.transaction_status.ilike("successful"),
                exists(select(1).where(CommitmentTransaction.transaction_id == Transaction.id)))
         .group_by(period).order_by(period.desc()).limit(12)).all()[::-1]

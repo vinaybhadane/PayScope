@@ -82,6 +82,7 @@ def isolated_test_runtime(monkeypatch):
     from app.graph.config import neo4j_settings
     monkeypatch.setattr(neo4j_settings, "ENABLED", False)
     monkeypatch.setattr(settings, "RUN_MIGRATIONS", False)
+    monkeypatch.setattr(settings, "EMAIL_WORKER_ENABLED", False)
     monkeypatch.setattr(settings, "API_SESSION_SECRET", "test-only-session-signing-key-at-least-32-characters")
     app.dependency_overrides[require_identity] = lambda: None
     yield

@@ -274,13 +274,11 @@ export default function InsightsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl bg-gradient-to-r from-slate-900/80 via-slate-900 to-indigo-950/30 border border-[#1E293B]/80">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#F4F7FB] flex items-center gap-3">
-              Anomaly Intelligence Centre
-              <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                Phase 6 Engine
-              </span>
+              Payment insights
+
             </h1>
             <p className="mt-1 text-sm text-[#8E9CAE]">
-              Deterministic detection of silent price increases, free trial conversions, unused memberships, and post-cancellation charges.
+              AI-generated payment insights backed by your uploaded statement records.
             </p>
           </div>
 

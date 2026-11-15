@@ -3,7 +3,7 @@ import json
 import logging
 import uuid
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Query, UploadFile, status
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.ingestion.import_service import ImportService
@@ -81,6 +81,7 @@ async def preview_import(
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_import(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     import_type: str = Form("statement"),
     synthetic_confirmed: bool = Form(False),
@@ -127,6 +128,8 @@ async def create_import(
         )
         if result["status"] != "failed":
             result["workspace_refresh"] = await run_in_threadpool(refresh_imported_workspace, db, user.id)
+            from app.analytics.email_alerts import process_email_jobs
+            background_tasks.add_task(process_email_jobs)
         return result
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The operation could not be completed. Please retry.")
@@ -180,12 +183,15 @@ def list_imports(
 
 
 @router.post("/{import_id}/refresh")
-def retry_import_refresh(import_id: uuid.UUID, db: Session = Depends(get_db)) -> Dict[str, Any]:
+def retry_import_refresh(import_id: uuid.UUID, background_tasks: BackgroundTasks, db: Session = Depends(get_db)) -> Dict[str, Any]:
     user_id = resolve_workspace_user_id(db)
     record = ImportRepository.get_by_id(db, import_id)
     if not record or record.user_id != user_id:
         raise HTTPException(404, "Import not found.")
-    return refresh_imported_workspace(db, user_id)
+    result = refresh_imported_workspace(db, user_id)
+    from app.analytics.email_alerts import process_email_jobs
+    background_tasks.add_task(process_email_jobs)
+    return result
 
 
 @router.get("/{import_id}/status", status_code=status.HTTP_200_OK)

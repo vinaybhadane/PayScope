@@ -6,10 +6,11 @@ import { useAuth } from "@/context/AuthContext";
 import { PayScopeLogo } from "@/components/brand/PayScopeLogo";
 import { Icon } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Modal";
-import { useWorkspaceMode, setWorkspaceMode } from "@/lib/useWorkspaceMode";
+
 
 const groups = [
   { name: "Workspace", pages: [
+    { href: "/upload", name: "Import statement", icon: "upload", detail: "Upload your statement for AI review" },
     { href: "/dashboard", name: "Overview", icon: "grid", detail: "Your financial picture, at a glance" },
     { href: "/commitments", name: "Subscriptions", icon: "repeat", detail: "Every recurring commitment in one place" },
     { href: "/insights", name: "Payment insights", icon: "spark", detail: "Discover changes worth a closer look" },
@@ -20,11 +21,7 @@ const groups = [
     { href: "/cancellations", name: "Cancellation centre", icon: "shield", detail: "Clear guidance for your next step" },
     { href: "/relationships", name: "Relationships", icon: "network", detail: "Connect accounts, merchants, and payments" },
   ] },
-  { name: "Organise", pages: [
-    { href: "/merchants", name: "Merchants", icon: "globe", detail: "The names behind your payments" },
-    { href: "/merchant-review", name: "Merchant review", icon: "check", detail: "Give unfamiliar descriptions a name" },
-    { href: "/upload", name: "Import statement", icon: "upload", detail: "Bring your synthetic statement into focus" },
-  ] },
+
 ];
 const navigation = groups.flatMap((group) => group.pages);
 
@@ -78,7 +75,6 @@ export function AppHeader({}: { apiConnected?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, signOut, openAuthModal } = useAuth();
-  const mode = useWorkspaceMode();
   const current = navigation.find((page) => pathname.startsWith(page.href));
   const closeSearch = useCallback(() => setSearchOpen(false), []);
   useEffect(() => {
@@ -122,10 +118,7 @@ export function AppHeader({}: { apiConnected?: boolean }) {
           <button className="workspace-search-trigger" onClick={() => setSearchOpen(true)} aria-label="Search workspace pages">
             <Icon name="search" size={16} /><span>Quick find</span><kbd>Ctrl K</kbd>
           </button>
-          {user?.isDemo && <div className="workspace-mode" role="group" aria-label="Workspace data source">
-            <button aria-pressed={mode === "sample"} onClick={() => setWorkspaceMode("sample")}>Sample</button>
-            <button aria-pressed={mode === "connected"} onClick={() => setWorkspaceMode("connected")}>Connected</button>
-          </div>}
+
           <span className="header-divider" />
           <Link href="/insights" className="icon-button header-insights" aria-label="View payment insights"><Icon name="bell" size={19} /></Link>
           <button className="workspace-avatar" onClick={user ? () => router.push("/about") : openAuthModal}

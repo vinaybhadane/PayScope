@@ -19,6 +19,7 @@ from app.models.usage_coverage import UsageCoverage
 from app.models.cancellation_event import CancellationEvent
 from app.models.savings_scenario import SavingsScenario
 from app.models.cancellation_case import CancellationCase
+from app.models.workspace_intelligence import WorkspaceIntelligence, EmailPreference, EmailDelivery
 
 __all__ = [
     "Base",

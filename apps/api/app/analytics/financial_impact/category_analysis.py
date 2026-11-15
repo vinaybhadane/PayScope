@@ -60,7 +60,7 @@ def get_user_category_analysis(
     # Map each commitment to a normalized category
     category_buckets: Dict[str, Dict[str, Any]] = {}
     for item in confirmed_items:
-        cat_key = normalize_category_name(item.commitment_type)
+        cat_key = item.category or 'Uncategorized'
         if cat_key not in category_buckets:
             category_buckets[cat_key] = {
                 "monthly": Decimal("0.00"),
@@ -98,7 +98,7 @@ def get_user_category_analysis(
             else Decimal("0.00")
         )
 
-        label = CATEGORY_LABELS.get(cat_key, cat_key.title())
+        label = cat_key
 
         result.append(
             CategoryCostBreakdown(
