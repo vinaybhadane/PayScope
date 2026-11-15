@@ -93,3 +93,11 @@ Browser smoke checks are in `scripts/check-sage-theme.cjs`. Run with both develo
 ## Deployment
 
 Configure database credentials, `API_SESSION_SECRET`, `FIREBASE_PROJECT_ID`, allowed frontend origins, and optional Neo4j credentials in your hosting secret store. Do not commit `.env` files. The Render blueprint generates a guest signing secret and requires Firebase/database configuration. Deploy the frontend with the corresponding Firebase project and backend URL.
+
+### Deploy the full stack to Render
+
+The root `render.yaml` defines the Next.js web service, FastAPI service, and managed PostgreSQL database on Render's free plans. Create a Blueprint from this repository in Render. Free web services sleep after inactivity and can take time to wake; the free Postgres database is limited to 1 GB, has no backups, and expires 30 days after creation. Treat this as a prototype deployment and export any data you want to keep before expiration. See Render's [free plan limits](https://render.com/docs/free).
+
+During the initial Blueprint setup, Render prompts for the `sync: false` variables. Copy the matching values from your untracked `apps/api/.env` and `apps/web/.env.local` files into Render's secret fields. The API needs `FIREBASE_PROJECT_ID` and `GEMINI_API_KEY` for Google sign-in and AI review. Email reminders need `BREVO_API_KEY` and a verified `BREVO_SENDER_EMAIL`. The frontend's six `NEXT_PUBLIC_FIREBASE_*` values must come from the same Firebase web app as `FIREBASE_PROJECT_ID`.
+
+After the first deploy, add the `payscope-web.onrender.com` domain to Firebase Authentication's authorized domains. If you use Firestore for notes, deploy `firestore.rules` to that Firebase project. Confirm the API's `/api/v1/ready` health check succeeds, then open the frontend service URL and try a guest session or Google sign-in. Keep `.env` files and secret values out of Git.
