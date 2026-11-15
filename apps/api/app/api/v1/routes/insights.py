@@ -19,6 +19,7 @@ from app.analytics.insights import (
     run_insight_detection,
 )
 from app.db.session import get_db
+from app.core.auth import current_identity
 from app.models.audit_event import AuditEvent
 from app.models.commitment import Commitment
 from app.models.commitment_insight import CommitmentInsight
@@ -107,7 +108,12 @@ def detect_insights(
     target_user_id = resolve_workspace_user_id(db, user_id)
     from app.analytics.ai_review import review_workspace
     try:
-        review_workspace(db, target_user_id)
+        identity = current_identity.get()
+        if identity and identity.is_demo:
+            from app.analytics.demo_review import review_demo_workspace
+            review_demo_workspace(db, target_user_id)
+        else:
+            review_workspace(db, target_user_id)
     except ValueError as exc:
         db.rollback()
         raise HTTPException(503, str(exc)) from exc

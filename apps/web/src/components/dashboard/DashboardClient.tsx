@@ -5,7 +5,9 @@ import dynamic from "next/dynamic";
 import { AIWorkspacePanel } from "@/components/workspace/AIWorkspacePanel";
 import AppHeader from "@/components/navigation/AppHeader";
 import { Icon } from "@/components/ui/Icon";
+import { MerchantLogo } from "@/components/workspace/MerchantLogo";
 import { inr } from "@/lib/demo-data";
+import { formatPeriod } from "@/lib/formatPeriod";
 import { sampleDashboard, type DashboardData } from "@/lib/workspace-data";
 import { useWorkspaceResource } from "@/lib/useWorkspaceResource";
 const RelationshipExplorer = dynamic(
@@ -513,15 +515,14 @@ export default function DashboardClient() {
                       {list.map((c) => (
                         <tr key={c.id}>
                           <td>
-                            <span
-                              className={`dashboard-merchant merchant-${c.display_name.split(" ")[0].toLowerCase()}`}
-                            >
-                              {c.display_name.charAt(0)}
-                            </span>
+                            <MerchantLogo
+                              name={c.merchant_name || c.display_name}
+                              className="dashboard-merchant"
+                            />
                             <div>
                               {c.display_name}
                               <small>
-                                {c.category} · {c.cadence.replaceAll("_", " ")}
+                                {c.category} · {formatPeriod(c.cadence)}
                               </small>
                             </div>
                           </td>

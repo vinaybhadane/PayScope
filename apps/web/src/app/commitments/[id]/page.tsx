@@ -6,6 +6,7 @@ import React, { useState, useEffect, use } from "react";
 import Link from "next/link";
 
 import AppHeader from "@/components/navigation/AppHeader";
+import { formatPeriod } from "@/lib/formatPeriod";
 
 interface TransactionEvidence {
   id: string;
@@ -327,7 +328,7 @@ export default function CommitmentDetailPage({
             <p className="text-sm text-[#8E9CAE] flex items-center gap-2">
               <span className="capitalize">{commitment.commitment_type.replace("_", " ")}</span>
               <span>•</span>
-              <span className="capitalize">{commitment.cadence.replace("_", " ")}</span>
+              <span>{formatPeriod(commitment.cadence)}</span>
               <span>•</span>
               <span>Observed across {commitment.supporting_transactions.length} debits</span>
               {commitment.merchant_id && (
@@ -417,18 +418,18 @@ export default function CommitmentDetailPage({
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#8E9CAE] mb-1.5">Cadence Schedule</label>
+                <label className="block text-xs font-medium text-[#8E9CAE] mb-1.5">Billing period</label>
                 <select
                   value={editCadence}
                   onChange={(e) => setEditCadence(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl bg-[#040711] border border-[#1E293B] text-sm text-[#F4F7FB] focus:outline-none focus:border-emerald-500"
                 >
                   <option value="monthly">Monthly</option>
-                  <option value="quarterly">Quarterly</option>
-                  <option value="annual">Annual</option>
+                  <option value="quarterly">Every 3 months</option>
+                  <option value="annual">Yearly</option>
                   <option value="weekly">Weekly</option>
-                  <option value="fortnightly">Fortnightly</option>
-                  <option value="variable_monthly">Variable Monthly</option>
+                  <option value="fortnightly">Every 2 weeks</option>
+                  <option value="variable_monthly">Monthly (varies)</option>
                 </select>
               </div>
             </div>
@@ -513,7 +514,7 @@ export default function CommitmentDetailPage({
           </div>
 
           <p className="text-xs leading-relaxed text-[#8E9CAE] bg-[#040711]/50 p-4 rounded-xl border border-[#1E293B]/60">
-            {commitment.detection_explanation || "Recurring obligation identified based on cadence interval consistency and transaction matching."}
+            {commitment.detection_explanation || "Recurring payment identified from consistent billing periods and matching transactions."}
           </p>
 
           <div className="flex flex-wrap items-center gap-2 pt-1">

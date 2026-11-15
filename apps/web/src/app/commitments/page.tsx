@@ -6,6 +6,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 
 import AppHeader from "@/components/navigation/AppHeader";
+import { MerchantLogo } from "@/components/workspace/MerchantLogo";
+import { formatPeriod } from "@/lib/formatPeriod";
 
 interface CommitmentItem {
   id: string;
@@ -234,7 +236,7 @@ export default function CommitmentsPage() {
               Recurring Commitments &amp; Subscriptions
             </h1>
             <p className="mt-1 text-sm text-[#8E9CAE]">
-              Explainable recurring payment discovery, cadence inference, and commitment lifecycle intelligence.
+              See which payments repeat and how often they are due.
             </p>
           </div>
 
@@ -333,19 +335,19 @@ export default function CommitmentsPage() {
           </div>
 
           <div className="w-full md:w-auto flex flex-wrap items-center gap-3">
-            {/* Cadence Filter */}
+            {/* Billing period filter */}
             <select
               value={cadenceFilter}
               onChange={(e) => setCadenceFilter(e.target.value)}
               className="px-3 py-2 rounded-lg bg-[#040711] border border-[#1E293B] text-xs text-[#8E9CAE] focus:outline-none focus:border-emerald-500"
             >
-              <option value="">All Cadences</option>
+              <option value="">All periods</option>
               <option value="monthly">Monthly</option>
-              <option value="variable_monthly">Variable Monthly</option>
+              <option value="variable_monthly">Monthly (varies)</option>
               <option value="weekly">Weekly</option>
-              <option value="fortnightly">Fortnightly</option>
-              <option value="quarterly">Quarterly</option>
-              <option value="annual">Annual</option>
+              <option value="fortnightly">Every 2 weeks</option>
+              <option value="quarterly">Every 3 months</option>
+              <option value="annual">Yearly</option>
               <option value="irregular">Irregular</option>
             </select>
 
@@ -413,9 +415,9 @@ export default function CommitmentsPage() {
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-[#1E293B] bg-[#0D1322]/80 text-[#8E9CAE] font-medium">
-                    <th className="py-3 px-4">Payee / Commitment</th>
+                    <th className="py-3 px-4">Subscription</th>
                     <th className="py-3 px-4">Type</th>
-                    <th className="py-3 px-4">Cadence</th>
+                    <th className="py-3 px-4">Period</th>
                     <th className="py-3 px-4">Representative Amount</th>
                     <th className="py-3 px-4">Annualised</th>
                     <th className="py-3 px-4">Confidence</th>
@@ -430,13 +432,16 @@ export default function CommitmentsPage() {
                       <td className="py-3.5 px-4 font-medium text-[#F4F7FB]">
                         <Link
                           href={`/commitments/${c.id}`}
-                          className="hover:text-emerald-400 transition-colors flex flex-col"
+                          className="hover:text-emerald-400 transition-colors flex items-center gap-3"
                         >
-                          <span className="font-semibold text-sm text-[#8E9CAE] group-hover:text-emerald-400">
-                            {c.display_name}
-                          </span>
-                          <span className="text-[11px] text-[#8E9CAE] font-normal">
-                            {c.transaction_count} supporting debit{c.transaction_count === 1 ? "" : "s"}
+                          <MerchantLogo name={c.display_name} size={34} />
+                          <span className="flex flex-col">
+                            <span className="font-semibold text-sm text-[#8E9CAE] group-hover:text-emerald-400">
+                              {c.display_name}
+                            </span>
+                            <span className="text-[11px] text-[#8E9CAE] font-normal">
+                              {c.transaction_count} supporting debit{c.transaction_count === 1 ? "" : "s"}
+                            </span>
                           </span>
                         </Link>
                       </td>
@@ -447,7 +452,7 @@ export default function CommitmentsPage() {
                       </td>
                       <td className="py-3.5 px-4">
                         <span className="capitalize text-[#8E9CAE] font-medium">
-                          {c.cadence.replace("_", " ")}
+                          {formatPeriod(c.cadence)}
                         </span>
                         {c.amount_pattern === "variable" && (
                           <span className="block text-[10px] text-amber-400">variable amounts</span>

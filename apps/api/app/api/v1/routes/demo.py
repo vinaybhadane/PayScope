@@ -222,6 +222,8 @@ def seed_demo_workspace(db: Session = Depends(get_db)) -> Dict[str, Any]:
 
     # 7. Run insight detection
     insights_summary = run_insight_detection(db, user.id)
+    from app.analytics.demo_review import save_predefined_demo_report
+    save_predefined_demo_report(db, user.id)
 
     return {
         "success": True,

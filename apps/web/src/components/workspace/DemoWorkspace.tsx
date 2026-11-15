@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import AppHeader from "@/components/navigation/AppHeader";
 import { Icon } from "@/components/ui/Icon";
+import { MerchantLogo } from "@/components/workspace/MerchantLogo";
 import { Modal } from "@/components/ui/Modal";
 import { useDemoSessionState } from "@/lib/useDemoSessionState";
 import {
@@ -15,14 +16,7 @@ import {
 } from "@/lib/demo-data";
 
 function MerchantMark({ sub }: { sub: DemoSubscription }) {
-  return (
-    <span
-      className="merchant-icon"
-      style={{ color: sub.color, background: `${sub.color}0d` }}
-    >
-      {sub.mark}
-    </span>
-  );
+  return <MerchantLogo name={sub.name} size={32} className="merchant-icon" fallbackMark={sub.mark} />;
 }
 function Stats({ savings = 7548 }: { savings?: number }) {
   return (

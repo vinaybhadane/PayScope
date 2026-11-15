@@ -14,13 +14,20 @@ def build_report_pdf(state: WorkspaceIntelligence) -> bytes:
     styles.add(ParagraphStyle(name='ReportBody', parent=styles['BodyText'], fontSize=10, leading=15, spaceAfter=9))
     body = styles['ReportBody']
     p = lambda value: Paragraph(escape(str(value)), body)
-    story = [Paragraph('PayScope | Subscription report', styles['Title']), Spacer(1, 5*mm),
+    demo_report = state.model == 'predefined-demo-v1'
+    story = [Paragraph('PayScope | Sample subscription report' if demo_report else 'PayScope | Subscription report', styles['Title']), Spacer(1, 5*mm),
              p(f'Generated: {state.generated_at.isoformat() if state.generated_at else "Pending"}'),
-             p(f'AI review: {state.model} | Uploaded debit records: {state.report.get("transaction_count", 0)}'),
+             p(f'{"Demo analysis" if demo_report else "AI review"}: {state.model} | Debit records: {state.report.get("transaction_count", 0)}'),
              p(state.report.get('overview', ''))]
-    rows = [[p('Subscription'), p('Observed amount'), p('Cadence'), p('Estimated next payment')]]
+    period_labels = {
+        'weekly': 'Weekly', 'fortnightly': 'Every 2 weeks', 'monthly': 'Monthly',
+        'variable_monthly': 'Monthly (varies)', 'quarterly': 'Every 3 months',
+        'annual': 'Yearly', 'irregular': 'Irregular', 'unknown': 'Not known yet',
+    }
+    rows = [[p('Subscription'), p('Observed amount'), p('Period'), p('Estimated next payment')]]
     for sub in state.report.get('subscriptions', []):
-        rows.append([p(sub['name']), p(f'{sub["currency"]} {sub["amount"]}'), p(sub['cadence']), p(sub.get('next_expected_date') or 'Unknown')])
+        period = period_labels.get(sub['cadence'], sub['cadence'].replace('_', ' ').title())
+        rows.append([p(sub['name']), p(f'{sub["currency"]} {sub["amount"]}'), p(period), p(sub.get('next_expected_date') or 'Unknown')])
     table = LongTable(rows, colWidths=[53*mm, 39*mm, 31*mm, 47*mm], repeatRows=1, hAlign='LEFT')
     table.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#E6FAFA')), ('VALIGN',(0,0),(-1,-1),'TOP'), ('GRID',(0,0),(-1,-1),.4,colors.HexColor('#99CCCC')), ('LEFTPADDING',(0,0),(-1,-1),8), ('RIGHTPADDING',(0,0),(-1,-1),8), ('TOPPADDING',(0,0),(-1,-1),7), ('BOTTOMPADDING',(0,0),(-1,-1),7)]))
     story.extend([table, Spacer(1, 7*mm)])

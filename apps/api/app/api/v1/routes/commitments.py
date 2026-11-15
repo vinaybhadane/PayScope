@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, joinedload
 from app.analytics.commitment_detector import CommitmentDetector
+from app.core.auth import current_identity
 from app.analytics.commitment_sync import calculate_annualised_amount
 from app.analytics.date_utils import estimate_next_expected_date
 from app.analytics.schemas import (
@@ -73,7 +74,12 @@ def discover_commitments(
     user = UserRepository.get_or_create_demo_user(db)
     from app.analytics.ai_review import review_workspace
     try:
-        result = review_workspace(db, user.id)
+        identity = current_identity.get()
+        if identity and identity.is_demo:
+            from app.analytics.demo_review import review_demo_workspace
+            result = review_demo_workspace(db, user.id)
+        else:
+            result = review_workspace(db, user.id)
     except ValueError as exc:
         db.rollback()
         raise HTTPException(503, str(exc)) from exc
@@ -83,7 +89,11 @@ def discover_commitments(
         active_count=result.get("active_count", count),
         candidate_count=result.get("candidate_count", 0),
         needs_review_count=result.get("needs_review_count", 0),
-        message=f"AI reviewed {count} recurring commitments from uploaded evidence.",
+        message=(
+            f"Built-in demo rules reviewed {count} recurring commitments."
+            if current_identity.get() and current_identity.get().is_demo
+            else f"AI reviewed {count} recurring commitments from uploaded evidence."
+        ),
     )
 
 

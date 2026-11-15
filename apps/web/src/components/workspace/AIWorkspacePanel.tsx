@@ -21,6 +21,8 @@ export function AIWorkspacePanel({ section = "overview", controls = false }: { s
   const [emailOpen, setEmailOpen] = useState(false);
   const state = review.data;
   const email = settings.data;
+  const isDemoReport = state?.model === "predefined-demo-v1";
+  const sectionTitle = section === "overview" ? "subscription report" : section === "spending_analysis" ? "spending analysis" : "savings review";
   async function action(path: string, init?: RequestInit) {
     setBusy(true); setMessage("");
     try {
@@ -42,13 +44,13 @@ export function AIWorkspacePanel({ section = "overview", controls = false }: { s
     finally { setBusy(false); }
   }
   return <section className="ai-workspace-panel" aria-label="AI review and workspace controls">
-    <div className="ai-panel-heading"><div><span className="dash-eyebrow"><Icon name="spark" size={14} />YOUR STATEMENT, REVIEWED</span>
-      <h2>{section === "overview" ? "Your AI subscription report" : section === "spending_analysis" ? "AI spending analysis" : "AI savings review"}</h2></div>
-      <span className="ai-review-state">{state?.status === "completed" ? "Review complete" : state?.status === "failed" ? "Review needs attention" : "Awaiting upload"}</span></div>
+    <div className="ai-panel-heading"><div><span className="dash-eyebrow"><Icon name="spark" size={14} />{isDemoReport ? "SAMPLE DATA, REVIEWED" : "YOUR STATEMENT, REVIEWED"}</span>
+      <h2>{isDemoReport ? `Sample ${sectionTitle}` : section === "overview" ? "Your AI subscription report" : section === "spending_analysis" ? "AI spending analysis" : "AI savings review"}</h2></div>
+      <span className="ai-review-state">{state?.status === "completed" ? isDemoReport ? "Demo analysis ready" : "Review complete" : state?.status === "failed" ? "Review needs attention" : "Awaiting upload"}</span></div>
     {review.error && <p role="alert">{review.error}</p>}
     {state?.error && <p role="alert">{state.error}</p>}
     <p className="ai-analysis-text">{state?.report?.[section] || "Import a statement to generate a report from your own payment records. No sample subscriptions are shown."}</p>
-    {state?.generated_at && <small>Based on {state.report?.transaction_count || 0} uploaded debit records · {new Date(state.generated_at).toLocaleString()} · {state.model}</small>}
+    {state?.generated_at && <small>Based on {state.report?.transaction_count || 0} {isDemoReport ? "synthetic" : "uploaded"} debit records · {new Date(state.generated_at).toLocaleString()} · {isDemoReport ? "Built-in demo rules" : state.model}</small>}
     {!!state?.report?.limitations?.length && <details className="ai-limitations"><summary>Evidence and limitations</summary>{state.report.limitations.map((line, i) => <p key={i}>{line}</p>)}</details>}
     {controls && <div className="ai-panel-actions">
       <button className="button button-subtle" disabled={busy || state?.status !== "completed"} onClick={download}><Icon name="download" size={15} />Download PDF</button>
@@ -56,7 +58,7 @@ export function AIWorkspacePanel({ section = "overview", controls = false }: { s
       <button className="button button-subtle" disabled={busy} onClick={async () => {
         const result = await action("/workspace/review", { method: "POST" });
         if (result) { invalidateWorkspaceResources(); setMessage(result.message || "AI review completed."); }
-      }}>{busy ? "Working…" : "Review uploaded records"}</button>
+      }}>{busy ? "Working…" : isDemoReport ? "Refresh sample analysis" : "Review uploaded records"}</button>
       <button className="button ai-clear-button" onClick={() => setShowClear(true)}>Clear dashboard</button>
     </div>}
     {controls && emailOpen && <div className="ai-email-settings">

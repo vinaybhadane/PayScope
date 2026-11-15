@@ -16,7 +16,13 @@ def refresh_imported_workspace(db: Session, user_id: uuid.UUID) -> dict:
     # misreport the upload as failed; retrying this projection is idempotent.
     result = {"analysis_status": "failed", "graph_status": "not_started"}
     try:
-        result.update(review_workspace(db, user_id))
+        from app.core.auth import current_identity
+        identity = current_identity.get()
+        if identity and identity.is_demo:
+            from app.analytics.demo_review import review_demo_workspace
+            result.update(review_demo_workspace(db, user_id))
+        else:
+            result.update(review_workspace(db, user_id))
     except Exception as exc:
         db.rollback()
         logger.exception("Post-import analysis failed for workspace %s", user_id)
