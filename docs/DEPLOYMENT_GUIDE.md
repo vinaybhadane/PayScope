@@ -81,7 +81,7 @@ PayScope includes a native Render Blueprint at the workspace root:
 
 | Variable | Description | Example Value |
 |---|---|---|
-| `NEXT_PUBLIC_API_URL` | Public URL of deployed FastAPI backend | `https://payscope-api.onrender.com` |
+| `NEXT_PUBLIC_API_URL` | Public URL of deployed FastAPI backend | `https://payscope-api-08he.onrender.com` |
 
 ---
 

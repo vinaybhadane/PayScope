@@ -65,7 +65,7 @@ services:
       - key: NODE_VERSION
         value: 22.16.0
       - key: NEXT_PUBLIC_API_BASE_URL
-        value: https://payscope-api.onrender.com
+        value: https://payscope-api-08he.onrender.com
       - key: NEXT_PUBLIC_APP_NAME
         value: PayScope
       - key: NEXT_PUBLIC_FIREBASE_API_KEY

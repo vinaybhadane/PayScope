@@ -12,14 +12,14 @@ export function getApiBaseUrl(): string {
 
   // 2. Production Vercel environment detection (both client-side and server-side)
   if (process.env.VERCEL || process.env.NEXT_PUBLIC_VERCEL_ENV || process.env.NODE_ENV === "production") {
-    return "https://payscope-api.onrender.com";
+    return "https://payscope-api-08he.onrender.com";
   }
 
   // 3. Production browser runtime fallback (e.g. deployed on Vercel)
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
     if (hostname !== "localhost" && hostname !== "127.0.0.1") {
-      return "https://payscope-api.onrender.com";
+      return "https://payscope-api-08he.onrender.com";
     }
   }
 
