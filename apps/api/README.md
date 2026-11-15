@@ -38,3 +38,5 @@ uv run pytest -q
 ```
 
 Tests use the separately configured `mandatelens_test` database and never migrate the application database. They override identities only for legacy domain tests; authentication tests use real signed guest sessions.
+
+Previously saved commitments remain readable after the AI rollout. Workspaces without an AI report can still calculate savings from their persisted legacy evidence. Once a workspace has an AI review state, its recommendations come from that review; failed new uploads never fall back to legacy detection. Automated tests replace the external review boundary only for pre-AI synthetic lifecycle fixtures.

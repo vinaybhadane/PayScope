@@ -115,7 +115,7 @@ def detect_insights(
     counts = lambda kind: sum(i.insight_type == kind for i in insights)
     return InsightDetectionSummary(status='completed', total_detected=len(insights),
         price_increases_detected=counts('price_increase'), trial_conversions_detected=counts('trial_conversion'),
-        potentially_unused_detected=0, post_cancellation_charges_detected=0,
+        potentially_unused_detected=counts('potentially_unused'), post_cancellation_charges_detected=counts('post_cancellation_charge'),
         unusual_amounts_detected=counts('unusual_amount'), duration_ms=0)
 
 

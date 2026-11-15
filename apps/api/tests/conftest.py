@@ -99,3 +99,27 @@ def migrate_test_database():
     cfg.set_main_option("script_location", str(api_dir / "alembic"))
     cfg.set_main_option("sqlalchemy.url", settings.TEST_DATABASE_URL)
     command.upgrade(cfg, "head")
+
+
+@pytest.fixture(autouse=True)
+def legacy_detection_test_double(request, monkeypatch):
+    """Keep pre-AI lifecycle fixtures offline; AI behavior has separate checks.
+
+    These three suites assert the original synthetic detector's exact merchant
+    names, candidates and anomaly types. Replace only their review boundary.
+    """
+    if request.module.__name__.split('.')[-1] not in {
+        'test_commitments_api', 'test_insights_api', 'test_import_refresh'
+    }:
+        return
+    def review(db, user_id):
+        from app.analytics.commitment_detector import CommitmentDetector
+        from app.analytics.insights.insight_orchestrator import run_insight_detection
+        discovery = CommitmentDetector(db).discover_user_commitments(user_id)
+        run_insight_detection(db, user_id)
+        db.commit()
+        return dict(analysis_status='completed', commitments_discovered=discovery.total_discovered,
+                    active_count=discovery.active_count, candidate_count=discovery.candidate_count,
+                    needs_review_count=discovery.needs_review_count)
+    monkeypatch.setattr('app.analytics.ai_review.review_workspace', review)
+    monkeypatch.setattr('app.ingestion.refresh_service.review_workspace', review)

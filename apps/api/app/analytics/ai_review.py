@@ -158,6 +158,7 @@ def review_workspace(db: Session, user_id: uuid.UUID) -> dict:
             db.flush()
             for t in txs: db.add(InsightEvidence(insight_id=insight.id, transaction_id=t.id))
         saved.append({**sub.model_dump(mode='json'), 'commitment_id': str(c.id),
+                      'status': c.status,
                       'amount': str(c.representative_amount), 'currency': c.currency,
                       'next_expected_date': c.next_expected_date.isoformat() if c.next_expected_date else None})
     for c in existing:
@@ -170,4 +171,7 @@ def review_workspace(db: Session, user_id: uuid.UUID) -> dict:
         db.add(state)
     state.status, state.model, state.report, state.error, state.generated_at = 'completed', settings.GEMINI_MODEL, report, None, now
     db.commit()
-    return {'analysis_status': 'completed', 'commitments_discovered': len(saved), 'model': settings.GEMINI_MODEL}
+    return {'analysis_status': 'completed', 'commitments_discovered': len(saved), 'model': settings.GEMINI_MODEL,
+            'active_count': sum(s['status'] in ('active', 'user_confirmed') for s in saved),
+            'candidate_count': sum(s['status'] == 'candidate' for s in saved),
+            'needs_review_count': sum(s['status'] == 'review_required' for s in saved)}

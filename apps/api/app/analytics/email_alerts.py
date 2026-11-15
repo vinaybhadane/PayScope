@@ -32,6 +32,8 @@ def enqueue_report(db, user_id):
 
 
 def process_email_jobs():
+    if not settings.EMAIL_WORKER_ENABLED:
+        return
     with SessionLocal() as db:
         # One worker claims the scan; delivery rows also remain locked through provider acceptance.
         if not db.scalar(text("SELECT pg_try_advisory_xact_lock(hashtextextended('payscope-email-worker', 0))")): return

@@ -80,9 +80,9 @@ def discover_commitments(
     count = result['commitments_discovered']
     return DiscoveryResultResponse(
         total_discovered=count,
-        active_count=count,
-        candidate_count=0,
-        needs_review_count=0,
+        active_count=result.get("active_count", count),
+        candidate_count=result.get("candidate_count", 0),
+        needs_review_count=result.get("needs_review_count", 0),
         message=f"AI reviewed {count} recurring commitments from uploaded evidence.",
     )
 
@@ -115,7 +115,7 @@ def list_commitments(
     query = (
         select(Commitment, func.coalesce(count_subq.c.tx_count, 0))
         .outerjoin(count_subq, Commitment.id == count_subq.c.commitment_id)
-        .where(Commitment.user_id == user.id, Commitment.detector_version == 'gemini-v1')
+        .where(Commitment.user_id == user.id)
     )
 
     if cadence:
@@ -145,7 +145,7 @@ def get_commitments_summary(
     user = UserRepository.get_or_create_demo_user(db)
 
     all_commitments = list(
-        db.execute(select(Commitment).where(Commitment.user_id == user.id, Commitment.detector_version == 'gemini-v1')).scalars().all()
+        db.execute(select(Commitment).where(Commitment.user_id == user.id)).scalars().all()
     )
 
     total = len(all_commitments)
