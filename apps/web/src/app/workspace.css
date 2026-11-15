@@ -823,12 +823,12 @@
   transition: opacity 0.18s;
 }
 .graph-connection > path {
-  stroke: #FF55004d;
+  stroke: #00F0F0;
   stroke-width: 1.25;
   fill: none;
 }
 .graph-connection > path.is-derived {
-  stroke: #FF550066;
+  stroke: #00F0F0;
   stroke-dasharray: 4 4;
 }
 .graph-connection > text {

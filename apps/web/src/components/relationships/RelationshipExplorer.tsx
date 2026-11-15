@@ -405,7 +405,7 @@ export default function RelationshipExplorer({
                     <path
                       d="M0 1 7 4 0 7"
                       fill="none"
-                      stroke="#FF5500"
+                      stroke="#00F0F0"
                       strokeWidth="1.3"
                     />
                   </marker>
