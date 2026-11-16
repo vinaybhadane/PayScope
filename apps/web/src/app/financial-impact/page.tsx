@@ -29,6 +29,9 @@ interface CommitmentCostItem {
   commitment_id: string;
   merchant_id: string | null;
   merchant_name: string;
+  merchant_domain?: string | null;
+  merchant_logo_url?: string | null;
+  logo_source?: string | null;
   display_name: string;
   commitment_type: string;
   cadence: string;
@@ -59,6 +62,9 @@ interface CategoryBreakdown {
 interface MerchantRanking {
   merchant_id: string | null;
   merchant_name: string;
+  merchant_domain?: string | null;
+  merchant_logo_url?: string | null;
+  logo_source?: string | null;
   category: string;
   monthly_cost: number;
   annualized_cost: number;
@@ -70,8 +76,12 @@ interface MerchantRanking {
 
 interface UpcomingItem {
   commitment_id: string;
-  display_name: string;
+  merchant_id?: string | null;
   merchant_name: string;
+  merchant_domain?: string | null;
+  merchant_logo_url?: string | null;
+  logo_source?: string | null;
+  display_name: string;
   expected_date: string;
   estimated_amount: number;
   currency: string;
@@ -398,9 +408,12 @@ export default function FinancialImpactPage() {
                         {/* Company / Merchant Logo */}
                         <MerchantLogo
                           name={m.merchant_name}
+                          merchantId={m.merchant_id}
+                          domain={m.merchant_domain}
+                          logoUrl={m.merchant_logo_url}
                           category={m.category}
                           size={40}
-                          className="shadow-sm ring-1 ring-white/10"
+                          className="shadow-sm ring-1 ring-white/10 shrink-0"
                         />
 
                         <div>
@@ -455,7 +468,14 @@ export default function FinancialImpactPage() {
                       className="p-3.5 rounded-xl bg-[#040711]/70 border border-[#1E293B] hover:border-cyan-500/30 flex flex-col justify-between text-xs transition-colors"
                     >
                       <div className="flex items-center gap-2.5">
-                        <MerchantLogo name={up.merchant_name || up.display_name} size={30} />
+                        <MerchantLogo
+                          name={up.merchant_name || up.display_name}
+                          merchantId={up.merchant_id}
+                          domain={up.merchant_domain}
+                          logoUrl={up.merchant_logo_url}
+                          size={30}
+                          className="shrink-0"
+                        />
                         <div className="overflow-hidden flex-1">
                           <span className="font-semibold text-[#F4F7FB] truncate block text-xs">{up.display_name}</span>
                           <span className="text-[10px] text-cyan-400 capitalize font-medium">
@@ -550,7 +570,15 @@ export default function FinancialImpactPage() {
                       <tr key={c.commitment_id} className="hover:bg-[#0D1322]/60 transition-colors">
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-3">
-                            <MerchantLogo name={c.merchant_name || c.display_name} category={c.commitment_type} size={32} />
+                            <MerchantLogo
+                              name={c.merchant_name || c.display_name}
+                              merchantId={c.merchant_id}
+                              domain={c.merchant_domain}
+                              logoUrl={c.merchant_logo_url}
+                              category={c.commitment_type}
+                              size={32}
+                              className="shrink-0"
+                            />
                             <div>
                               <Link
                                 href={`/commitments/${c.commitment_id}`}

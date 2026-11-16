@@ -3,7 +3,7 @@ import { authFetch } from "@/lib/authFetch";
 
 import { getApiBaseUrl } from "@/lib/api";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import { AIWorkspacePanel } from "@/components/workspace/AIWorkspacePanel";
 import AppHeader from "@/components/navigation/AppHeader";
@@ -15,7 +15,11 @@ interface SavingsOpportunity {
   classification: string;
   commitment_id: string;
   commitment_name: string;
+  merchant_id?: string | null;
   merchant_name: string;
+  merchant_domain?: string | null;
+  merchant_logo_url?: string | null;
+  logo_source?: string | null;
   category: string;
   current_monthly_cost: number;
   current_annual_cost: number;
@@ -78,6 +82,10 @@ export default function SavingsPage() {
   // Filter: all, price_increase, unused, duplicate
   const [filterType, setFilterType] = useState<string>("ALL");
 
+  // Request sequence and abort controller guards against stale asynchronous responses
+  const latestCalcRequestId = useRef<number>(0);
+  const activeAbortController = useRef<AbortController | null>(null);
+
   // Save Scenario Modal / Form state
   const [scenarioName, setScenarioName] = useState("");
   const [scenarioDesc, setScenarioDesc] = useState("");
@@ -127,67 +135,71 @@ export default function SavingsPage() {
     };
   }, [apiBase]);
 
-  // 2. Recompute Projection whenever selectedIds change
+  // Filtered opportunities preserved during filter changes
+  const filteredOpportunities = (summary?.opportunities || []).filter((opp) => {
+    if (filterType === "ALL") return true;
+    return opp.opportunity_type === filterType;
+  });
+
+  // 2. Recompute Projection whenever selectedIds change (guarded against stale async responses)
   useEffect(() => {
-    let ignore = false;
+    if (activeAbortController.current) {
+      activeAbortController.current.abort();
+    }
+    const controller = new AbortController();
+    activeAbortController.current = controller;
+    const currentRequestId = ++latestCalcRequestId.current;
 
     async function recomputeProjection() {
-      if (selectedIds.length === 0) {
-        try {
-          const res = await authFetch(`${apiBase}/api/v1/savings/calculate`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ selected_opportunity_ids: [] }),
-          });
-          if (res.ok && !ignore) {
-            setProjection(await res.json());
-          }
-        } catch {
-          // ignore
-        }
-        return;
-      }
-
       setCalculating(true);
       try {
         const res = await authFetch(`${apiBase}/api/v1/savings/calculate`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ selected_opportunity_ids: selectedIds }),
+          signal: controller.signal,
         });
-        if (res.ok && !ignore) {
+
+        if (currentRequestId === latestCalcRequestId.current && res.ok) {
           const data: ProjectionResult = await res.json();
           setProjection(data);
         }
-      } catch (err) {
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === "AbortError") {
+          return;
+        }
         console.error("Calculation error:", err);
       } finally {
-        if (!ignore) setCalculating(false);
+        if (currentRequestId === latestCalcRequestId.current) {
+          setCalculating(false);
+        }
       }
     }
 
     recomputeProjection();
+
     return () => {
-      ignore = true;
+      controller.abort();
     };
   }, [selectedIds, apiBase]);
 
-  // Toggle opportunity selection
+  // Toggle opportunity selection (single clean state update path)
   const toggleOpportunity = (id: string) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };
 
-  // Select all or deselect all
+  // Select all visible opportunities (consistent and preserves selections across filters)
   const selectAll = () => {
-    if (summary) {
-      setSelectedIds(summary.opportunities.map((o) => o.id));
-    }
+    const visibleIds = filteredOpportunities.map((o) => o.id);
+    setSelectedIds((prev) => Array.from(new Set([...prev, ...visibleIds])));
   };
 
+  // Deselect all visible opportunities
   const clearSelection = () => {
-    setSelectedIds([]);
+    const visibleIds = new Set(filteredOpportunities.map((o) => o.id));
+    setSelectedIds((prev) => prev.filter((id) => !visibleIds.has(id)));
   };
 
   // Save Plan to Backend
@@ -239,11 +251,6 @@ export default function SavingsPage() {
       console.error("Delete error:", err);
     }
   };
-
-  const filteredOpportunities = (summary?.opportunities || []).filter((opp) => {
-    if (filterType === "ALL") return true;
-    return opp.opportunity_type === filterType;
-  });
 
   const formatOpportunityLabel = (type: string) => {
     switch (type) {
@@ -422,21 +429,21 @@ export default function SavingsPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={selectAll}
-                      className="px-2.5 py-1 rounded-md text-xs text-cyan-400 hover:bg-cyan-950/40 border border-cyan-800/40 transition-colors font-medium"
+                      className="px-2.5 py-1 rounded-md text-xs text-cyan-400 hover:bg-cyan-950/40 border border-cyan-800/40 transition-colors font-medium cursor-pointer"
                     >
-                      Select All
+                      {filterType === "ALL" ? "Select All" : "Select All Visible"}
                     </button>
                     <button
                       onClick={clearSelection}
-                      className="px-2.5 py-1 rounded-md text-xs text-[#8E9CAE] hover:bg-[#0D1322] border border-[#1E293B] transition-colors"
+                      className="px-2.5 py-1 rounded-md text-xs text-[#8E9CAE] hover:bg-[#0D1322] border border-[#1E293B] transition-colors cursor-pointer"
                     >
-                      Deselect All
+                      {filterType === "ALL" ? "Deselect All" : "Deselect All Visible"}
                     </button>
 
                     <select
                       value={filterType}
                       onChange={(e) => setFilterType(e.target.value)}
-                      className="px-2.5 py-1 rounded-md bg-[#0D1322] border border-[#1E293B] text-xs text-[#8E9CAE] focus:outline-none focus:border-cyan-500"
+                      className="px-2.5 py-1 rounded-md bg-[#0D1322] border border-[#1E293B] text-xs text-[#8E9CAE] focus:outline-none focus:border-cyan-500 cursor-pointer"
                     >
                       <option value="ALL">All Suggestions</option>
                       <option value="PRICE_INCREASE">Price Increases</option>
@@ -450,63 +457,69 @@ export default function SavingsPage() {
                 <div className="space-y-3">
                   {filteredOpportunities.map((opp) => {
                     const isChecked = selectedIds.includes(opp.id);
+                    const inputId = `opp-checkbox-${opp.id}`;
                     return (
                       <div
                         key={opp.id}
-                        onClick={() => toggleOpportunity(opp.id)}
-                        className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+                        className={`p-4 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
                           isChecked
                             ? "bg-[#040711]/90 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.1)]"
                             : "bg-[#0D1322]/40 border-[#1E293B]/80 opacity-75 hover:opacity-100 hover:border-[#1E293B]"
                         }`}
                       >
-                        <div className="flex items-start gap-3.5">
+                        <div className="flex items-start gap-3.5 flex-1 min-w-0">
                           <input
+                            id={inputId}
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => toggleOpportunity(opp.id)}
-                            className="mt-1 w-4 h-4 rounded text-cyan-500 focus:ring-cyan-500 border-[#1E293B] bg-[#040711] cursor-pointer"
+                            aria-labelledby={`opp-title-${opp.id}`}
+                            className="mt-1 w-4 h-4 rounded text-cyan-500 focus:ring-2 focus:ring-cyan-400 focus:outline-none border-[#1E293B] bg-[#040711] cursor-pointer"
                           />
 
                           {/* Company Logo */}
                           <MerchantLogo
                             name={opp.merchant_name || opp.commitment_name}
+                            merchantId={opp.merchant_id}
+                            domain={opp.merchant_domain}
+                            logoUrl={opp.merchant_logo_url}
                             category={opp.category}
                             size={40}
                             className="shadow-sm ring-1 ring-white/10 shrink-0"
                           />
 
-                          <div>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="font-semibold text-[#F4F7FB] text-sm">
-                                {opp.commitment_name}
-                              </span>
-                              <span
-                                className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
-                                  opp.opportunity_type === "PRICE_INCREASE"
-                                    ? "bg-amber-500/10 text-amber-400 border border-amber-500/30"
-                                    : opp.opportunity_type === "POTENTIALLY_UNUSED"
-                                    ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30"
-                                    : "bg-indigo-500/10 text-indigo-400 border border-indigo-500/30"
-                                }`}
-                              >
-                                {formatOpportunityLabel(opp.opportunity_type)}
-                              </span>
-                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#0D1322] text-[#8E9CAE]">
-                                {opp.category}
-                              </span>
-                            </div>
+                          <div className="flex-1 min-w-0">
+                            <label htmlFor={inputId} className="cursor-pointer block select-none">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span id={`opp-title-${opp.id}`} className="font-semibold text-[#F4F7FB] text-sm hover:text-cyan-300 transition-colors">
+                                  {opp.commitment_name}
+                                </span>
+                                <span
+                                  className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
+                                    opp.opportunity_type === "PRICE_INCREASE"
+                                      ? "bg-amber-500/10 text-amber-400 border border-amber-500/30"
+                                      : opp.opportunity_type === "POTENTIALLY_UNUSED"
+                                      ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30"
+                                      : "bg-indigo-500/10 text-indigo-400 border border-indigo-500/30"
+                                  }`}
+                                >
+                                  {formatOpportunityLabel(opp.opportunity_type)}
+                                </span>
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#0D1322] text-[#8E9CAE]">
+                                  {opp.category}
+                                </span>
+                              </div>
 
-                            <p className="text-xs text-[#8E9CAE] mt-1.5 max-w-lg leading-relaxed">
-                              {opp.evidence_summary}
-                            </p>
+                              <p className="text-xs text-[#8E9CAE] mt-1.5 max-w-lg leading-relaxed">
+                                {opp.evidence_summary}
+                              </p>
+                            </label>
 
                             <div className="flex items-center gap-3 mt-2 text-[11px] text-[#8E9CAE]">
                               <span>Company: <strong className="text-[#F4F7FB]">{opp.merchant_name}</strong></span>
                               {opp.insight_id && (
                                 <Link
                                   href={`/insights/${opp.insight_id}`}
-                                  onClick={(e) => e.stopPropagation()}
                                   className="text-cyan-400 hover:underline"
                                 >
                                   View Insights &rarr;

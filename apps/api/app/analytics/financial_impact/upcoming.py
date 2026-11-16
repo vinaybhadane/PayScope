@@ -72,7 +72,11 @@ def get_user_upcoming_expenditure(
                 UpcomingExpenseItem(
                     commitment_id=item.commitment_id,
                     display_name=item.display_name,
+                    merchant_id=getattr(item, "merchant_id", None),
                     merchant_name=item.merchant_name,
+                    merchant_domain=getattr(item, "merchant_domain", None),
+                    merchant_logo_url=getattr(item, "merchant_logo_url", None),
+                    logo_source=getattr(item, "logo_source", None),
                     expected_date=exp_date,
                     estimated_amount=round_currency(amt),
                     currency=item.currency,
