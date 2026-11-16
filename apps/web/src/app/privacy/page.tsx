@@ -67,7 +67,7 @@ export default function PrivacyPolicyPage() {
             </p>
             <ul className="list-disc pl-5 space-y-1.5">
               <li><strong className="text-white">Transaction Line Items:</strong> Transaction dates, normalized merchant strings, amounts, and currency identifiers extracted from user-supplied statement files.</li>
-              <li><strong className="text-white">Recurring Metadata:</strong> Estimated cadence, recurring patterns, renewal cycles, and historical price adjustments.</li>
+              <li><strong className="text-white">Recurring Metadata:</strong> Estimated billing period, recurring patterns, renewal cycles, and historical price adjustments.</li>
               <li><strong className="text-white">User Decisions:</strong> Explicit confirmations, dismissals, or cancellations marked within the portal.</li>
             </ul>
           </section>

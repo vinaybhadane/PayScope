@@ -400,7 +400,7 @@ export default function MerchantsPage() {
 
                   {m.commitment_type_default && (
                     <p className="text-[11px] text-[#8E9CAE]">
-                      Default Cadence: <span className="text-[#8E9CAE] font-mono capitalize">{m.commitment_type_default.replace("_", " ")}</span>
+                      Default Period: <span className="text-[#8E9CAE] font-mono capitalize">{m.commitment_type_default.replace("_", " ")}</span>
                     </p>
                   )}
                 </div>

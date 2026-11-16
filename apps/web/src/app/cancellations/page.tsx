@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import AppHeader from "@/components/navigation/AppHeader";
+import { formatPeriod } from "@/lib/formatPeriod";
 
 interface PlaybookStep {
   id: string;
@@ -224,7 +225,7 @@ function CancellationCentreContent() {
                 <option value="">-- Choose a recurring commitment --</option>
                 {commitments.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.display_name} ({c.cadence}) {c.representative_amount ? `- ₹${c.representative_amount}` : ""}
+                    {c.display_name} ({formatPeriod(c.cadence)}) {c.representative_amount ? `- ₹${c.representative_amount}` : ""}
                   </option>
                 ))}
               </select>

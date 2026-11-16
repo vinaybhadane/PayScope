@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 
 import { AIWorkspacePanel } from "@/components/workspace/AIWorkspacePanel";
 import AppHeader from "@/components/navigation/AppHeader";
+import { MerchantLogo } from "@/components/brand/MerchantLogo";
+import { formatPeriod } from "@/lib/formatPeriod";
 
 interface FinancialSummary {
   currency: string;
@@ -117,7 +119,7 @@ export default function FinancialImpactPage() {
         ]);
 
         if (!sumRes.ok || !comRes.ok) {
-          throw new Error("Failed to load financial impact calculations.");
+          throw new Error("Failed to load spending analysis calculations.");
         }
 
         const [sumData, comData, catData, merData, upData] = await Promise.all([
@@ -174,23 +176,24 @@ export default function FinancialImpactPage() {
       {/* Main Container */}
       <main id="workspace-content" tabIndex={-1} className="workspace-content flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
         <AIWorkspacePanel section="spending_analysis" />
+
         {/* Title & Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#F4F7FB] flex items-center gap-3">
-              Annual Financial Impact & Expenditure
+              Spending Analysis
             </h1>
             <p className="text-sm text-[#8E9CAE] mt-1">
-              Normalized monthly recurring costs, annualized commitments, category distributions, and upcoming obligations.
+              See clearly how much you spend every month and year, what subscriptions cost you the most, and what payments are coming up.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             <Link
               href="/savings"
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-slate-950 font-bold text-xs tracking-wide transition-all shadow-[0_0_15px_rgba(120, 149, 117, 0.3)] flex items-center gap-2"
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-slate-950 font-bold text-xs tracking-wide transition-all shadow-[0_0_15px_rgba(20,184,166,0.3)] flex items-center gap-2"
             >
-              <span>Explore Savings Scenarios &rarr;</span>
+              <span>Explore Savings Calculator &rarr;</span>
             </Link>
           </div>
         </div>
@@ -199,13 +202,13 @@ export default function FinancialImpactPage() {
         {loading && (
           <div className="p-12 text-center rounded-xl border border-[#1E293B] bg-[#0D1322]/40">
             <div className="w-8 h-8 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin mx-auto mb-3" />
-            <span className="text-sm text-[#8E9CAE] font-mono">Computing financial impact metrics...</span>
+            <span className="text-sm text-[#8E9CAE] font-mono">Loading your spending analysis...</span>
           </div>
         )}
 
         {error && (
           <div className="p-6 rounded-xl border border-rose-900/50 bg-rose-950/20 text-rose-300 text-sm">
-            <strong>Error loading calculations:</strong> {error}
+            <strong>Error loading spending data:</strong> {error}
           </div>
         )}
 
@@ -215,7 +218,7 @@ export default function FinancialImpactPage() {
             <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               {/* Monthly Recurring Spend */}
               <div className="rounded-xl border border-[#1E293B]/80 bg-[#0D1322]/50 p-5 backdrop-blur-sm flex flex-col justify-between">
-                <span className="text-xs font-medium text-[#8E9CAE]">Monthly Recurring Outflow</span>
+                <span className="text-xs font-medium text-[#8E9CAE]">What You Spend Monthly</span>
                 <div className="mt-2 flex items-baseline gap-2">
                   <span className="text-2xl lg:text-3xl font-bold text-[#F4F7FB] font-mono">
                     ₹{summary.monthly_recurring_spend.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -223,19 +226,28 @@ export default function FinancialImpactPage() {
                   <span className="text-xs text-[#8E9CAE] font-normal">/mo</span>
                 </div>
                 <div className="mt-3 pt-2 border-t border-[#1E293B]/60 flex items-center justify-between text-[11px] text-[#8E9CAE]">
-                  <span>{summary.total_confirmed_commitments} Confirmed Mandates</span>
-                  <span className="text-cyan-400">Fixed & Regular</span>
+                  <span>{summary.total_confirmed_commitments} Confirmed Subscriptions</span>
+                  <span className="text-cyan-400">Regular Bills</span>
                 </div>
               </div>
 
-              <div className="rounded-xl border border-amber-500/30 bg-slate-900/50 p-5">
-                <h3 className="text-sm font-semibold text-amber-300">Estimated total annual commitments</h3>
-                <p className="mt-2 text-2xl font-bold">{"\u20b9"}{Number(summary.estimated_annual_total).toLocaleString("en-IN", { maximumFractionDigits: 2 })}/yr</p>
-                <p className="mt-2 text-xs text-slate-300">Includes confirmed costs and candidate estimates. Future irregular amounts and timing may vary. {summary.unpriced_commitments_count} commitments have no annual estimate yet.</p>
+              {/* Estimated Total Annual Commitments */}
+              <div className="rounded-xl border border-amber-500/30 bg-slate-900/50 p-5 flex flex-col justify-between">
+                <span className="text-xs font-semibold text-amber-300">Expected Total Yearly Spend</span>
+                <div className="mt-2 flex items-baseline gap-2">
+                  <span className="text-2xl lg:text-3xl font-bold text-amber-200 font-mono">
+                    ₹{Number(summary.estimated_annual_total).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                  <span className="text-xs text-amber-300/80 font-normal">/yr</span>
+                </div>
+                <p className="mt-3 text-[11px] text-slate-300 leading-snug">
+                  All active subscriptions plus potential candidates. {summary.unpriced_commitments_count > 0 ? `${summary.unpriced_commitments_count} without fixed price yet.` : ""}
+                </p>
               </div>
-              {/* Annualized Recurring Spend */}
-              <div className="rounded-xl border border-cyan-500/30 bg-gradient-to-b from-cyan-950/20 to-slate-900/50 p-5 backdrop-blur-sm flex flex-col justify-between shadow-[0_0_20px_rgba(120, 149, 117, 0.08)]">
-                <span className="text-xs font-semibold text-cyan-300">Confirmed Annual Recurring Outflow</span>
+
+              {/* Confirmed Annual Total */}
+              <div className="rounded-xl border border-cyan-500/30 bg-gradient-to-b from-cyan-950/20 to-slate-900/50 p-5 backdrop-blur-sm flex flex-col justify-between shadow-[0_0_20px_rgba(6,182,212,0.08)]">
+                <span className="text-xs font-semibold text-cyan-300">Yearly Subscriptions Total</span>
                 <div className="mt-2 flex items-baseline gap-2">
                   <span className="text-2xl lg:text-3xl font-bold text-cyan-300 font-mono">
                     ₹{summary.annualized_recurring_spend.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -243,28 +255,28 @@ export default function FinancialImpactPage() {
                   <span className="text-xs text-cyan-400/70 font-normal">/yr</span>
                 </div>
                 <div className="mt-3 pt-2 border-t border-cyan-900/40 flex items-center justify-between text-[11px] text-[#8E9CAE]">
-                  <span>Normalized Projection</span>
-                  <span className="text-cyan-300">Baseline</span>
+                  <span>Confirmed Services</span>
+                  <span className="text-cyan-300">Active</span>
                 </div>
               </div>
 
-              {/* Historical 12M Actual Spend */}
+              {/* Historical 12M Spend */}
               <div className="rounded-xl border border-[#1E293B]/80 bg-[#0D1322]/50 p-5 backdrop-blur-sm flex flex-col justify-between">
-                <span className="text-xs font-medium text-[#8E9CAE]">Historical 12M Debits</span>
+                <span className="text-xs font-medium text-[#8E9CAE]">Past 12 Months Total Spent</span>
                 <div className="mt-2 flex items-baseline gap-2">
                   <span className="text-2xl lg:text-3xl font-bold text-[#8E9CAE] font-mono">
                     ₹{summary.historical_spend_12m.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
                 <div className="mt-3 pt-2 border-t border-[#1E293B]/60 flex items-center justify-between text-[11px] text-[#8E9CAE]">
-                  <span>Observed Bank Debits</span>
-                  <span className="text-emerald-400">Excludes Failed</span>
+                  <span>Bank Statement Debits</span>
+                  <span className="text-emerald-400">Completed Payments</span>
                 </div>
               </div>
 
               {/* Upcoming 30D Expected */}
               <div className="rounded-xl border border-[#1E293B]/80 bg-[#0D1322]/50 p-5 backdrop-blur-sm flex flex-col justify-between">
-                <span className="text-xs font-medium text-[#8E9CAE]">Upcoming 30D Expected</span>
+                <span className="text-xs font-medium text-[#8E9CAE]">Coming Due in Next 30 Days</span>
                 <div className="mt-2 flex items-baseline gap-2">
                   <span className="text-2xl lg:text-3xl font-bold text-amber-300 font-mono">
                     ₹{summary.upcoming_30d_expected_spend.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -272,39 +284,45 @@ export default function FinancialImpactPage() {
                 </div>
                 <div className="mt-3 pt-2 border-t border-[#1E293B]/60 flex items-center justify-between text-[11px] text-[#8E9CAE]">
                   <span>Next 30 Days Due</span>
-                  <span className="text-amber-400/80 font-mono">Cadence Queue</span>
-                </div>
-              </div>
-
-              {/* Potential Annual Savings */}
-              <div className="rounded-xl border border-teal-500/40 bg-teal-950/20 p-5 backdrop-blur-sm flex flex-col justify-between shadow-[0_0_20px_rgba(120, 149, 117, 0.12)]">
-                <span className="text-xs font-semibold text-teal-300">Potential Annual Savings</span>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-2xl lg:text-3xl font-bold text-teal-300 font-mono">
-                    ₹{summary.potential_annual_savings.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
-                  <span className="text-xs text-teal-400/80 font-normal">/yr</span>
-                </div>
-                <div className="mt-3 pt-2 border-t border-teal-900/40 flex items-center justify-between text-[11px] text-teal-400">
-                  <span>Opportunities Detected</span>
-                  <Link href="/savings" className="underline hover:text-[#F4F7FB]">
-                    Simulate &rarr;
-                  </Link>
+                  <span className="text-amber-400/80 font-medium">Scheduled</span>
                 </div>
               </div>
             </section>
 
-            {/* Candidate Obligations Banner (Suraksha General Insurance etc.) */}
+            {/* Potential Savings Quick Banner */}
+            {summary.potential_annual_savings > 0 && (
+              <div className="rounded-xl border border-teal-500/30 bg-teal-950/20 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-2.5 h-2.5 rounded-full bg-teal-400 mt-1 flex-shrink-0 animate-pulse" />
+                  <div>
+                    <h4 className="text-sm font-semibold text-teal-300">
+                      You could save up to ₹{summary.potential_annual_savings.toLocaleString("en-IN", { minimumFractionDigits: 2 })} every year
+                    </h4>
+                    <p className="text-xs text-[#8E9CAE] mt-0.5">
+                      We identified recurring subscriptions you may not be using or whose prices recently increased.
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href="/savings"
+                  className="px-3.5 py-1.5 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/40 text-teal-200 text-xs font-semibold whitespace-nowrap transition-colors"
+                >
+                  Try Savings Calculator &rarr;
+                </Link>
+              </div>
+            )}
+
+            {/* Candidate Obligations Banner */}
             {summary.total_candidate_commitments > 0 && (
               <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-start gap-3">
                   <div className="w-2.5 h-2.5 rounded-full bg-amber-400 mt-1 flex-shrink-0 animate-pulse" />
                   <div>
                     <h4 className="text-sm font-semibold text-amber-300">
-                      {summary.total_candidate_commitments} Candidate Obligation Separated (₹{summary.potential_candidate_annual_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/yr)
+                      {summary.total_candidate_commitments} Potential Subscriptions to Review (₹{summary.potential_candidate_annual_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/yr)
                     </h4>
                     <p className="text-xs text-[#8E9CAE] mt-0.5">
-                      Notification-only, irregular and single annual payments remain visible as candidates. Irregular estimates use observed intervals; unknown schedules remain unpriced.
+                      These are single annual payments or irregular charges (such as insurance or annual memberships). Check them to confirm or ignore.
                     </p>
                   </div>
                 </div>
@@ -312,7 +330,7 @@ export default function FinancialImpactPage() {
                   onClick={() => setActiveTab("candidates")}
                   className="px-3 py-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 text-xs font-medium whitespace-nowrap transition-colors"
                 >
-                  Review Candidate Obligations
+                  Review Potential Subscriptions
                 </button>
               </div>
             )}
@@ -322,17 +340,22 @@ export default function FinancialImpactPage() {
               {/* Category Breakdown */}
               <div className="rounded-xl border border-[#1E293B] bg-[#0D1322]/50 p-6 flex flex-col gap-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-base font-semibold text-[#F4F7FB]">Expenditure by Category</h3>
-                  <span className="text-xs text-[#8E9CAE]">{categories.length} Categories Active</span>
+                  <div>
+                    <h3 className="text-base font-semibold text-[#F4F7FB]">Where Your Money Goes by Category</h3>
+                    <p className="text-xs text-[#8E9CAE] mt-0.5">Distribution of your yearly subscription expenses</p>
+                  </div>
+                  <span className="text-xs px-2.5 py-1 rounded-full bg-[#040711] border border-[#1E293B] text-[#8E9CAE]">
+                    {categories.length} Categories
+                  </span>
                 </div>
 
                 <div className="space-y-4 pt-2">
                   {categories.map((cat) => (
                     <div key={cat.category} className="space-y-1.5">
-                      <div className="flex justify-between text-xs font-mono">
-                        <span className="text-[#8E9CAE] font-sans font-medium">{cat.category_label}</span>
-                        <div className="flex items-center gap-3">
-                          <span className="text-[#8E9CAE] font-sans">{cat.commitment_count} services</span>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-[#F4F7FB] font-medium">{cat.category_label}</span>
+                        <div className="flex items-center gap-3 font-mono">
+                          <span className="text-[#8E9CAE] font-sans">{cat.commitment_count} service{cat.commitment_count === 1 ? "" : "s"}</span>
                           <span className="text-cyan-300 font-bold">
                             ₹{cat.annualized_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/yr
                           </span>
@@ -348,38 +371,53 @@ export default function FinancialImpactPage() {
                     </div>
                   ))}
                   {categories.length === 0 && (
-                    <span className="text-xs text-[#8E9CAE]">No confirmed commitments categorized yet.</span>
+                    <span className="text-xs text-[#8E9CAE]">No confirmed subscriptions categorized yet.</span>
                   )}
                 </div>
               </div>
 
-              {/* Merchant Cost Rankings */}
+              {/* Top Merchants by Recurring Outflow with Brand Logos */}
               <div className="rounded-xl border border-[#1E293B] bg-[#0D1322]/50 p-6 flex flex-col gap-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-base font-semibold text-[#F4F7FB]">Top Merchants by Recurring Outflow</h3>
-                  <span className="text-xs text-[#8E9CAE]">Canonical Identity Ranking</span>
+                  <div>
+                    <h3 className="text-base font-semibold text-[#F4F7FB]">Top Companies by Total Spend</h3>
+                    <p className="text-xs text-[#8E9CAE] mt-0.5">The services taking the largest share of your budget</p>
+                  </div>
+                  <span className="text-xs px-2.5 py-1 rounded-full bg-[#040711] border border-[#1E293B] text-[#8E9CAE]">
+                    Top {Math.min(5, merchants.length)}
+                  </span>
                 </div>
 
                 <div className="space-y-3 pt-2">
                   {merchants.slice(0, 5).map((m, idx) => (
                     <div
                       key={m.merchant_id || idx}
-                      className="flex items-center justify-between p-3 rounded-lg bg-[#040711]/60 border border-[#1E293B]/80 text-xs"
+                      className="flex items-center justify-between p-3 rounded-xl bg-[#040711]/60 border border-[#1E293B]/80 hover:border-cyan-500/30 transition-all text-xs"
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="w-5 h-5 rounded-full bg-[#0D1322] text-[#8E9CAE] flex items-center justify-center font-mono text-[10px] font-bold">
-                          {idx + 1}
-                        </span>
+                      <div className="flex items-center gap-3.5">
+                        {/* Company / Merchant Logo */}
+                        <MerchantLogo
+                          name={m.merchant_name}
+                          category={m.category}
+                          size={40}
+                          className="shadow-sm ring-1 ring-white/10"
+                        />
+
                         <div>
-                          <span className="font-semibold text-[#F4F7FB] block">{m.merchant_name}</span>
-                          <span className="text-[11px] text-[#8E9CAE]">
-                            {m.commitment_count} mandate &bull; {m.category}
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-[#F4F7FB] block text-sm">{m.merchant_name}</span>
+                            <span className="w-4 h-4 rounded-full bg-[#0D1322] text-[#8E9CAE] flex items-center justify-center font-mono text-[9px] font-bold border border-[#1E293B]">
+                              #{idx + 1}
+                            </span>
+                          </div>
+                          <span className="text-[11px] text-[#8E9CAE] mt-0.5 block">
+                            {m.commitment_count} subscription{m.commitment_count === 1 ? "" : "s"} &bull; {m.category}
                           </span>
                         </div>
                       </div>
 
                       <div className="text-right font-mono">
-                        <span className="text-cyan-300 font-bold block">
+                        <span className="text-cyan-300 font-bold block text-sm">
                           ₹{m.annualized_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/yr
                         </span>
                         <span className="text-[11px] text-[#8E9CAE]">
@@ -389,24 +427,24 @@ export default function FinancialImpactPage() {
                     </div>
                   ))}
                   {merchants.length === 0 && (
-                    <span className="text-xs text-[#8E9CAE]">No merchant rankings available.</span>
+                    <span className="text-xs text-[#8E9CAE]">No company spend rankings available yet.</span>
                   )}
                 </div>
               </div>
             </section>
 
-            {/* Upcoming Payment Obligations */}
+            {/* Upcoming Payments Due */}
             {upcoming && upcoming.items.length > 0 && (
               <section className="rounded-xl border border-[#1E293B] bg-[#0D1322]/50 p-6 flex flex-col gap-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <h3 className="text-base font-semibold text-[#F4F7FB]">Upcoming Cadence Queue (Next 60 Days)</h3>
+                    <h3 className="text-base font-semibold text-[#F4F7FB]">Upcoming Payments Due (Next 60 Days)</h3>
                     <p className="text-xs text-[#8E9CAE] mt-0.5">
-                      Expected payment schedule derived from verified recurrence cadence.
+                      Expected payment dates based on your regular billing periods.
                     </p>
                   </div>
-                  <span className="text-xs font-mono px-3 py-1 rounded-full bg-[#0D1322] border border-[#1E293B] text-[#8E9CAE]">
-                    60D Total: ₹{upcoming.total_upcoming_60d.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                  <span className="text-xs font-mono px-3 py-1.5 rounded-full bg-[#040711] border border-[#1E293B] text-amber-300 font-semibold self-start sm:self-auto">
+                    Next 60 Days Total: ₹{upcoming.total_upcoming_60d.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                   </span>
                 </div>
 
@@ -414,19 +452,23 @@ export default function FinancialImpactPage() {
                   {upcoming.items.slice(0, 8).map((up) => (
                     <div
                       key={up.commitment_id}
-                      className="p-3 rounded-lg bg-[#040711]/70 border border-[#1E293B] flex flex-col justify-between text-xs font-mono"
+                      className="p-3.5 rounded-xl bg-[#040711]/70 border border-[#1E293B] hover:border-cyan-500/30 flex flex-col justify-between text-xs transition-colors"
                     >
-                      <div className="flex justify-between items-start gap-2">
-                        <span className="font-sans font-semibold text-[#8E9CAE] truncate">{up.display_name}</span>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950/80 border border-cyan-800/40 text-cyan-300 uppercase">
-                          {up.cadence}
-                        </span>
+                      <div className="flex items-center gap-2.5">
+                        <MerchantLogo name={up.merchant_name || up.display_name} size={30} />
+                        <div className="overflow-hidden flex-1">
+                          <span className="font-semibold text-[#F4F7FB] truncate block text-xs">{up.display_name}</span>
+                          <span className="text-[10px] text-cyan-400 capitalize font-medium">
+                            {formatPeriod(up.cadence)}
+                          </span>
+                        </div>
                       </div>
-                      <div className="mt-2 flex justify-between items-baseline">
-                        <span className="text-amber-400 font-bold">
+
+                      <div className="mt-3 pt-2 border-t border-[#1E293B]/60 flex justify-between items-baseline font-mono">
+                        <span className="text-amber-400 font-bold text-sm">
                           ₹{up.estimated_amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                         </span>
-                        <span className="text-[11px] text-[#8E9CAE]">{up.expected_date}</span>
+                        <span className="text-[11px] text-[#8E9CAE] font-sans">{up.expected_date}</span>
                       </div>
                     </div>
                   ))}
@@ -438,14 +480,14 @@ export default function FinancialImpactPage() {
             <section className="rounded-xl border border-[#1E293B] bg-[#0D1322]/50 p-6 flex flex-col gap-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-base font-semibold text-[#F4F7FB]">Recurring Commitment Directory</h3>
+                  <h3 className="text-base font-semibold text-[#F4F7FB]">All Subscriptions & Bills</h3>
                   <p className="text-xs text-[#8E9CAE] mt-0.5">
-                    Individual commitment calculations, cadences, and monthly normalized equivalents.
+                    Every recurring service with its billing period and normalized monthly and yearly cost.
                   </p>
                 </div>
 
                 {/* Filter Controls */}
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <div className="flex rounded-lg bg-[#040711] border border-[#1E293B] p-0.5 text-xs font-medium">
                     <button
                       onClick={() => setActiveTab("confirmed")}
@@ -465,7 +507,7 @@ export default function FinancialImpactPage() {
                           : "text-[#8E9CAE] hover:text-[#F4F7FB]"
                       }`}
                     >
-                      Candidates ({commitments.filter((c) => c.is_candidate).length})
+                      Potential ({commitments.filter((c) => c.is_candidate).length})
                     </button>
                     <button
                       onClick={() => setActiveTab("all")}
@@ -481,10 +523,10 @@ export default function FinancialImpactPage() {
 
                   <input
                     type="text"
-                    placeholder="Search commitment..."
+                    placeholder="Search by company or name..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="px-3 py-1 rounded-lg bg-[#040711] border border-[#1E293B] text-xs text-[#8E9CAE] placeholder:text-[#8E9CAE] focus:outline-none focus:border-cyan-500"
+                    className="px-3 py-1.5 rounded-lg bg-[#040711] border border-[#1E293B] text-xs text-[#F4F7FB] placeholder:text-[#8E9CAE] focus:outline-none focus:border-cyan-500"
                   />
                 </div>
               </div>
@@ -494,12 +536,12 @@ export default function FinancialImpactPage() {
                 <table className="w-full text-left text-xs">
                   <thead className="bg-[#040711]/80 border-b border-[#1E293B] text-[#8E9CAE] uppercase text-[11px] font-mono">
                     <tr>
-                      <th className="py-3 px-4">Merchant & Commitment</th>
-                      <th className="py-3 px-4">Cadence</th>
-                      <th className="py-3 px-4">Representative Amt</th>
-                      <th className="py-3 px-4">Monthly Normalized</th>
-                      <th className="py-3 px-4">Annualized Cost</th>
-                      <th className="py-3 px-4">Confidence</th>
+                      <th className="py-3 px-4">Company & Subscription</th>
+                      <th className="py-3 px-4">Billing Period</th>
+                      <th className="py-3 px-4">Amount</th>
+                      <th className="py-3 px-4">Monthly Cost</th>
+                      <th className="py-3 px-4">Yearly Cost</th>
+                      <th className="py-3 px-4">Certainty</th>
                       <th className="py-3 px-4">Status</th>
                     </tr>
                   </thead>
@@ -507,20 +549,25 @@ export default function FinancialImpactPage() {
                     {filteredCommitments.map((c) => (
                       <tr key={c.commitment_id} className="hover:bg-[#0D1322]/60 transition-colors">
                         <td className="py-3 px-4">
-                          <Link
-                            href={`/commitments/${c.commitment_id}`}
-                            className="font-medium text-[#F4F7FB] hover:text-cyan-400 transition-colors block"
-                          >
-                            {c.display_name}
-                          </Link>
-                          <span className="text-[11px] text-[#8E9CAE] block">
-                            {c.merchant_name} &bull; {c.commitment_type}
-                          </span>
+                          <div className="flex items-center gap-3">
+                            <MerchantLogo name={c.merchant_name || c.display_name} category={c.commitment_type} size={32} />
+                            <div>
+                              <Link
+                                href={`/commitments/${c.commitment_id}`}
+                                className="font-medium text-[#F4F7FB] hover:text-cyan-400 transition-colors block text-sm"
+                              >
+                                {c.display_name}
+                              </Link>
+                              <span className="text-[11px] text-[#8E9CAE] block">
+                                {c.merchant_name} &bull; <span className="capitalize">{c.commitment_type.replace("_", " ")}</span>
+                              </span>
+                            </div>
+                          </div>
                         </td>
-                        <td className="py-3 px-4 font-mono capitalize text-[#8E9CAE]">
-                          {c.cadence.replace("_", " ")}
+                        <td className="py-3 px-4 font-sans capitalize text-[#F4F7FB]">
+                          {formatPeriod(c.cadence)}
                         </td>
-                        <td className="py-3 px-4 font-mono text-[#8E9CAE]">
+                        <td className="py-3 px-4 font-mono text-[#F4F7FB]">
                           ₹{c.representative_amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                         </td>
                         <td className="py-3 px-4 font-mono font-semibold text-cyan-300">
@@ -528,7 +575,6 @@ export default function FinancialImpactPage() {
                         </td>
                         <td className="py-3 px-4 font-mono font-bold text-[#F4F7FB]">
                           ₹{c.annualized_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/yr
-                          <span className="mt-1 block max-w-xs font-sans text-[10px] font-normal text-slate-400">{c.annualized_cost === 0 ? "Awaiting billing amount or schedule evidence" : c.calculation_method}</span>
                         </td>
                         <td className="py-3 px-4">
                           <span
@@ -540,7 +586,7 @@ export default function FinancialImpactPage() {
                                 : "bg-amber-500/10 text-amber-400 border border-amber-500/30"
                             }`}
                           >
-                            {c.confidence_band}
+                            {c.confidence_band === "high" ? "High" : c.confidence_band === "medium" ? "Medium" : "Low"}
                           </span>
                         </td>
                         <td className="py-3 px-4">
@@ -551,7 +597,7 @@ export default function FinancialImpactPage() {
                                 : "bg-amber-950/40 text-amber-300 border border-amber-800/40"
                             }`}
                           >
-                            {c.is_confirmed ? "Confirmed" : "Candidate"}
+                            {c.is_confirmed ? "Confirmed" : "Needs Review"}
                           </span>
                         </td>
                       </tr>
@@ -559,7 +605,7 @@ export default function FinancialImpactPage() {
                     {filteredCommitments.length === 0 && (
                       <tr>
                         <td colSpan={7} className="py-8 text-center text-[#8E9CAE] text-xs">
-                          No commitments match the selected filter.
+                          No subscriptions match the selected filter.
                         </td>
                       </tr>
                     )}

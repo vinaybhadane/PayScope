@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 
 import { AIWorkspacePanel } from "@/components/workspace/AIWorkspacePanel";
 import AppHeader from "@/components/navigation/AppHeader";
+import { MerchantLogo } from "@/components/brand/MerchantLogo";
 
 interface SavingsOpportunity {
   id: string;
@@ -107,10 +108,8 @@ export default function SavingsPage() {
         if (!ignore) {
           setSummary(sumData);
           setSavedScenarios(scenData);
-          // By default, select all price increase and unused opportunities for initial simulation
-          const initialSelected = sumData.opportunities
-            .filter((o) => o.opportunity_type === "AI_REVIEW")
-            .map((o) => o.id);
+          // By default, select all opportunities for initial simulation
+          const initialSelected = sumData.opportunities.map((o) => o.id);
           setSelectedIds(initialSelected);
         }
       } catch (err: unknown) {
@@ -134,7 +133,6 @@ export default function SavingsPage() {
 
     async function recomputeProjection() {
       if (selectedIds.length === 0) {
-        // If empty selection, calculate against 0 opportunities to get clean baseline
         try {
           const res = await authFetch(`${apiBase}/api/v1/savings/calculate`, {
             method: "POST",
@@ -192,7 +190,7 @@ export default function SavingsPage() {
     setSelectedIds([]);
   };
 
-  // Save What-If Scenario to Backend
+  // Save Plan to Backend
   const handleSaveScenario = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!scenarioName.trim()) return;
@@ -211,24 +209,24 @@ export default function SavingsPage() {
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to persist scenario.");
+      if (!res.ok) throw new Error("Failed to save plan.");
 
       const created: SavedScenario = await res.json();
       setSavedScenarios((prev) => [created, ...prev]);
       setScenarioName("");
       setScenarioDesc("");
-      setSaveSuccessMessage(`Scenario "${created.name}" saved successfully.`);
+      setSaveSuccessMessage(`Plan "${created.name}" saved successfully!`);
       setTimeout(() => setSaveSuccessMessage(null), 4000);
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Error saving scenario.");
+      alert(err instanceof Error ? err.message : "Error saving plan.");
     } finally {
       setSavingScenario(false);
     }
   };
 
-  // Delete Saved Scenario
+  // Delete Saved Plan
   const handleDeleteScenario = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this simulation scenario?")) return;
+    if (!confirm("Are you sure you want to delete this saved plan?")) return;
 
     try {
       const res = await authFetch(`${apiBase}/api/v1/savings/scenarios/${id}`, {
@@ -247,6 +245,21 @@ export default function SavingsPage() {
     return opp.opportunity_type === filterType;
   });
 
+  const formatOpportunityLabel = (type: string) => {
+    switch (type) {
+      case "PRICE_INCREASE":
+        return "Price Went Up";
+      case "POTENTIALLY_UNUSED":
+        return "Rarely Used";
+      case "DUPLICATE_SERVICE":
+        return "Duplicate Service";
+      case "AI_REVIEW":
+        return "Review Suggested";
+      default:
+        return type.replace(/_/g, " ");
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[#040711] text-[#8E9CAE] antialiased selection:bg-teal-500 selection:text-slate-950">
       {/* Platform Header */}
@@ -255,37 +268,38 @@ export default function SavingsPage() {
       {/* Main Container */}
       <main id="workspace-content" tabIndex={-1} className="workspace-content flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
         <AIWorkspacePanel section="savings_analysis" />
+
         {/* Title */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#F4F7FB] flex items-center gap-3">
-              Savings Intelligence & What-If Financial Projections
+              Savings Calculator
             </h1>
             <p className="text-sm text-[#8E9CAE] mt-1">
-              Explore AI-generated subscription recommendations and calculate what you could save from the services you choose to cancel.
+              Pick the subscriptions you no longer need and see instantly how much money you keep in your pocket.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-cyan-950/60 border border-cyan-800/40 text-cyan-300">
-              Deterministic Calculations
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-cyan-950/60 border border-cyan-800/40 text-cyan-300">
+              Accurate Calculations
             </span>
-            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-950/60 border border-teal-800/40 text-teal-300">
-              Anti-Double-Count Protected
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-teal-950/60 border border-teal-800/40 text-teal-300">
+              Verified Statement Amounts
             </span>
           </div>
         </div>
 
-        {/* Classification Notice Badge */}
+        {/* Friendly Information Notice */}
         <div className="rounded-xl border border-teal-500/20 bg-teal-950/20 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs">
           <div className="flex items-start gap-3">
-            <div className="w-2.5 h-2.5 rounded-full bg-teal-400 mt-1 flex-shrink-0" />
+            <div className="w-2.5 h-2.5 rounded-full bg-teal-400 mt-1 flex-shrink-0 animate-pulse" />
             <div>
-              <span className="font-semibold text-teal-300 block">
-                Evidence Classification Standard: POTENTIAL vs REALIZED
+              <span className="font-semibold text-teal-300 block text-sm">
+                How Your Savings Are Calculated
               </span>
-              <p className="text-[#8E9CAE] mt-0.5">
-                Every figure on this page represents a <strong className="text-[#F4F7FB]">POTENTIAL</strong> or <strong className="text-[#F4F7FB]">USER_SELECTED</strong> scenario based on historical statements. Savings are never recorded as <strong className="text-[#F4F7FB]">REALIZED</strong> without verified confirmation.
+              <p className="text-[#8E9CAE] mt-0.5 leading-relaxed">
+                These estimates show what you could save based on your past bank statement charges. You actually keep this money once you cancel the subscription directly with the provider or through your bank.
               </p>
             </div>
           </div>
@@ -295,7 +309,7 @@ export default function SavingsPage() {
         {loading && (
           <div className="p-12 text-center rounded-xl border border-[#1E293B] bg-[#0D1322]/40">
             <div className="w-8 h-8 rounded-full border-2 border-teal-400 border-t-transparent animate-spin mx-auto mb-3" />
-            <span className="text-sm text-[#8E9CAE] font-mono">Evaluating savings opportunities & evidence...</span>
+            <span className="text-sm text-[#8E9CAE] font-mono">Finding subscriptions you can save money on...</span>
           </div>
         )}
 
@@ -307,45 +321,56 @@ export default function SavingsPage() {
 
         {!loading && summary && (
           <>
-            <section className="grid grid-cols-1 sm:grid-cols-2 gap-4" aria-label="AI savings scenarios">
-              <div className="rounded-xl border border-cyan-500/30 bg-[#0D1322] p-5">
-                <span className="text-xs text-[#8E9CAE]">Annual cancellation scenario</span>
-                <strong className="block mt-2 text-3xl text-cyan-300">?{Number(summary.total_potential_annual_savings).toLocaleString("en-IN")}</strong>
-                <p className="mt-3 text-xs text-[#8E9CAE]">If you cancel every AI-recommended subscription. No savings have been realized.</p>
+            {/* Top Cards */}
+            <section className="grid grid-cols-1 sm:grid-cols-2 gap-4" aria-label="Savings overview">
+              <div className="rounded-xl border border-cyan-500/30 bg-[#0D1322] p-5 shadow-sm">
+                <span className="text-xs font-medium text-[#8E9CAE]">If You Cancel Everything Suggested</span>
+                <strong className="block mt-2 text-3xl font-bold font-mono text-cyan-300">
+                  ₹{Number(summary.total_potential_annual_savings).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  <span className="text-sm font-normal text-[#8E9CAE] font-sans"> / year</span>
+                </strong>
+                <p className="mt-3 text-xs text-[#8E9CAE]">
+                  Total amount you can save each year across all {summary.opportunities_count} recommendations.
+                </p>
               </div>
-              <div className="rounded-xl border border-cyan-500/30 bg-[#0D1322] p-5">
-                <span className="text-xs text-[#8E9CAE]">Monthly equivalent</span>
-                <strong className="block mt-2 text-3xl text-[#F4F7FB]">?{Number(summary.total_potential_monthly_savings).toLocaleString("en-IN")}</strong>
-                <p className="mt-3 text-xs text-[#8E9CAE]">{summary.opportunities_count} recommendations generated from your reviewed payment records.</p>
+
+              <div className="rounded-xl border border-teal-500/30 bg-[#0D1322] p-5 shadow-sm">
+                <span className="text-xs font-medium text-[#8E9CAE]">Monthly Savings Equivalent</span>
+                <strong className="block mt-2 text-3xl font-bold font-mono text-[#F4F7FB]">
+                  ₹{Number(summary.total_potential_monthly_savings).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  <span className="text-sm font-normal text-[#8E9CAE] font-sans"> / month</span>
+                </strong>
+                <p className="mt-3 text-xs text-[#8E9CAE]">
+                  Extra money left in your bank account every month once cancelled.
+                </p>
               </div>
             </section>
 
-            {/* Interactive What-If Projection Bar */}
+            {/* Interactive Live Simulation Bar */}
             {projection && (
-              <section className="rounded-2xl border border-cyan-500/40 bg-gradient-to-r from-slate-900 via-slate-900/90 to-cyan-950/40 p-6 shadow-[0_0_30px_rgba(120, 149, 117, 0.12)]">
+              <section className="rounded-2xl border border-cyan-500/40 bg-gradient-to-r from-slate-900 via-slate-900/90 to-cyan-950/40 p-6 shadow-[0_0_30px_rgba(6,182,212,0.12)]">
                 <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
                   <div>
                     <span className="text-xs font-mono uppercase tracking-wider text-cyan-400 font-bold block">
-                      Live Simulation Scenario
+                      Live Calculator
                     </span>
                     <h2 className="text-xl font-bold text-[#F4F7FB] mt-1 flex items-center">
-                      Current vs Projected Annual Outflow
+                      What You Spend Now vs What You Spend After Cancelling
                       {calculating && (
                         <span className="ml-2 text-xs font-mono text-cyan-400 font-normal animate-pulse">
-                          (Calculating...)
+                          (Updating...)
                         </span>
                       )}
                     </h2>
-                    <p className="text-xs text-[#8E9CAE] mt-1 max-w-xl">
-                      Formula: Projected Annual Cost = Current Annualized Outflow &minus; Selected Annual Savings.
-                      Includes strict non-negative and double-counting protection.
+                    <p className="text-xs text-[#8E9CAE] mt-1 max-w-xl leading-relaxed">
+                      Select or uncheck subscriptions below. Your new lower bill and yearly savings update automatically.
                     </p>
                   </div>
 
                   {/* Comparison Figures */}
                   <div className="flex flex-wrap items-center gap-6 font-mono">
                     <div className="text-right">
-                      <span className="text-[11px] text-[#8E9CAE] block font-sans">Baseline Outflow</span>
+                      <span className="text-[11px] text-[#8E9CAE] block font-sans">Current Spending</span>
                       <span className="text-xl font-bold text-[#8E9CAE]">
                         ₹{projection.baseline_annual_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                       </span>
@@ -354,7 +379,7 @@ export default function SavingsPage() {
                     <div className="text-center font-sans text-xl text-cyan-400 font-light">&minus;</div>
 
                     <div className="text-right">
-                      <span className="text-[11px] text-teal-400 block font-sans">Selected Savings ({projection.selected_count})</span>
+                      <span className="text-[11px] text-teal-400 block font-sans">Total You Save ({projection.selected_count} selected)</span>
                       <span className="text-xl font-bold text-teal-300">
                         ₹{projection.selected_annual_savings.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                       </span>
@@ -362,51 +387,42 @@ export default function SavingsPage() {
 
                     <div className="text-center font-sans text-xl text-cyan-400 font-light">=</div>
 
-                    <div className="text-right p-3 rounded-xl bg-cyan-950/60 border border-cyan-500/40 shadow-inner">
-                      <span className="text-[11px] text-cyan-300 font-bold block font-sans">Projected Outflow</span>
+                    <div className="text-right p-3.5 rounded-xl bg-cyan-950/60 border border-cyan-500/40 shadow-inner">
+                      <span className="text-[11px] text-cyan-300 font-bold block font-sans">Your New Lower Bill</span>
                       <span className="text-2xl font-black text-cyan-200">
                         ₹{projection.projected_annual_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                       </span>
-                      <span className="text-[10px] text-teal-400 font-sans block mt-0.5">
-                        &darr; {projection.percentage_reduction}% Annual Reduction
+                      <span className="text-[10px] text-teal-300 font-sans block mt-0.5 font-semibold">
+                        &darr; {projection.percentage_reduction}% Less To Pay Each Year
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Applied Safeguards List */}
-                {projection.safeguards_applied.length > 0 && (
-                  <div className="mt-4 pt-3 border-t border-[#1E293B]/80 flex flex-wrap items-center gap-2 text-[11px] text-[#8E9CAE]">
-                    <span className="font-semibold text-[#8E9CAE]">Applied Engine Safeguards:</span>
-                    {projection.safeguards_applied.map((s, idx) => (
-                      <span
-                        key={idx}
-                        className="px-2 py-0.5 rounded bg-[#0D1322] border border-[#1E293B]/60 text-[#8E9CAE]"
-                      >
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                {/* Applied Safeguards Note */}
+                <div className="mt-4 pt-3 border-t border-[#1E293B]/80 flex items-center gap-2 text-[11px] text-[#8E9CAE]">
+                  <span className="text-cyan-400">✓ Accurate Protection:</span>
+                  <span>Calculations ensure no double-counting and match your verified bank amounts.</span>
+                </div>
               </section>
             )}
 
-            {/* Split View: Left (Opportunities Selector) & Right (Save Scenario & Saved Scenarios) */}
+            {/* Split View: Left (Subscriptions List) & Right (Save Plan Form & Saved Plans) */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Left Column (2 Cols): Opportunities List */}
+              {/* Left Column: Subscriptions to Cancel */}
               <div className="lg:col-span-2 flex flex-col gap-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base font-semibold text-[#F4F7FB]">Savings Opportunities</h3>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-[#0D1322] text-[#8E9CAE]">
-                      {filteredOpportunities.length} Found
+                    <h3 className="text-base font-semibold text-[#F4F7FB]">Subscriptions You Can Cancel</h3>
+                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#0D1322] text-cyan-300 border border-[#1E293B] font-medium">
+                      {filteredOpportunities.length} Available
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <button
                       onClick={selectAll}
-                      className="px-2.5 py-1 rounded-md text-xs text-cyan-400 hover:bg-cyan-950/40 border border-cyan-800/40 transition-colors"
+                      className="px-2.5 py-1 rounded-md text-xs text-cyan-400 hover:bg-cyan-950/40 border border-cyan-800/40 transition-colors font-medium"
                     >
                       Select All
                     </button>
@@ -422,8 +438,10 @@ export default function SavingsPage() {
                       onChange={(e) => setFilterType(e.target.value)}
                       className="px-2.5 py-1 rounded-md bg-[#0D1322] border border-[#1E293B] text-xs text-[#8E9CAE] focus:outline-none focus:border-cyan-500"
                     >
-                      <option value="ALL">All Types</option>
-                      <option value="AI_REVIEW">AI review</option>
+                      <option value="ALL">All Suggestions</option>
+                      <option value="PRICE_INCREASE">Price Increases</option>
+                      <option value="POTENTIALLY_UNUSED">Rarely Used</option>
+                      <option value="AI_REVIEW">Review Suggested</option>
                     </select>
                   </div>
                 </div>
@@ -438,19 +456,28 @@ export default function SavingsPage() {
                         onClick={() => toggleOpportunity(opp.id)}
                         className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
                           isChecked
-                            ? "bg-[#040711]/90 border-cyan-500/50 shadow-[0_0_15px_rgba(120, 149, 117, 0.08)]"
+                            ? "bg-[#040711]/90 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.1)]"
                             : "bg-[#0D1322]/40 border-[#1E293B]/80 opacity-75 hover:opacity-100 hover:border-[#1E293B]"
                         }`}
                       >
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-start gap-3.5">
                           <input
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => toggleOpportunity(opp.id)}
                             className="mt-1 w-4 h-4 rounded text-cyan-500 focus:ring-cyan-500 border-[#1E293B] bg-[#040711] cursor-pointer"
                           />
+
+                          {/* Company Logo */}
+                          <MerchantLogo
+                            name={opp.merchant_name || opp.commitment_name}
+                            category={opp.category}
+                            size={40}
+                            className="shadow-sm ring-1 ring-white/10 shrink-0"
+                          />
+
                           <div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <span className="font-semibold text-[#F4F7FB] text-sm">
                                 {opp.commitment_name}
                               </span>
@@ -463,27 +490,26 @@ export default function SavingsPage() {
                                     : "bg-indigo-500/10 text-indigo-400 border border-indigo-500/30"
                                 }`}
                               >
-                                {opp.opportunity_type.replace("_", " ")}
+                                {formatOpportunityLabel(opp.opportunity_type)}
                               </span>
-                              <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#0D1322] text-[#8E9CAE]">
-                                {opp.classification}
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#0D1322] text-[#8E9CAE]">
+                                {opp.category}
                               </span>
                             </div>
 
-                            <p className="text-xs text-[#8E9CAE] mt-1 max-w-lg leading-relaxed">
+                            <p className="text-xs text-[#8E9CAE] mt-1.5 max-w-lg leading-relaxed">
                               {opp.evidence_summary}
                             </p>
 
                             <div className="flex items-center gap-3 mt-2 text-[11px] text-[#8E9CAE]">
-                              <span>Merchant: <strong className="text-[#8E9CAE]">{opp.merchant_name}</strong></span>
-                              <span>Category: <strong className="text-[#8E9CAE]">{opp.category}</strong></span>
+                              <span>Company: <strong className="text-[#F4F7FB]">{opp.merchant_name}</strong></span>
                               {opp.insight_id && (
                                 <Link
                                   href={`/insights/${opp.insight_id}`}
                                   onClick={(e) => e.stopPropagation()}
                                   className="text-cyan-400 hover:underline"
                                 >
-                                  View Linked Insight &rarr;
+                                  View Insights &rarr;
                                 </Link>
                               )}
                             </div>
@@ -491,15 +517,15 @@ export default function SavingsPage() {
                         </div>
 
                         {/* Cost & Savings Figures */}
-                        <div className="text-right font-mono flex-shrink-0">
+                        <div className="text-right font-mono flex-shrink-0 self-end sm:self-center">
                           <span className="text-sm font-bold text-teal-400 block">
-                            Save ₹{opp.potential_annual_saving.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/yr
+                            Save ₹{opp.potential_annual_saving.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/year
                           </span>
-                          <span className="text-xs text-[#8E9CAE] block">
-                            ₹{opp.potential_monthly_saving.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/mo
+                          <span className="text-xs text-cyan-300 block">
+                            ₹{opp.potential_monthly_saving.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/month
                           </span>
-                          <span className="text-[10px] text-[#8E9CAE] block mt-1">
-                            Current: ₹{opp.current_annual_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/yr
+                          <span className="text-[10px] text-[#8E9CAE] block mt-1 font-sans">
+                            Currently costs ₹{opp.current_annual_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/year
                           </span>
                         </div>
                       </div>
@@ -508,20 +534,20 @@ export default function SavingsPage() {
 
                   {filteredOpportunities.length === 0 && (
                     <div className="p-8 text-center rounded-xl border border-[#1E293B] text-[#8E9CAE] text-xs">
-                      No savings opportunities matching the selected filter.
+                      No savings opportunities matching this filter.
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Right Column (1 Col): Save Scenario & Saved Scenarios List */}
+              {/* Right Column: Save Plan Form & Saved Plans List */}
               <div className="flex flex-col gap-6">
-                {/* Save Scenario Form Card */}
+                {/* Save Plan Form Card */}
                 <div className="rounded-xl border border-[#1E293B] bg-[#0D1322]/50 p-5 flex flex-col gap-4">
                   <div>
-                    <h3 className="text-sm font-semibold text-[#F4F7FB]">Save Current Scenario</h3>
+                    <h3 className="text-sm font-semibold text-[#F4F7FB]">Save This Plan</h3>
                     <p className="text-xs text-[#8E9CAE] mt-0.5">
-                      Persist this {selectedIds.length}-item simulation for tracking or future review.
+                      Save your current selection of {selectedIds.length} subscriptions to review or act on later.
                     </p>
                   </div>
 
@@ -534,76 +560,78 @@ export default function SavingsPage() {
                   <form onSubmit={handleSaveScenario} className="space-y-3">
                     <div>
                       <label className="text-[11px] text-[#8E9CAE] font-medium block mb-1">
-                        Scenario Name *
+                        Plan Name *
                       </label>
                       <input
                         type="text"
                         required
-                        placeholder="e.g. Q4 Budget Optimization"
+                        placeholder="e.g. 2026 Subscription Cuts"
                         value={scenarioName}
                         onChange={(e) => setScenarioName(e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg bg-[#040711] border border-[#1E293B] text-xs text-[#8E9CAE] placeholder:text-[#8E9CAE] focus:outline-none focus:border-cyan-500"
+                        className="w-full px-3 py-2 rounded-lg bg-[#040711] border border-[#1E293B] text-xs text-[#F4F7FB] placeholder:text-[#8E9CAE] focus:outline-none focus:border-cyan-500"
                       />
                     </div>
 
                     <div>
                       <label className="text-[11px] text-[#8E9CAE] font-medium block mb-1">
-                        Description / Notes
+                        Notes (Optional)
                       </label>
                       <textarea
                         rows={2}
-                        placeholder="Optional notes or assumptions..."
+                        placeholder="e.g. Cancelling streaming apps I don't use often..."
                         value={scenarioDesc}
                         onChange={(e) => setScenarioDesc(e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg bg-[#040711] border border-[#1E293B] text-xs text-[#8E9CAE] placeholder:text-[#8E9CAE] focus:outline-none focus:border-cyan-500"
+                        className="w-full px-3 py-2 rounded-lg bg-[#040711] border border-[#1E293B] text-xs text-[#F4F7FB] placeholder:text-[#8E9CAE] focus:outline-none focus:border-cyan-500"
                       />
                     </div>
 
                     <button
                       type="submit"
                       disabled={savingScenario || selectedIds.length === 0}
-                      className="w-full py-2.5 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 disabled:opacity-50 text-slate-950 font-bold text-xs tracking-wide transition-all shadow-[0_0_15px_rgba(120, 149, 117, 0.2)]"
+                      className="w-full py-2.5 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 disabled:opacity-50 text-slate-950 font-bold text-xs tracking-wide transition-all shadow-[0_0_15px_rgba(20,184,166,0.2)]"
                     >
-                      {savingScenario ? "Saving Scenario..." : "Save Simulation Scenario"}
+                      {savingScenario ? "Saving Plan..." : "Save This Plan"}
                     </button>
                   </form>
                 </div>
 
-                {/* Saved Scenarios List */}
+                {/* Saved Plans List */}
                 <div className="rounded-xl border border-[#1E293B] bg-[#0D1322]/50 p-5 flex flex-col gap-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-[#F4F7FB]">Saved Scenarios</h3>
-                    <span className="text-xs text-[#8E9CAE] font-mono">{savedScenarios.length}</span>
+                    <h3 className="text-sm font-semibold text-[#F4F7FB]">Your Saved Plans</h3>
+                    <span className="text-xs text-[#8E9CAE] font-mono px-2 py-0.5 rounded bg-[#040711] border border-[#1E293B]">
+                      {savedScenarios.length}
+                    </span>
                   </div>
 
                   <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
                     {savedScenarios.map((scen) => (
                       <div
                         key={scen.id}
-                        className="p-3 rounded-lg bg-[#040711]/80 border border-[#1E293B] text-xs flex flex-col gap-2"
+                        className="p-3 rounded-xl bg-[#040711]/80 border border-[#1E293B] text-xs flex flex-col gap-2 hover:border-cyan-500/30 transition-colors"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <span className="font-semibold text-[#F4F7FB] block">{scen.name}</span>
+                            <span className="font-semibold text-[#F4F7FB] block text-sm">{scen.name}</span>
                             {scen.description && (
                               <p className="text-[11px] text-[#8E9CAE] mt-0.5">{scen.description}</p>
                             )}
                           </div>
                           <button
                             onClick={() => handleDeleteScenario(scen.id)}
-                            className="text-[#8E9CAE] hover:text-rose-400 text-xs font-mono transition-colors"
-                            title="Delete scenario"
+                            className="text-[#8E9CAE] hover:text-rose-400 text-sm font-mono transition-colors p-1"
+                            title="Delete plan"
                           >
                             &times;
                           </button>
                         </div>
 
-                        <div className="pt-2 border-t border-slate-900 flex items-center justify-between text-[11px] font-mono">
+                        <div className="pt-2 border-t border-[#1E293B]/60 flex items-center justify-between text-[11px] font-mono">
                           <span className="text-teal-400 font-bold">
-                            Save ₹{scen.annual_savings.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/yr
+                            Save ₹{scen.annual_savings.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/year
                           </span>
-                          <span className="text-cyan-300">
-                            &darr; {scen.percentage_reduction}%
+                          <span className="text-cyan-300 font-semibold font-sans">
+                            &darr; {scen.percentage_reduction}% less
                           </span>
                         </div>
                       </div>
@@ -611,7 +639,7 @@ export default function SavingsPage() {
 
                     {savedScenarios.length === 0 && (
                       <p className="text-xs text-[#8E9CAE] text-center py-4">
-                        No saved simulation scenarios yet.
+                        No saved plans yet. Pick subscriptions and click &ldquo;Save This Plan&rdquo;.
                       </p>
                     )}
                   </div>

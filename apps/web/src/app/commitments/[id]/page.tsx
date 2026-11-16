@@ -526,7 +526,7 @@ export default function CommitmentDetailPage({
                 </span>
               ))
             ) : (
-              <span className="text-[10px] text-[#1E293B] font-mono">CADENCE_MATCH</span>
+              <span className="text-[10px] text-[#1E293B] font-mono">PERIOD_MATCH</span>
             )}
             <span className="ml-auto text-[11px] text-[#8E9CAE] font-mono">
               Engine {commitment.detector_version}
