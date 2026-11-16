@@ -44,6 +44,10 @@ class DashboardTopCommitment(BaseModel):
     id: uuid.UUID
     display_name: str
     merchant_name: Optional[str] = None
+    merchant_id: Optional[uuid.UUID] = None
+    merchant_domain: Optional[str] = None
+    merchant_logo_url: Optional[str] = None
+    logo_source: Optional[str] = None
     category: str
     cadence: str
     monthly_cost: Decimal
@@ -155,7 +159,9 @@ def _build_dashboard_summary(db: Session, user_id: Optional[uuid.UUID]) -> Dashb
             candidate_annual_cost=candidate, historical_months=[row.month.strftime("%b %Y") for row in history],
             historical_amounts=[row.amount for row in history]),
         top_commitments=[DashboardTopCommitment(id=item.commitment_id, display_name=item.display_name,
-            merchant_name=item.merchant_name, category=(item.category or item.commitment_type).capitalize(),
+            merchant_name=item.merchant_name, merchant_id=item.merchant_id,
+            merchant_domain=item.merchant_domain, merchant_logo_url=item.merchant_logo_url,
+            logo_source=item.logo_source, category=(item.category or item.commitment_type).capitalize(),
             cadence=item.cadence, monthly_cost=item.normalized_monthly_cost, status=item.status,
             confidence_band=item.confidence_band) for item in sorted(confirmed, key=lambda item: item.normalized_monthly_cost, reverse=True)[:6]],
         category_distribution=categories,

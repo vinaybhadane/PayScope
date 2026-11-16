@@ -2,7 +2,7 @@
 import unittest
 import uuid
 from decimal import Decimal
-from datetime import date
+from datetime import date, datetime, timezone
 
 from app.matching.merchant_logo_service import (
     MerchantLogoService,
@@ -16,6 +16,8 @@ from app.analytics.financial_impact.schemas import (
     UpcomingExpenseItem,
     SavingsOpportunityItem,
 )
+from app.api.v1.routes.dashboard import DashboardTopCommitment
+from app.analytics.schemas import CommitmentResponse
 
 
 class TestMerchantLogoService(unittest.TestCase):
@@ -221,8 +223,46 @@ class TestMerchantLogoService(unittest.TestCase):
             evidence_summary="Price increased from 499 to 649.",
         )
 
-        # Ensure all 4 schemas expose the exact same verified metadata contract
-        models = [cost_item, ranking, upcoming, opp]
+        # 5. DashboardTopCommitment (Overview - Your Recurring Commitments)
+        top_comm = DashboardTopCommitment(
+            id=c_id,
+            display_name="Netflix 4K Premium",
+            merchant_id=m_id,
+            merchant_name="Netflix",
+            merchant_domain="netflix.com",
+            merchant_logo_url="/merchant-logos/netflix.svg",
+            logo_source="curated",
+            category="Subscription",
+            cadence="monthly",
+            monthly_cost=Decimal("649.00"),
+            status="active",
+            confidence_band="high",
+        )
+
+        # 6. CommitmentResponse (Subscriptions - Commitments Table & Details)
+        comm_resp = CommitmentResponse(
+            id=c_id,
+            user_id=uuid.uuid4(),
+            merchant_id=m_id,
+            merchant_name="Netflix",
+            merchant_domain="netflix.com",
+            merchant_logo_url="/merchant-logos/netflix.svg",
+            logo_source="curated",
+            display_name="Netflix 4K Premium",
+            commitment_type="subscription",
+            cadence="monthly",
+            amount_pattern="FIXED",
+            status="active",
+            confidence_band="high",
+            detector_version="v1.0",
+            first_seen_at=datetime.now(timezone.utc),
+            last_seen_at=datetime.now(timezone.utc),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        )
+
+        # Ensure all 6 schemas across all 4 pages expose the exact same verified metadata contract
+        models = [cost_item, ranking, upcoming, opp, top_comm, comm_resp]
         for model in models:
             d = model.model_dump()
             self.assertEqual(d["merchant_id"], m_id)

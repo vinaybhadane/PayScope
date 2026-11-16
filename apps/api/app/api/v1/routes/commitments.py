@@ -28,17 +28,35 @@ from app.models.payment_notification import PaymentNotification
 from app.models.transaction import Transaction
 from app.models.commitment_insight import CommitmentInsight
 from app.analytics.insights.schemas import InsightResponse
+from app.matching.merchant_logo_service import MerchantLogoService
 from app.repositories.user_repository import UserRepository, resolve_workspace_user_id
 
 router = APIRouter(prefix="/commitments", tags=["Commitments"])
 
 
-def _to_commitment_response(c: Commitment, tx_count: int = 0) -> CommitmentResponse:
-    """Helper to convert Commitment model to response schema."""
+def _to_commitment_response(c: Commitment, tx_count: int = 0, db: Optional[Session] = None) -> CommitmentResponse:
+    """Helper to convert Commitment model to response schema with verified logo metadata."""
+    merchant_rel = getattr(c, "merchant", None)
+    meta = MerchantLogoService.resolve_merchant_metadata(
+        merchant=merchant_rel,
+        fallback_name=c.display_name,
+        db=db,
+    )
+    resolved_merchant_id = c.merchant_id
+    if not resolved_merchant_id and meta.merchant_id:
+        try:
+            resolved_merchant_id = uuid.UUID(meta.merchant_id)
+        except Exception:
+            resolved_merchant_id = None
+
     return CommitmentResponse(
         id=c.id,
         user_id=c.user_id,
-        merchant_id=c.merchant_id,
+        merchant_id=resolved_merchant_id,
+        merchant_name=meta.merchant_name or c.display_name,
+        merchant_domain=meta.merchant_domain,
+        merchant_logo_url=meta.merchant_logo_url,
+        logo_source=meta.logo_source,
         display_name=c.display_name,
         commitment_type=c.commitment_type,
         cadence=c.cadence,
@@ -125,6 +143,7 @@ def list_commitments(
     query = (
         select(Commitment, func.coalesce(count_subq.c.tx_count, 0))
         .outerjoin(count_subq, Commitment.id == count_subq.c.commitment_id)
+        .options(joinedload(Commitment.merchant))
         .where(Commitment.user_id == user.id)
     )
 
@@ -144,7 +163,7 @@ def list_commitments(
     query = query.order_by(Commitment.representative_amount.desc().nullslast()).offset(skip).limit(limit)
     rows = db.execute(query).all()
 
-    return [_to_commitment_response(c, tx_count) for c, tx_count in rows]
+    return [_to_commitment_response(c, tx_count, db=db) for c, tx_count in rows]
 
 
 @router.get("/summary", response_model=CommitmentSummaryResponse)
@@ -215,6 +234,7 @@ def get_commitment_detail(
 
     commitment = db.execute(
         select(Commitment)
+        .options(joinedload(Commitment.merchant))
         .where(Commitment.id == commitment_id, Commitment.user_id == user.id)
     ).scalars().first()
 
@@ -251,7 +271,7 @@ def get_commitment_detail(
         for ev, tx in ev_rows
     ]
 
-    base_resp = _to_commitment_response(commitment, len(supporting))
+    base_resp = _to_commitment_response(commitment, len(supporting), db=db)
     return CommitmentDetailResponse(
         **base_resp.model_dump(),
         supporting_transactions=supporting,
@@ -268,6 +288,7 @@ def get_commitment_transactions(
 
     commitment = db.execute(
         select(Commitment)
+        .options(joinedload(Commitment.merchant))
         .where(Commitment.id == commitment_id, Commitment.user_id == user.id)
     ).scalars().first()
 
@@ -314,6 +335,7 @@ def get_commitment_timeline(
 
     commitment = db.execute(
         select(Commitment)
+        .options(joinedload(Commitment.merchant))
         .where(Commitment.id == commitment_id, Commitment.user_id == user.id)
     ).scalars().first()
 
@@ -436,6 +458,7 @@ def confirm_commitment(
 
     commitment = db.execute(
         select(Commitment)
+        .options(joinedload(Commitment.merchant))
         .where(Commitment.id == commitment_id, Commitment.user_id == user.id)
     ).scalars().first()
 
@@ -484,6 +507,7 @@ def update_commitment(
 
     commitment = db.execute(
         select(Commitment)
+        .options(joinedload(Commitment.merchant))
         .where(Commitment.id == commitment_id, Commitment.user_id == user.id)
     ).scalars().first()
 
@@ -567,6 +591,7 @@ def mark_commitment_not_recurring(
 
     commitment = db.execute(
         select(Commitment)
+        .options(joinedload(Commitment.merchant))
         .where(Commitment.id == commitment_id, Commitment.user_id == user.id)
     ).scalars().first()
 

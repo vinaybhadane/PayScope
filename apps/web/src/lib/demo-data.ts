@@ -7,15 +7,17 @@ export interface DemoSubscription {
   amount: number;
   day: number;
   account: string;
+  domain?: string;
+  logo_url?: string;
 }
 // Sample amounts illustrate the demo; they are not current plan prices.
 export const demoSubscriptions: DemoSubscription[] = [
-  { id: "netflix", name: "Netflix", mark: "N", color: "#E50914", category: "Entertainment", amount: 649, day: 16, account: "Demo Visa ?? 4242" },
-  { id: "prime", name: "Amazon Prime", mark: "A", color: "#00A8E1", category: "Entertainment", amount: 299, day: 18, account: "Demo Visa ?? 4242" },
-  { id: "youtube", name: "YouTube Premium", mark: "Y", color: "#FF0000", category: "Entertainment", amount: 129, day: 20, account: "Demo Visa ?? 4242" },
-  { id: "chatgpt", name: "ChatGPT Plus", mark: "C", color: "#111111", category: "Productivity", amount: 1999, day: 22, account: "Demo Visa ?? 4242" },
-  { id: "claude", name: "Claude Pro", mark: "C", color: "#C87958", category: "Productivity", amount: 1999, day: 24, account: "Demo Visa ?? 4242" },
-  { id: "gemini", name: "Gemini Pro", mark: "G", color: "#4285F4", category: "Productivity", amount: 1950, day: 26, account: "Demo Visa ?? 4242" },
+  { id: "netflix", name: "Netflix", mark: "N", color: "#E50914", category: "Entertainment", amount: 649, day: 16, account: "Demo Visa •• 4242", domain: "netflix.com", logo_url: "/merchant-logos/netflix.svg" },
+  { id: "prime", name: "Amazon Prime", mark: "A", color: "#00A8E1", category: "Entertainment", amount: 299, day: 18, account: "Demo Visa •• 4242", domain: "amazon.in", logo_url: "/merchant-logos/prime.png" },
+  { id: "youtube", name: "YouTube Premium", mark: "Y", color: "#FF0000", category: "Entertainment", amount: 129, day: 20, account: "Demo Visa •• 4242", domain: "youtube.com", logo_url: "/merchant-logos/youtube.svg" },
+  { id: "chatgpt", name: "ChatGPT Plus", mark: "C", color: "#111111", category: "Productivity", amount: 1999, day: 22, account: "Demo Visa •• 4242", domain: "openai.com", logo_url: "/merchant-logos/chatgpt.png" },
+  { id: "claude", name: "Claude Pro", mark: "C", color: "#C87958", category: "Productivity", amount: 1999, day: 24, account: "Demo Visa •• 4242", domain: "anthropic.com", logo_url: "/merchant-logos/claude.png" },
+  { id: "gemini", name: "Gemini Pro", mark: "G", color: "#4285F4", category: "Productivity", amount: 1950, day: 26, account: "Demo Visa •• 4242", domain: "google.com", logo_url: "/merchant-logos/gemini.png" },
 ];
 export const demoMonthly = demoSubscriptions.reduce(
   (sum, sub) => sum + sub.amount,

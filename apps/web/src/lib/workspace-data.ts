@@ -54,6 +54,10 @@ export interface DashboardData {
     id: string;
     display_name: string;
     merchant_name?: string;
+    merchant_id?: string | null;
+    merchant_domain?: string | null;
+    merchant_logo_url?: string | null;
+    logo_source?: string | null;
     category: string;
     cadence: string;
     monthly_cost: number | string;
@@ -123,6 +127,10 @@ export const sampleDashboard: DashboardData = {
     id: s.id,
     display_name: s.name,
     merchant_name: s.name,
+    merchant_id: s.id,
+    merchant_domain: s.domain || null,
+    merchant_logo_url: s.logo_url || null,
+    logo_source: "curated",
     category: s.category,
     cadence: "monthly",
     monthly_cost: s.amount,

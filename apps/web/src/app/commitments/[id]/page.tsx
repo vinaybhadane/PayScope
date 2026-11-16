@@ -6,6 +6,7 @@ import React, { useState, useEffect, use } from "react";
 import Link from "next/link";
 
 import AppHeader from "@/components/navigation/AppHeader";
+import { MerchantLogo } from "@/components/brand/MerchantLogo";
 import { formatPeriod } from "@/lib/formatPeriod";
 
 interface TransactionEvidence {
@@ -53,6 +54,10 @@ interface CommitmentDetail {
   id: string;
   user_id: string;
   merchant_id?: string | null;
+  merchant_name?: string | null;
+  merchant_domain?: string | null;
+  merchant_logo_url?: string | null;
+  logo_source?: string | null;
   display_name: string;
   commitment_type: string;
   cadence: string;
@@ -125,11 +130,11 @@ export default function CommitmentDetailPage({
 
         if (!ignore) {
           setCommitment(detData);
-          setTimelineEvents(timeData.events || []);
-          setInsights(insData || []);
-          setEditDisplayName(detData.display_name);
-          setEditType(detData.commitment_type);
-          setEditCadence(detData.cadence);
+          setTimelineEvents(Array.isArray(timeData?.events) ? timeData.events : []);
+          setInsights(Array.isArray(insData) ? insData : []);
+          setEditDisplayName(detData.display_name || "");
+          setEditType(detData.commitment_type || "subscription");
+          setEditCadence(detData.cadence || "monthly");
         }
       } catch (err) {
         if (!ignore) {
@@ -261,7 +266,7 @@ export default function CommitmentDetailPage({
     );
   }
 
-  const openInsights = insights.filter((i) => i.status === "open");
+  const openInsights = (Array.isArray(insights) ? insights : []).filter((i) => i.status === "open");
 
   return (
     <div className="min-h-screen flex flex-col bg-[#040711] text-[#8E9CAE] antialiased selection:bg-[#FF5500] selection:text-[#F4F7FB]">
@@ -312,6 +317,13 @@ export default function CommitmentDetailPage({
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 p-6 rounded-2xl bg-[#0D1322]/60 border border-[#1E293B]/80">
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-center gap-3">
+              <MerchantLogo
+                name={commitment.merchant_name || commitment.display_name}
+                merchantId={commitment.merchant_id}
+                domain={commitment.merchant_domain}
+                logoUrl={commitment.merchant_logo_url}
+                size={40}
+              />
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#F4F7FB]">
                 {commitment.display_name}
               </h1>

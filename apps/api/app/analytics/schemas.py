@@ -36,6 +36,10 @@ class CommitmentResponse(CommitmentBase):
     id: uuid.UUID
     user_id: uuid.UUID
     merchant_id: Optional[uuid.UUID] = None
+    merchant_name: Optional[str] = None
+    merchant_domain: Optional[str] = None
+    merchant_logo_url: Optional[str] = None
+    logo_source: Optional[str] = None
     transaction_count: int = 0
     created_at: datetime
     updated_at: datetime

@@ -6,7 +6,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 
 import AppHeader from "@/components/navigation/AppHeader";
-import { MerchantLogo } from "@/components/workspace/MerchantLogo";
+import { MerchantLogo } from "@/components/brand/MerchantLogo";
 import { formatPeriod } from "@/lib/formatPeriod";
 import { useWorkspaceRevision } from "@/lib/useWorkspaceResource";
 
@@ -14,6 +14,10 @@ interface CommitmentItem {
   id: string;
   user_id: string;
   merchant_id?: string | null;
+  merchant_name?: string | null;
+  merchant_domain?: string | null;
+  merchant_logo_url?: string | null;
+  logo_source?: string | null;
   display_name: string;
   commitment_type: string;
   cadence: string;
@@ -436,7 +440,13 @@ export default function CommitmentsPage() {
                           href={`/commitments/${c.id}`}
                           className="hover:text-emerald-400 transition-colors flex items-center gap-3"
                         >
-                          <MerchantLogo name={c.display_name} size={34} />
+                          <MerchantLogo
+                            name={c.merchant_name || c.display_name}
+                            merchantId={c.merchant_id}
+                            domain={c.merchant_domain}
+                            logoUrl={c.merchant_logo_url}
+                            size={34}
+                          />
                           <span className="flex flex-col">
                             <span className="font-semibold text-sm text-[#8E9CAE] group-hover:text-emerald-400">
                               {c.display_name}

@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { AIWorkspacePanel } from "@/components/workspace/AIWorkspacePanel";
 import AppHeader from "@/components/navigation/AppHeader";
 import { Icon } from "@/components/ui/Icon";
-import { MerchantLogo } from "@/components/workspace/MerchantLogo";
+import { MerchantLogo } from "@/components/brand/MerchantLogo";
 import { inr } from "@/lib/demo-data";
 import { formatPeriod } from "@/lib/formatPeriod";
 import { sampleDashboard, type DashboardData } from "@/lib/workspace-data";
@@ -516,7 +516,10 @@ export default function DashboardClient() {
                         <tr key={c.id}>
                           <td>
                             <MerchantLogo
-                              name={c.display_name}
+                              name={c.merchant_name || c.display_name}
+                              merchantId={c.merchant_id}
+                              domain={c.merchant_domain}
+                              logoUrl={c.merchant_logo_url}
                               className="dashboard-merchant"
                             />
                             <div>
