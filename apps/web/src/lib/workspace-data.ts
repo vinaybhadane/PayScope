@@ -63,6 +63,8 @@ export interface DashboardData {
     monthly_cost: number | string;
     status: string;
     confidence_band: string;
+    payment_rail?: string;
+    verification_status?: string;
   }[];
   category_distribution: Record<string, number | string>;
   recent_insights: {
@@ -78,9 +80,20 @@ export interface DashboardData {
   cancellation_summary: Record<string, number>;
   merchant_review_pending: number;
   canonical_merchants_count: number;
+  autodebit_rail_distribution?: Record<string, number>;
+  ai_audit_score?: number;
+  ai_audit_status?: string;
 }
 export const sampleDashboard: DashboardData = {
   data_status: "demo",
+  ai_audit_score: 100,
+  ai_audit_status: "verified",
+  autodebit_rail_distribution: {
+    "UPI AutoPay": 3,
+    "NACH / e-Mandate": 1,
+    "Standing Instruction": 1,
+    "Credit Card Recurring": 1,
+  },
   kpis: {
     active_commitments_count: demoSubscriptions.length,
     monthly_recurring_spend: demoMonthly,

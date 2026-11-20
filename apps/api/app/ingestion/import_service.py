@@ -22,6 +22,7 @@ from app.models.payment_notification import PaymentNotification
 from app.models.transaction import Transaction
 from app.models.account import Account
 from app.repositories.import_repository import ImportRepository
+from app.analytics.autodebit_keyword_service import analyze_transaction_descriptor
 
 logger = logging.getLogger(__name__)
 
@@ -328,6 +329,11 @@ class ImportService:
 
                     score_dec = Decimal(str(round(resolution.score, 2))) if resolution.score else None
 
+                    # Auto-debit keyword intelligence analysis
+                    autodebit_analysis = analyze_transaction_descriptor(r["raw_descriptor"])
+                    resolved_channel = autodebit_analysis.payment_rail if autodebit_analysis.is_autodebit_candidate else (r.get("payment_channel") or "General Debit")
+                    resolved_status = "failed" if autodebit_analysis.is_failure_or_reversal else r["transaction_status"]
+
                     txn = Transaction(
                         user_id=user_id,
                         account_id=account_id,
@@ -339,8 +345,8 @@ class ImportService:
                         amount=r["amount"],
                         currency=r["currency"],
                         direction=r["direction"],
-                        transaction_status=r["transaction_status"],
-                        payment_channel=r["payment_channel"],
+                        transaction_status=resolved_status,
+                        payment_channel=resolved_channel,
                         payment_reference=r["payment_reference"],
                         source_row_number=r["source_row_number"],
                         raw_source_snapshot=r["raw_source_snapshot"],
