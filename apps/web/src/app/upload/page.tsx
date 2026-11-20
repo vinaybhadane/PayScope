@@ -417,7 +417,7 @@ export default function UploadPage() {
                   }`}
                 >
                   <span className="text-xs font-semibold">Bank Statement</span>
-                  <span className="text-[11px] text-[#8E9CAE]">CSV, Excel (XLSX), or text PDF</span>
+                  <span className="text-[11px] text-[#8E9CAE]">CSV, XLSX, PDF, or screenshot image</span>
                 </button>
 
                 <button
@@ -446,7 +446,7 @@ export default function UploadPage() {
               </div>
               <div className="flex justify-between">
                 <span>Accepted Formats:</span>
-                <span className="text-[#8E9CAE] font-mono">.csv, .xlsx, .json</span>
+                <span className="text-[#8E9CAE] font-mono">.csv, .xlsx, .json, .pdf, .png, .jpg, .webp</span>
               </div>
               <div className="flex justify-between">
                 <span>Idempotency Check:</span>
@@ -521,7 +521,7 @@ export default function UploadPage() {
                   <input
                     id={fileInputId}
                     type="file"
-                    accept=".csv,.xlsx,.json,.pdf"
+                    accept=".csv,.xlsx,.json,.pdf,.png,.jpg,.jpeg,.webp"
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
                         handleFileSelect(e.target.files[0]);
@@ -530,7 +530,7 @@ export default function UploadPage() {
                     className="hidden"
                   />
                   <p className="text-[11px] text-[#8E9CAE]">
-                    Supports CSV, XLSX, JSON, and selectable-text PDF tables up to 10 MB. Scanned PDFs are not supported.
+                    Supports CSV, XLSX, JSON, PDF (tables, text &amp; OCR), and images/screenshots (PNG, JPG, WEBP) up to 10 MB.
                   </p>
                 </div>
               )}

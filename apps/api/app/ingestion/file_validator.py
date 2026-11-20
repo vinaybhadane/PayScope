@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import List, Optional, Set
 
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
-ALLOWED_EXTENSIONS: Set[str] = {".csv", ".xlsx", ".json", ".pdf"}
+ALLOWED_EXTENSIONS: Set[str] = {".csv", ".xlsx", ".json", ".pdf", ".png", ".jpg", ".jpeg", ".webp"}
 
 
 @dataclass

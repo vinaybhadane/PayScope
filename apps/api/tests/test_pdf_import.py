@@ -58,13 +58,36 @@ def test_pdf_requires_valid_signature():
 def test_scanned_pdf_returns_actionable_error():
     page = MagicMock()
     page.extract_tables.return_value = []
+    page.extract_text.return_value = ""
+    page.to_image.return_value.original = None
     document = MagicMock()
     document.__enter__.return_value.pages = [page]
     with patch("app.ingestion.pdf_parser.pdfplumber.open", return_value=document):
-        with pytest.raises(ValueError, match="Scanned PDFs"):
+        with pytest.raises(ValueError, match="No readable statement transactions found"):
             PDFParser.parse(b"%PDF-1.4")
 
 
 def test_pdf_extension_accepted_with_synthetic_confirmation():
     assert FileValidator.validate_upload("statement.pdf", b"%PDF-1.4", True).is_valid
     assert not FileValidator.validate_upload("statement.pdf", b"%PDF-1.4", False).is_valid
+    assert FileValidator.validate_upload("statement.png", b"\x89PNG\r\n\x1a\n", True).is_valid
+    assert FileValidator.validate_upload("statement.jpg", b"\xff\xd8\xff", True).is_valid
+
+
+def test_pdf_fallback_to_raw_text():
+    raw_statement = """
+    HDFC BANK STATEMENT
+    02-10-2026 NETFLIX.COM SUBSCRIPTION 649.00 DR
+    15-10-2026 SPOTIFY INDIA AUTO-DEBIT 119.00 DR
+    20-10-2026 SALARY CREDIT 85000.00 CR
+    """
+    page = MagicMock()
+    page.extract_tables.return_value = []
+    page.extract_text.return_value = raw_statement
+    document = MagicMock()
+    document.__enter__.return_value.pages = [page]
+    with patch("app.ingestion.pdf_parser.pdfplumber.open", return_value=document):
+        headers, rows = PDFParser.parse(b"%PDF-1.4")
+        assert len(rows) >= 2
+        assert any("NETFLIX" in r["Description"] for r in rows)
+        assert any(r["Amount"] == 649.0 for r in rows)

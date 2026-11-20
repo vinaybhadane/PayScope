@@ -14,6 +14,7 @@ from app.ingestion.file_validator import FileValidator
 from app.ingestion.json_parser import JSONParser
 from app.ingestion.schema_normalizer import SchemaNormalizer
 from app.ingestion.xlsx_parser import XLSXParser
+from app.ingestion.image_parser import ImageStatementParser
 from app.matching.config import DEFAULT_MATCHING_CONFIG
 from app.matching.resolver import MerchantResolver
 from app.matching.review_service import ReviewService
@@ -46,8 +47,11 @@ class ImportService:
         elif lower.endswith(".json"):
             headers, rows = JSONParser.parse(content)
             return "json", headers, rows
+        elif any(lower.endswith(ext) for ext in [".png", ".jpg", ".jpeg", ".webp"]):
+            headers, rows = ImageStatementParser.parse(content, filename)
+            return "image", headers, rows
         else:
-            raise ValueError(f"Unsupported file format for '{filename}'. Allowed: CSV, XLSX, JSON, PDF.")
+            raise ValueError(f"Unsupported file format for '{filename}'. Allowed: CSV, XLSX, JSON, PDF, PNG, JPG, JPEG, WEBP.")
 
     @classmethod
     def preview(
