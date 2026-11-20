@@ -79,7 +79,7 @@ Your job:
 """
 
 
-def _generate_heuristic_review(records: list[dict], by_id: dict) -> Review:
+def _generate_heuristic_review(records: list[dict], *args, **kwargs) -> Review:
     """Robust, deterministic AI Auditor fallback for 100% hackathon reliability.
     Uses interval analysis and auto-debit keyword classification.
     """
@@ -168,11 +168,11 @@ def _generate_heuristic_review(records: list[dict], by_id: dict) -> Review:
     )
 
 
-def call_gemini(records: list[dict], by_id: dict) -> Review:
+def call_gemini(records: list[dict], *args, **kwargs) -> Review:
     """Invokes Gemini 2.5 Flash with fallback to heuristic auditor."""
     if not settings.GEMINI_API_KEY:
         logger.info("GEMINI_API_KEY not configured; using deterministic auto-debit keyword auditor.")
-        return _generate_heuristic_review(records, by_id)
+        return _generate_heuristic_review(records)
 
     try:
         response = requests.post(
@@ -201,7 +201,7 @@ def call_gemini(records: list[dict], by_id: dict) -> Review:
     except Exception as exc:
         logger.warning(f"Gemini call failed ({exc}); activating deterministic auto-debit auditor fallback.")
 
-    return _generate_heuristic_review(records, by_id)
+    return _generate_heuristic_review(records)
 
 
 def review_workspace(db: Session, user_id: uuid.UUID) -> dict:
@@ -257,7 +257,7 @@ def review_workspace(db: Session, user_id: uuid.UUID) -> dict:
             rail_distribution={},
         )
     else:
-        review = call_gemini(records, by_id)
+        review = call_gemini(records)
 
     # Validate response
     seen = set()
@@ -338,7 +338,7 @@ def review_workspace(db: Session, user_id: uuid.UUID) -> dict:
             f'rail:{rail}',
             f'status:{sub.verification_status or "verified_accurate"}',
         ]
-        c.detector_version = 'gemini-2.5-autodebit'
+        c.detector_version = 'gemini-v1'
 
         db.flush()
         db.execute(delete(CommitmentTransaction).where(CommitmentTransaction.commitment_id == c.id))
@@ -364,7 +364,7 @@ def review_workspace(db: Session, user_id: uuid.UUID) -> dict:
                 confidence_band=sub.confidence,
                 confidence_score=c.confidence_score,
                 detected_at=now,
-                detector_version='gemini-2.5-autodebit',
+                detector_version='gemini-v1',
                 unique_fingerprint=f'ai:{c.id}:{index}',
             )
             db.add(insight)
