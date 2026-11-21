@@ -9,7 +9,6 @@ import { useAuth } from "@/context/AuthContext";
 import { DownloadAppModal } from "./DownloadAppModal";
 import { TermsModal } from "./TermsModal";
 import { ContactModal } from "./ContactModal";
-import { CookieConsentModal } from "./CookieConsentModal";
 
 interface PayScopeLandingHeaderProps {
   apiConnected?: boolean;
@@ -26,7 +25,6 @@ export function PayScopeLandingHeader({
   const [downloadModalOpen, setDownloadModalOpen] = useState(false);
   const [termsModalOpen, setTermsModalOpen] = useState(false);
   const [contactModalOpen, setContactModalOpen] = useState(false);
-  const [cookieModalOpen, setCookieModalOpen] = useState(false);
 
   const pathname = usePathname();
   const router = useRouter();
@@ -47,15 +45,14 @@ export function PayScopeLandingHeader({
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full pt-4 sm:pt-6 px-3 sm:px-6 pointer-events-none">
+      <header className="sticky top-0 z-40 w-full px-4 sm:px-8 py-3.5 sm:py-4 transition-all bg-[#040711]/60 backdrop-blur-xl border-b border-white/[0.06]">
         {logoutFailed && (
           <p role="alert" className="text-center text-xs text-rose-400 mb-2">
             Sign-out failed. Please try again.
           </p>
         )}
 
-        {/* Floating Island Navbar Capsule */}
-        <div className="max-w-7xl mx-auto rounded-full bg-[#080C16]/90 border border-white/[0.12] backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.85)] px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between pointer-events-auto transition-all">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* LEFT: PayScope Brand Logo */}
           <div
             ref={headerLogoRef}
@@ -65,19 +62,19 @@ export function PayScopeLandingHeader({
           >
             <Link
               href="/"
-              className="flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-[#00E0E0] rounded-xl p-0.5"
+              className="flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-[#00E0E0] rounded-xl p-0.5 group"
             >
-              <PayScopeLogo variant="navbar" size={28} />
+              <PayScopeLogo variant="navbar" size={30} />
             </Link>
           </div>
 
-          {/* CENTER: Navigation Links */}
-          <nav className="hidden xl:flex items-center gap-0.5 lg:gap-1">
+          {/* CENTER: Clean, Professional Navigation Links (Cookie removed) */}
+          <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
             <Link
               href="/"
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+              className={`px-3.5 py-1.5 rounded-full text-xs xl:text-sm font-medium transition-all ${
                 pathname === "/"
-                  ? "text-white bg-white/[0.12] font-semibold"
+                  ? "text-white bg-white/[0.1] font-semibold"
                   : "text-[#8E9CAE] hover:text-white hover:bg-white/[0.04]"
               }`}
             >
@@ -86,9 +83,9 @@ export function PayScopeLandingHeader({
 
             <Link
               href="/about"
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+              className={`px-3.5 py-1.5 rounded-full text-xs xl:text-sm font-medium transition-all ${
                 pathname === "/about"
-                  ? "text-white bg-white/[0.12] font-semibold"
+                  ? "text-white bg-white/[0.1] font-semibold"
                   : "text-[#8E9CAE] hover:text-white hover:bg-white/[0.04]"
               }`}
             >
@@ -97,9 +94,9 @@ export function PayScopeLandingHeader({
 
             <Link
               href="/privacy"
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+              className={`px-3.5 py-1.5 rounded-full text-xs xl:text-sm font-medium transition-all ${
                 pathname === "/privacy"
-                  ? "text-white bg-white/[0.12] font-semibold"
+                  ? "text-white bg-white/[0.1] font-semibold"
                   : "text-[#8E9CAE] hover:text-white hover:bg-white/[0.04]"
               }`}
             >
@@ -108,32 +105,25 @@ export function PayScopeLandingHeader({
 
             <button
               onClick={() => setTermsModalOpen(true)}
-              className="px-3 py-1.5 rounded-full text-xs font-medium text-[#8E9CAE] hover:text-white hover:bg-white/[0.04] transition-all cursor-pointer"
+              className="px-3.5 py-1.5 rounded-full text-xs xl:text-sm font-medium text-[#8E9CAE] hover:text-white hover:bg-white/[0.04] transition-all cursor-pointer"
             >
               Terms and Conditions
             </button>
 
             <button
-              onClick={() => setCookieModalOpen(true)}
-              className="px-3 py-1.5 rounded-full text-xs font-medium text-[#8E9CAE] hover:text-white hover:bg-white/[0.04] transition-all cursor-pointer"
-            >
-              Cookie Policy Concent Pop
-            </button>
-
-            <button
               onClick={() => setContactModalOpen(true)}
-              className="px-3 py-1.5 rounded-full text-xs font-medium text-[#8E9CAE] hover:text-white hover:bg-white/[0.04] transition-all cursor-pointer"
+              className="px-3.5 py-1.5 rounded-full text-xs xl:text-sm font-medium text-[#8E9CAE] hover:text-white hover:bg-white/[0.04] transition-all cursor-pointer"
             >
               Contact us
             </button>
           </nav>
 
           {/* RIGHT: Two Buttons [Download App] and [Sign In] */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3.5">
             {/* 1. Download App Button */}
             <button
               onClick={() => setDownloadModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-full text-xs font-semibold text-white bg-white/[0.08] hover:bg-white/[0.14] border border-white/10 hover:border-white/25 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-white bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 hover:border-white/25 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
             >
               <svg className="w-3.5 h-3.5 text-[#00E0E0]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -141,10 +131,10 @@ export function PayScopeLandingHeader({
               <span>Download App</span>
             </button>
 
-            {/* 2. Sign In / User Button */}
+            {/* 2. Sign In Button */}
             <button
               onClick={handleAuthAction}
-              className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-full text-xs font-bold text-white bg-[#FF5500] hover:bg-[#FF6611] transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-[0_0_20px_rgba(255,85,0,0.35)]"
+              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-bold text-white bg-[#FF5500] hover:bg-[#FF6611] transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-[0_0_20px_rgba(255,85,0,0.35)]"
             >
               <span>{user ? "Sign Out" : "Sign In"}</span>
             </button>
@@ -153,7 +143,7 @@ export function PayScopeLandingHeader({
             {user && (
               <button
                 onClick={handleDashboard}
-                className="hidden sm:inline-flex items-center gap-1 px-3 py-2 rounded-full text-xs font-semibold text-[#00E0E0] bg-[#00E0E0]/10 hover:bg-[#00E0E0]/20 border border-[#00E0E0]/20 transition-all cursor-pointer"
+                className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold text-[#00E0E0] bg-[#00E0E0]/10 hover:bg-[#00E0E0]/20 border border-[#00E0E0]/20 transition-all cursor-pointer"
                 title="Go to Dashboard"
               >
                 <span>App</span>
@@ -165,7 +155,7 @@ export function PayScopeLandingHeader({
 
             {/* User Avatar if logged in */}
             {user && (
-              <div className="flex items-center pl-1">
+              <div className="flex items-center pl-0.5">
                 {user?.photoURL ? (
                   <Image
                     src={user.photoURL}
@@ -185,7 +175,7 @@ export function PayScopeLandingHeader({
             {/* Mobile Menu Toggle Button */}
             <button
               onClick={() => setMobileMenuOpen((prev) => !prev)}
-              className="xl:hidden p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-[#8E9CAE] hover:text-white transition-colors focus:outline-none focus:ring-1 focus:ring-white/20 ml-1"
+              className="lg:hidden p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-[#8E9CAE] hover:text-white transition-colors focus:outline-none focus:ring-1 focus:ring-white/20 ml-1"
               aria-label="Toggle mobile menu"
               aria-expanded={mobileMenuOpen}
             >
@@ -204,7 +194,7 @@ export function PayScopeLandingHeader({
 
         {/* Mobile Navigation Dropdown */}
         {mobileMenuOpen && (
-          <div className="xl:hidden mt-2 max-w-7xl mx-auto rounded-2xl bg-[#080C16]/95 border border-white/[0.12] backdrop-blur-2xl p-4 flex flex-col gap-2 pointer-events-auto shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="lg:hidden mt-3 max-w-7xl mx-auto rounded-2xl bg-[#080C16]/95 border border-white/[0.12] backdrop-blur-2xl p-4 flex flex-col gap-2 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
             <Link
               href="/"
               onClick={() => setMobileMenuOpen(false)}
@@ -234,15 +224,6 @@ export function PayScopeLandingHeader({
               className="text-left px-4 py-2 rounded-xl text-xs font-medium text-slate-200 hover:bg-white/[0.06]"
             >
               Terms and Conditions
-            </button>
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                setCookieModalOpen(true);
-              }}
-              className="text-left px-4 py-2 rounded-xl text-xs font-medium text-slate-200 hover:bg-white/[0.06]"
-            >
-              Cookie Policy Concent Pop
             </button>
             <button
               onClick={() => {
@@ -281,7 +262,6 @@ export function PayScopeLandingHeader({
       <DownloadAppModal isOpen={downloadModalOpen} onClose={() => setDownloadModalOpen(false)} />
       <TermsModal isOpen={termsModalOpen} onClose={() => setTermsModalOpen(false)} />
       <ContactModal isOpen={contactModalOpen} onClose={() => setContactModalOpen(false)} />
-      <CookieConsentModal isOpen={cookieModalOpen} onClose={() => setCookieModalOpen(false)} />
     </>
   );
 }

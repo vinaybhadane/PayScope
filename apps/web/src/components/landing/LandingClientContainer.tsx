@@ -15,7 +15,6 @@ interface LandingClientContainerProps {
 
 export function LandingClientContainer({}: LandingClientContainerProps) {
   const [downloadModalOpen, setDownloadModalOpen] = useState(false);
-  const [cookieModalOpen, setCookieModalOpen] = useState(false);
   const router = useRouter();
   const { user, openAuthModal } = useAuth();
 
@@ -49,10 +48,10 @@ export function LandingClientContainer({}: LandingClientContainerProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-[#040711] via-transparent to-[#040711]/60" />
       </div>
 
-      {/* 2. Floating Island Header with all requested links & two buttons */}
+      {/* 2. Modern Transparent Header */}
       <PayScopeLandingHeader />
 
-      {/* 3. HERO SECTION: Layout matching uploaded UI structure */}
+      {/* 3. HERO SECTION */}
       <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-16 lg:pb-24 flex flex-col justify-center">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           
@@ -164,49 +163,9 @@ export function LandingClientContainer({}: LandingClientContainerProps) {
             </div>
           </div>
 
-          {/* ================= CENTER & RIGHT: Holding Phone & Floating Performance Cards ================= */}
+          {/* ================= CENTER & RIGHT: Holding Phone visual ================= */}
           <div className="lg:col-span-7 relative flex items-center justify-center lg:justify-end">
             
-            {/* Top-Right Floating "Sales / Outflow Performance" Card (matching uploaded UI) */}
-            <div className="absolute top-2 sm:top-6 -right-2 sm:right-4 z-30 max-w-[240px] sm:max-w-[270px] rounded-2xl bg-[#0D1322]/85 border border-white/[0.14] p-4 backdrop-blur-2xl shadow-[0_20px_40px_rgba(0,0,0,0.85)] hidden sm:block transition-all hover:scale-[1.02]">
-              <div className="flex items-center justify-between pb-1.5 border-b border-white/[0.06]">
-                <span className="text-[11px] font-bold text-white">Sales Performance</span>
-                <span className="text-[10px] text-[#00E0E0] hover:underline cursor-pointer">View all</span>
-              </div>
-
-              <div className="mt-2.5">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-xl font-extrabold text-white">73%</span>
-                  <span className="text-[10px] text-emerald-400 font-medium">Sales conversion</span>
-                </div>
-                <p className="text-[10px] text-[#8E9CAE] mt-0.5">
-                  Today&apos;s sales are <strong className="text-slate-200">$319 higher</strong> than last month
-                </p>
-
-                {/* Spectrum mini bar chart matching the image */}
-                <div className="mt-2.5 flex items-end gap-1 h-6 pt-1">
-                  {Array.from({ length: 24 }).map((_, i) => {
-                    const heightPercent = 35 + ((i * 7) % 65);
-                    const isAccent = i > 14 && i < 20;
-                    return (
-                      <div
-                        key={i}
-                        className={`flex-1 rounded-sm ${
-                          isAccent ? "bg-[#00E0E0]" : "bg-gradient-to-t from-orange-400/60 to-amber-300/60"
-                        }`}
-                        style={{ height: `${heightPercent}%` }}
-                      />
-                    );
-                  })}
-                </div>
-
-                <div className="mt-2 flex items-center justify-between text-[9px] text-[#8E9CAE]">
-                  <span>Total revenue</span>
-                  <span className="font-mono font-semibold text-white">$11,391.45</span>
-                </div>
-              </div>
-            </div>
-
             {/* Realistic Hand Holding Phone Visual using /holdingPhone.png */}
             <div className="relative z-10 w-full max-w-[420px] sm:max-w-[480px] lg:max-w-[540px] flex items-center justify-center">
               {/* Soft circular aura glow directly behind the phone */}
@@ -251,12 +210,6 @@ export function LandingClientContainer({}: LandingClientContainerProps) {
             <Link href="/privacy" className="hover:text-white transition-colors">
               Privacy Policy
             </Link>
-            <button
-              onClick={() => setCookieModalOpen(true)}
-              className="hover:text-white transition-colors cursor-pointer"
-            >
-              Cookie Consent
-            </button>
             <Link href="/dashboard" className="text-[#00E0E0] hover:underline font-medium">
               Launch Dashboard →
             </Link>
@@ -264,9 +217,11 @@ export function LandingClientContainer({}: LandingClientContainerProps) {
         </div>
       </footer>
 
-      {/* Modals triggered from hero buttons */}
+      {/* Modals */}
       <DownloadAppModal isOpen={downloadModalOpen} onClose={() => setDownloadModalOpen(false)} />
-      <CookieConsentModal isOpen={cookieModalOpen} onClose={() => setCookieModalOpen(false)} forceOpen={false} />
+      
+      {/* Horizontal bottom cookie popup shown automatically on first visit */}
+      <CookieConsentModal />
     </div>
   );
 }

@@ -3,107 +3,99 @@
 import React, { useState, useEffect } from "react";
 
 interface CookieConsentModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  forceOpen?: boolean;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export function CookieConsentModal({ isOpen, onClose, forceOpen = false }: CookieConsentModalProps) {
-  const [preferences, setPreferences] = useState({
-    essential: true,
-    analytics: true,
-    localCache: true,
-  });
-  const [hasInteracted, setHasInteracted] = useState(false);
+export function CookieConsentModal({ isOpen = false, onClose }: CookieConsentModalProps) {
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("payscope_cookie_consent");
-    if (saved) {
-      setHasInteracted(true);
+    // Check if user has already made a choice
+    const consent = localStorage.getItem("payscope_cookie_consent");
+    if (!consent) {
+      // First time visitor: show automatically after slight delay for smooth entrance
+      const timer = setTimeout(() => setVisible(true), 800);
+      return () => clearTimeout(timer);
     }
   }, []);
 
-  const shouldShow = isOpen || (forceOpen && !hasInteracted);
+  // Allow external trigger if passed isOpen=true
+  useEffect(() => {
+    if (isOpen) {
+      setVisible(true);
+    }
+  }, [isOpen]);
 
-  if (!shouldShow) return null;
+  if (!visible) return null;
 
-  const handleSave = (all = false) => {
-    const choice = all
-      ? { essential: true, analytics: true, localCache: true }
-      : preferences;
-    localStorage.setItem("payscope_cookie_consent", JSON.stringify(choice));
-    setHasInteracted(true);
-    onClose();
+  const handleChoice = (acceptedAll: boolean) => {
+    localStorage.setItem(
+      "payscope_cookie_consent",
+      JSON.stringify({
+        essential: true,
+        analytics: acceptedAll,
+        localCache: acceptedAll,
+        timestamp: new Date().toISOString(),
+      })
+    );
+    setVisible(false);
+    if (onClose) onClose();
   };
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 z-50 max-w-md w-full rounded-3xl bg-[#080C16]/95 border border-white/[0.15] p-5 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.9)] backdrop-blur-2xl text-slate-100 animate-in slide-in-from-bottom-5 duration-300">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div className="fixed bottom-0 left-0 right-0 z-50 w-full bg-[#080C16]/95 border-t border-white/[0.12] backdrop-blur-2xl shadow-[0_-15px_40px_rgba(0,0,0,0.85)] px-4 sm:px-8 py-4 sm:py-5 text-slate-100 animate-in slide-in-from-bottom duration-300">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8">
+        {/* Left: Info & Description */}
+        <div className="flex items-center gap-3.5 text-left w-full md:w-auto">
+          <div className="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white tracking-tight">Cookie Policy &amp; Consent</h3>
-            <span className="text-[10px] text-emerald-400 font-mono">Zero Third-Party Advertising Trackers</span>
+            <div className="flex items-center gap-2">
+              <h4 className="text-xs sm:text-sm font-bold text-white tracking-tight">Cookie Policy &amp; Consent</h4>
+              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                Local-First
+              </span>
+            </div>
+            <p className="text-xs text-[#8E9CAE] leading-relaxed mt-0.5 max-w-3xl">
+              PayScope uses local storage and strictly essential session cookies to authenticate your workspace and run offline statement parsing. We do not track or sell personal browsing data.
+            </p>
           </div>
         </div>
-        <button
-          onClick={onClose}
-          className="text-slate-400 hover:text-white p-1 rounded-lg"
-          aria-label="Close cookie banner"
-        >
-          ✕
-        </button>
-      </div>
 
-      <p className="mt-3 text-xs text-[#8E9CAE] leading-relaxed">
-        PayScope uses local storage and strictly essential cookies to remember your workspace session and optimize local statement processing. We do not sell or monetize personal browsing data.
-      </p>
+        {/* Right: Actions */}
+        <div className="flex items-center gap-3 shrink-0 w-full md:w-auto justify-end">
+          <button
+            onClick={() => handleChoice(false)}
+            className="px-4 py-2 rounded-full bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-xs font-semibold text-slate-300 hover:text-white transition-all cursor-pointer"
+          >
+            Essential Only
+          </button>
 
-      {/* Preferences checklist */}
-      <div className="mt-3.5 space-y-2 p-3 rounded-xl bg-[#0D1322] border border-white/[0.06] text-xs">
-        <div className="flex items-center justify-between">
-          <span className="text-white font-medium">Essential Session Token</span>
-          <span className="text-[10px] font-mono text-emerald-400">Required</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-slate-300">Local Statement Cache</span>
-          <input
-            type="checkbox"
-            checked={preferences.localCache}
-            onChange={(e) => setPreferences({ ...preferences, localCache: e.target.checked })}
-            className="accent-[#FF5500] rounded"
-          />
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-slate-300">Telemetry &amp; Audit Logs</span>
-          <input
-            type="checkbox"
-            checked={preferences.analytics}
-            onChange={(e) => setPreferences({ ...preferences, analytics: e.target.checked })}
-            className="accent-[#FF5500] rounded"
-          />
-        </div>
-      </div>
+          <button
+            onClick={() => handleChoice(true)}
+            className="px-6 py-2 rounded-full bg-[#FF5500] hover:bg-[#FF6611] text-white font-bold text-xs tracking-wider uppercase transition-all shadow-[0_0_15px_rgba(255,85,0,0.4)] hover:scale-[1.02] cursor-pointer"
+          >
+            Accept All
+          </button>
 
-      {/* Buttons */}
-      <div className="mt-4 flex items-center gap-2.5">
-        <button
-          onClick={() => handleSave(true)}
-          className="flex-1 py-2.5 rounded-xl bg-[#FF5500] hover:bg-[#FF6611] text-white font-bold text-xs tracking-wider uppercase transition-all shadow-md cursor-pointer"
-        >
-          Accept All
-        </button>
-        <button
-          onClick={() => handleSave(false)}
-          className="px-4 py-2.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] text-white text-xs font-semibold transition-all cursor-pointer"
-        >
-          Save Preferences
-        </button>
+          <button
+            onClick={() => {
+              setVisible(false);
+              if (onClose) onClose();
+            }}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors ml-1"
+            aria-label="Dismiss cookie notice"
+          >
+            ✕
+          </button>
+        </div>
       </div>
     </div>
   );
 }
+
+export default CookieConsentModal;
