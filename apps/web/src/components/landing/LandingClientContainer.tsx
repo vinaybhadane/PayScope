@@ -52,14 +52,14 @@ export function LandingClientContainer({}: LandingClientContainerProps) {
       <PayScopeLandingHeader />
 
       {/* 3. HERO SECTION (100% Fit in Single Screen Viewport, No Scroll) */}
-      <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 lg:py-4 flex items-center justify-center min-h-0 overflow-hidden">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center w-full h-full max-h-full">
+      <main className="relative z-10 flex-1 max-w-[1400px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-center min-h-0 overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-center w-full h-full max-h-full">
           
           {/* ================= LEFT COLUMN: Headline & Plan Allocation Card ================= */}
-          <div className="lg:col-span-5 flex flex-col items-start justify-center space-y-4 sm:space-y-6 z-20">
-            {/* Main Headline (Clean 2-line layout without social proof pill) */}
-            <h1 className="text-3xl sm:text-5xl lg:text-5xl xl:text-6xl font-black tracking-tight text-white leading-[1.08] drop-shadow-2xl">
-              Automated wealth{" "}
+          <div className="lg:col-span-5 flex flex-col items-start justify-center space-y-5 xl:space-y-6 z-20 xl:pl-6">
+            {/* Main Headline (Clean 2-line layout exactly like the design reference) */}
+            <h1 className="text-3xl sm:text-5xl lg:text-4xl xl:text-[56px] font-black tracking-tight text-white leading-[1.08] drop-shadow-2xl">
+              <span className="block whitespace-nowrap">Automated wealth</span>
               <span className="block text-white mt-1">allocation</span>
             </h1>
 
@@ -67,28 +67,47 @@ export function LandingClientContainer({}: LandingClientContainerProps) {
             <div className="flex items-center gap-3.5 pt-0.5">
               <button
                 onClick={() => setDownloadModalOpen(true)}
-                className="px-6 sm:px-7 py-2.5 sm:py-3 rounded-full bg-[#0D1322] hover:bg-[#151D33] text-white font-bold text-xs sm:text-sm tracking-wide border border-white/[0.18] hover:border-white/[0.3] transition-all shadow-[0_6px_20px_rgba(0,0,0,0.6)] hover:scale-[1.03] active:scale-[0.98] cursor-pointer"
+                className="px-6 sm:px-7 py-2.5 sm:py-3 rounded-full bg-[#0D1322] hover:bg-[#151D33] text-white font-bold text-xs sm:text-sm tracking-wide border border-white/[0.18] hover:border-white/[0.32] transition-all shadow-[0_8px_25px_rgba(0,0,0,0.7)] hover:scale-[1.03] active:scale-[0.98] cursor-pointer"
               >
                 Download app
               </button>
 
               <button
                 onClick={handleLaunchApp}
-                className="px-5 py-2.5 sm:py-3 rounded-full text-xs sm:text-sm font-semibold text-[#8E9CAE] hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
+                className="px-5 py-2.5 sm:py-3 rounded-full text-xs sm:text-sm font-semibold text-[#8E9CAE] hover:text-white transition-colors cursor-pointer flex items-center gap-1.5 group"
               >
                 <span>See more</span>
-                <svg className="w-3.5 h-3.5 text-[#00E0E0]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-3.5 h-3.5 text-[#00E0E0] group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                 </svg>
               </button>
             </div>
 
-            {/* Floating "Plan Allocation" Card (Compact single-screen design) */}
-            <div className="relative w-full max-w-[340px] sm:max-w-[360px] rounded-2xl bg-[#0D1322]/90 border border-white/[0.14] p-4 backdrop-blur-2xl shadow-[0_15px_40px_rgba(0,0,0,0.85)] transition-all hover:border-white/[0.25] group">
-              {/* Shiny decorative 4-point star in top-right corner */}
-              <div className="absolute -top-3 -right-3 w-7 h-7 flex items-center justify-center pointer-events-none drop-shadow-[0_0_10px_rgba(255,255,255,0.75)]">
-                <svg className="w-6 h-6 text-white fill-white animate-pulse" viewBox="0 0 24 24">
-                  <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
+            {/* Floating "Plan Allocation" Card (Matching mockup layout & frosted 3D star) */}
+            <div className="relative w-full max-w-[340px] sm:max-w-[360px] rounded-2xl bg-[#0D1322]/90 border border-white/[0.14] p-4 sm:p-4.5 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] transition-all hover:border-white/[0.25] group">
+              {/* Shiny frosted 3D crystal 4-point star in top-right corner matching reference image */}
+              <div className="absolute -top-4 -right-4 w-10 h-10 flex items-center justify-center pointer-events-none drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]">
+                <svg className="w-9 h-9" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M18 0L21.5 14.5L36 18L21.5 21.5L18 36L14.5 21.5L0 18L14.5 14.5L18 0Z"
+                    fill="url(#star_grad_outer)"
+                    fillOpacity="0.85"
+                  />
+                  <path
+                    d="M18 4L20.2 15.8L32 18L20.2 20.2L18 32L15.8 20.2L4 18L15.8 15.8L18 4Z"
+                    fill="url(#star_grad_inner)"
+                  />
+                  <defs>
+                    <linearGradient id="star_grad_outer" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#FFFFFF" />
+                      <stop offset="0.5" stopColor="#E2E8F0" />
+                      <stop offset="1" stopColor="#94A3B8" />
+                    </linearGradient>
+                    <linearGradient id="star_grad_inner" x1="4" y1="4" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#FFFFFF" />
+                      <stop offset="1" stopColor="#CBD5E1" stopOpacity="0.7" />
+                    </linearGradient>
+                  </defs>
                 </svg>
               </div>
 
@@ -112,7 +131,7 @@ export function LandingClientContainer({}: LandingClientContainerProps) {
                 </div>
 
                 <p className="text-[10px] text-[#8E9CAE]">
-                  Next payment will be charged on <strong className="text-slate-300">25th March</strong>
+                  Next payment will be charged in <strong className="text-slate-300">25th March</strong>
                 </p>
 
                 {/* Card preview strip */}
@@ -142,12 +161,12 @@ export function LandingClientContainer({}: LandingClientContainerProps) {
             </div>
           </div>
 
-          {/* ================= CENTER & RIGHT: Holding Phone visual ================= */}
-          <div className="lg:col-span-7 relative flex items-center justify-center lg:justify-end h-full max-h-full min-h-0">
+          {/* ================= CENTER COLUMN: Holding Phone visual (Centered!) ================= */}
+          <div className="lg:col-span-4 relative flex items-center justify-center h-full max-h-full min-h-0">
             {/* Realistic Hand Holding Phone Visual using /holdingPhone.png */}
-            <div className="relative z-10 w-full max-w-[360px] sm:max-w-[420px] lg:max-w-[470px] flex items-center justify-center max-h-[62vh]">
+            <div className="relative z-10 w-full max-w-[360px] sm:max-w-[400px] xl:max-w-[440px] flex items-center justify-center max-h-[68vh]">
               {/* Soft circular aura glow directly behind the phone */}
-              <div className="absolute inset-0 m-auto w-60 h-80 rounded-full bg-gradient-to-tr from-[#00E0E0]/20 via-[#0070F3]/15 to-[#FF5500]/15 blur-[90px] pointer-events-none" />
+              <div className="absolute inset-0 m-auto w-64 h-80 rounded-full bg-gradient-to-tr from-[#00E0E0]/25 via-[#0070F3]/20 to-[#FF5500]/15 blur-[100px] pointer-events-none" />
 
               <Image
                 src="/holdingPhone.png"
@@ -155,16 +174,20 @@ export function LandingClientContainer({}: LandingClientContainerProps) {
                 width={470}
                 height={674}
                 priority
-                className="w-auto h-auto max-h-[58vh] object-contain drop-shadow-[0_25px_50px_rgba(0,0,0,0.9)] select-none pointer-events-none transition-transform duration-500 hover:scale-[1.01]"
+                className="w-auto h-auto max-h-[66vh] object-contain drop-shadow-[0_25px_50px_rgba(0,0,0,0.95)] select-none pointer-events-none transition-transform duration-500 hover:scale-[1.01]"
+                style={{
+                  maskImage: "linear-gradient(to bottom, black 85%, transparent 100%)",
+                  WebkitMaskImage: "linear-gradient(to bottom, black 85%, transparent 100%)",
+                }}
               />
             </div>
+          </div>
 
-            {/* Bottom-Right Explanatory Text */}
-            <div className="absolute bottom-2 sm:bottom-4 right-0 sm:right-4 z-30 max-w-[200px] text-right hidden md:block">
-              <p className="text-xs font-normal text-[#C5D2E0] leading-relaxed drop-shadow-md">
-                Your monthly contribution is intelligently distributed across digital assets.
-              </p>
-            </div>
+          {/* ================= RIGHT COLUMN: Explanatory Text ================= */}
+          <div className="lg:col-span-3 flex items-center justify-start h-full pl-2 lg:pl-6 z-20">
+            <p className="text-base lg:text-lg xl:text-xl font-normal text-[#C5D2E0] leading-relaxed max-w-[320px] drop-shadow-md">
+              Your monthly contribution is intelligently distributed across digital assets.
+            </p>
           </div>
         </div>
       </main>
