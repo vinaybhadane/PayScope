@@ -45,7 +45,7 @@ export function PayScopeLandingHeader({
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full px-4 sm:px-8 py-3.5 sm:py-4 transition-all bg-[#040711]/60 backdrop-blur-xl border-b border-white/[0.06]">
+      <header className="sticky top-0 z-40 w-full px-4 sm:px-8 py-2.5 sm:py-3 transition-all bg-[#040711]/60 backdrop-blur-xl border-b border-white/[0.06] shrink-0">
         {logoutFailed && (
           <p role="alert" className="text-center text-xs text-rose-400 mb-2">
             Sign-out failed. Please try again.
