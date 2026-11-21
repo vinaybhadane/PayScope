@@ -9,7 +9,9 @@ const nextConfig: NextConfig = {
   },
   turbopack: {
     rules: {
-      "*.css": {
+      // Only the Tailwind entry needs this loader. Rewriting *.module.css
+      // as *.css removes CSS Module exports and leaves components unstyled.
+      "globals.css": {
         loaders: ["@tailwindcss/turbopack"],
         as: "*.css",
       },
