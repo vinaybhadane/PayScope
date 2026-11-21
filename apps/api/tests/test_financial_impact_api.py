@@ -16,7 +16,7 @@ from app.models.savings_scenario import SavingsScenario
 @pytest.fixture
 def setup_financial_data(db_session: Session):
     """Set up test user with confirmed commitments, price event, and insights."""
-    user = DemoUser(workspace_key="demo_workspace_primary")
+    user = DemoUser(workspace_key="test:isolated-workspace")
     db_session.add(user)
     db_session.commit()
 

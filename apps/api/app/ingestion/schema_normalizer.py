@@ -1,10 +1,11 @@
 """Schema normalizer and row validator for transactions and notifications."""
 import hashlib
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from typing import Any, Dict, List, Optional
 from dateutil import parser as date_parser
+from app.core.ai_security import clean_invisible, log_quarantine, text_risks
 
 
 @dataclass
@@ -32,6 +33,7 @@ class NormalizedRowResult:
     valid_records: List[Dict[str, Any]]
     errors: List[RowError]
     total_rows: int
+    quarantined_records: List[Dict[str, Any]] = field(default_factory=list)
 
 
 class SchemaNormalizer:
@@ -46,6 +48,7 @@ class SchemaNormalizer:
         """Normalize bank statement rows using provided column mapping."""
         valid_records: List[Dict[str, Any]] = []
         errors: List[RowError] = []
+        quarantined_records = []
 
         date_col = mapping.get("transaction_date")
         desc_col = mapping.get("raw_descriptor")
@@ -62,6 +65,17 @@ class SchemaNormalizer:
 
             # 1. Parse Description (Raw Descriptor)
             raw_desc = str(row.get(desc_col, "")).strip() if desc_col else ""
+            reasons = list(row.get("_ocr_security", {}).get("reasons", []))
+            for key, value in row.items():
+                if not key.startswith("_") and isinstance(value, str):
+                    reasons.extend(text_risks(value, descriptor=key == desc_col and bool(raw_desc)))
+            if reasons:
+                reasons = sorted(set(reasons))
+                log_quarantine(raw_desc, reasons, row=row_num)
+                quarantined_records.append({"row": row_num, "descriptor": clean_invisible(raw_desc)[:120],
+                                            "reasons": reasons, "source": row})
+                errors.append(RowError(row_num, desc_col or "raw_descriptor", "[QUARANTINED]", "Manual review required: " + ", ".join(reasons)))
+                continue
             if not raw_desc:
                 row_errors.append(RowError(row_num, desc_col or "raw_descriptor", "", "Description cannot be empty."))
 
@@ -90,6 +104,8 @@ class SchemaNormalizer:
                 try:
                     clean_str = str(raw_amount_val).replace(",", "").replace("₹", "").replace("$", "").strip()
                     parsed_amount = Decimal(clean_str).quantize(Decimal("0.01"))
+                    if not parsed_amount.is_finite():
+                        raise ValueError("Non-finite amounts are not permitted")
                     if parsed_amount < 0:
                         # Negative amount signifies debit if not explicitly marked
                         parsed_amount = abs(parsed_amount)
@@ -127,7 +143,7 @@ class SchemaNormalizer:
                     "payment_reference": reference,
                     "external_synthetic_id": ext_id,
                     "source_row_number": row_num,
-                    "raw_source_snapshot": {k: v for k, v in row.items() if not k.startswith("_")},
+                    "raw_source_snapshot": {k: v for k, v in row.items() if not k.startswith("_") or k == "_ocr_security"},
                     "is_synthetic": True,
                 })
 
@@ -135,6 +151,7 @@ class SchemaNormalizer:
             valid_records=valid_records,
             errors=errors,
             total_rows=len(rows),
+            quarantined_records=quarantined_records,
         )
 
     @classmethod

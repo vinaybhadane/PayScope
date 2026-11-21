@@ -171,6 +171,7 @@ class ImportService:
                 "valid_count": net_valid_count,
                 "duplicate_count": duplicate_count,
                 "invalid_count": len(norm_result.errors),
+                "quarantined_count": len(norm_result.quarantined_records),
                 "errors": [err.to_dict() for err in norm_result.errors[:50]],
                 "preview_rows": preview_rows,
             }
@@ -294,6 +295,15 @@ class ImportService:
                 norm_result = SchemaNormalizer.normalize_transactions(rows, final_mapping)
                 rejected_count = len(norm_result.errors)
                 errors_list = [e.to_dict() for e in norm_result.errors]
+                from app.models.manual_review_item import ManualReviewItem
+                for quarantined in norm_result.quarantined_records:
+                    db.add(ManualReviewItem(
+                        user_id=user_id, item_type="ocr_security" if "_ocr_security" in quarantined["source"] else "input_security",
+                        raw_descriptor=quarantined["descriptor"], normalised_descriptor=quarantined["descriptor"],
+                        candidate_payload={"import_id": str(import_record.id), **quarantined},
+                        reason_code="security_quarantine", status="open",
+                        explanation="Record excluded from automated processing: " + ", ".join(quarantined["reasons"]),
+                    ))
 
                 # Check duplicates
                 candidate_ext_ids = [

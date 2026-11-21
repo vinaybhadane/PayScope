@@ -18,7 +18,7 @@ from app.api.v1.routes.dashboard import router as dashboard_router
 from app.api.v1.routes.graph import router as graph_router
 from app.api.v1.routes.workspace import router as workspace_router
 
-api_v1_router = APIRouter()
+api_v1_router = APIRouter(dependencies=[Depends(require_identity)])
 api_v1_router.include_router(workspace_router, dependencies=[Depends(require_identity)])
 api_v1_router.include_router(health_router)
 api_v1_router.include_router(ready_router)

@@ -23,7 +23,7 @@ def authenticated_client(client):
 def guest(client):
     response = client.post("/api/v1/auth/guest")
     assert response.status_code == 200
-    return {"Authorization": "Bearer " + response.json()["access_token"]}
+    return {"Authorization": "Bearer " + client.cookies.get("payscope_token")}
 
 
 def test_api_requires_verified_session(authenticated_client):

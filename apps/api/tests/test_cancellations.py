@@ -30,7 +30,7 @@ from app.models.transaction import Transaction
 def test_user(db_session):
     user = DemoUser(
         id=uuid.uuid4(),
-        workspace_key="demo_workspace_primary",
+        workspace_key="test:isolated-workspace",
         display_name="Cancellation Test User",
     )
     db_session.add(user)

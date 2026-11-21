@@ -163,8 +163,9 @@ def test_demo_sample_files_endpoints(client: TestClient):
     assert res_bad.status_code in (400, 404)
 
 
-def test_demo_generate_endpoint(client: TestClient):
+def test_demo_generate_endpoint(client: TestClient, tmp_path, monkeypatch):
     """Verify demo generation endpoint triggers with custom seed."""
+    monkeypatch.setattr("app.api.v1.routes.demo._get_sample_data_dir", lambda: tmp_path)
     res = client.post("/api/v1/demo/generate", json={"seed": 100})
     assert res.status_code == 200
     data = res.json()

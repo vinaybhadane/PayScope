@@ -31,6 +31,32 @@ class Identity:
 current_identity: ContextVar[Optional[Identity]] = ContextVar("identity", default=None)
 bearer = HTTPBearer(auto_error=False)
 certificate_request = GoogleRequest(session=CacheControl(requests.Session()))
+SESSION_COOKIE = "payscope_token"
+
+
+def public_endpoint(request: Request) -> bool:
+    path = request.url.path.rstrip("/")
+    prefix = settings.API_V1_STR
+    return (
+        (request.method == "POST" and path == f"{prefix}/auth/guest")
+        or (request.method in {"GET", "HEAD"} and path in {f"{prefix}/health", f"{prefix}/demo/sample-files"})
+        or (request.method in {"GET", "HEAD"} and path.startswith(f"{prefix}/demo/sample-files/"))
+    )
+
+
+def check_cookie_origin(request: Request) -> None:
+    """Reject cross-origin mutations, including login CSRF and same-site sibling attacks."""
+    if request.method in {"GET", "HEAD", "OPTIONS"}:
+        return
+    origin = request.headers.get("origin")
+    if origin and origin not in settings.BACKEND_CORS_ORIGINS:
+        raise HTTPException(403, "Request origin is not allowed.")
+    if request.headers.get("sec-fetch-site") == "cross-site":
+        raise HTTPException(403, "Cross-site session requests are not allowed.")
+    # Scripted cookie writes must carry an explicit Origin. Non-browser API clients
+    # should use Bearer auth; a cookie alone must not bypass this CSRF check.
+    if request.cookies.get(SESSION_COOKIE) and not origin:
+        raise HTTPException(403, "Cookie-authenticated writes require an Origin header.")
 
 
 def verify_token(token: str) -> Identity:
@@ -59,9 +85,15 @@ def verify_token(token: str) -> Identity:
 
 
 async def require_identity(request: Request, credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer), db: Session = Depends(get_db)):
-    if not credentials:
+    if public_endpoint(request):
+        yield None
+        return
+    token_value = credentials.credentials if credentials else request.cookies.get(SESSION_COOKIE)
+    if not token_value:
         raise HTTPException(401, "Sign in to access your workspace.", headers={"WWW-Authenticate": "Bearer"})
-    identity = await run_in_threadpool(verify_token, credentials.credentials)
+    if not credentials:
+        check_cookie_origin(request)
+    identity = await run_in_threadpool(verify_token, token_value)
     token = current_identity.set(identity)
     try:
         from app.repositories.user_repository import UserRepository

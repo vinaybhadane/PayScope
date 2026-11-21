@@ -28,7 +28,7 @@ from app.models.transaction import Transaction
 
 @pytest.fixture
 def graph_test_data(db_session):
-    user = DemoUser(workspace_key="demo_workspace_primary")
+    user = DemoUser(workspace_key="test:isolated-workspace")
     db_session.add(user)
     db_session.commit()
 

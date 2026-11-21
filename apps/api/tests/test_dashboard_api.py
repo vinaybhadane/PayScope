@@ -11,7 +11,7 @@ from app.models.merchant import Merchant
 
 
 def test_dashboard_summary_api(client: TestClient, db_session):
-    user = DemoUser(workspace_key="demo_workspace_primary")
+    user = DemoUser(workspace_key="test:isolated-workspace")
     db_session.add(user)
     db_session.commit()
 

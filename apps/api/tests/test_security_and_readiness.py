@@ -52,7 +52,7 @@ def test_cors_headers_configured_properly(client: TestClient):
     resp = client.options("/api/v1/health", headers=headers)
     assert resp.status_code in [200, 204]
     assert resp.headers.get("access-control-allow-origin") == "http://localhost:3000"
-    assert resp.headers.get("access-control-allow-credentials") is None
+    assert resp.headers.get("access-control-allow-credentials") == "true"
 
 
 def test_cors_production_vercel_preflight_and_get(client: TestClient):
@@ -69,13 +69,13 @@ def test_cors_production_vercel_preflight_and_get(client: TestClient):
     )
     assert options_health.status_code in [200, 204]
     assert options_health.headers.get("access-control-allow-origin") == origin
-    assert options_health.headers.get("access-control-allow-credentials") is None
+    assert options_health.headers.get("access-control-allow-credentials") == "true"
 
     # 2. GET on /api/v1/health
     get_health = client.get("/api/v1/health", headers={"Origin": origin})
     assert get_health.status_code == 200
     assert get_health.headers.get("access-control-allow-origin") == origin
-    assert get_health.headers.get("access-control-allow-credentials") is None
+    assert get_health.headers.get("access-control-allow-credentials") == "true"
 
     # 3. Preflight on /api/v1/dashboard/summary
     options_dash = client.options(
@@ -87,7 +87,7 @@ def test_cors_production_vercel_preflight_and_get(client: TestClient):
     )
     assert options_dash.status_code in [200, 204]
     assert options_dash.headers.get("access-control-allow-origin") == origin
-    assert options_dash.headers.get("access-control-allow-credentials") is None
+    assert options_dash.headers.get("access-control-allow-credentials") == "true"
 
     # 4. GET on /api/v1/dashboard/summary with mock db dependency
     app.dependency_overrides[get_db] = lambda: MagicMock()
@@ -95,7 +95,7 @@ def test_cors_production_vercel_preflight_and_get(client: TestClient):
         get_dash = client.get("/api/v1/dashboard/summary", headers={"Origin": origin})
         assert get_dash.status_code == 200
         assert get_dash.headers.get("access-control-allow-origin") == origin
-        assert get_dash.headers.get("access-control-allow-credentials") is None
+        assert get_dash.headers.get("access-control-allow-credentials") == "true"
         dash_json = get_dash.json()
         assert "kpis" in dash_json
         assert "active_commitments_count" in dash_json["kpis"]
@@ -104,8 +104,8 @@ def test_cors_production_vercel_preflight_and_get(client: TestClient):
         app.dependency_overrides.clear()
 
 
-def test_cors_preview_vercel_origin_supported(client: TestClient):
-    """Verify preview deployments on Vercel match regex and receive CORS headers."""
+def test_cors_unlisted_preview_vercel_origin_rejected(client: TestClient):
+    """Preview deployments require an explicitly configured trusted origin."""
     preview_origin = "https://pay-scope-lake-git-main-sakshipatil.vercel.app"
     resp = client.options(
         "/api/v1/health",
@@ -114,8 +114,8 @@ def test_cors_preview_vercel_origin_supported(client: TestClient):
             "Access-Control-Request-Method": "GET",
         },
     )
-    assert resp.status_code in [200, 204]
-    assert resp.headers.get("access-control-allow-origin") == preview_origin
+    assert resp.status_code == 400
+    assert resp.headers.get("access-control-allow-origin") is None
 
 
 def test_cors_disallowed_origin_rejected(client: TestClient):
@@ -133,7 +133,7 @@ def test_cors_disallowed_origin_rejected(client: TestClient):
 
 
 def test_cors_origin_validator_logic():
-    """Verify CORS origin string splitting supports comma strings, JSON arrays, and always retains dev/prod origins."""
+    """Configured origins replace defaults, preventing accidental credential sharing."""
     assert "https://pay-scope-lake.vercel.app" in settings.BACKEND_CORS_ORIGINS
     assert "https://payscope.vercel.app" in settings.BACKEND_CORS_ORIGINS
     assert "http://localhost:3000" in settings.BACKEND_CORS_ORIGINS
@@ -142,18 +142,17 @@ def test_cors_origin_validator_logic():
     parsed = settings.assemble_cors_origins("https://custom.vercel.app/, http://127.0.0.1:4000")
     assert "https://custom.vercel.app" in parsed
     assert "http://127.0.0.1:4000" in parsed
-    assert "https://pay-scope-lake.vercel.app" in parsed
-    assert "http://localhost:3000" in parsed
+    assert "https://pay-scope-lake.vercel.app" not in parsed
+    assert "http://localhost:3000" not in parsed
 
     # JSON array representation
     parsed_json = settings.assemble_cors_origins('["https://extra.vercel.app/"]')
     assert "https://extra.vercel.app" in parsed_json
-    assert "https://pay-scope-lake.vercel.app" in parsed_json
+    assert "https://pay-scope-lake.vercel.app" not in parsed_json
 
     # Wildcard filter - must never allow "*" with credentials enabled
-    parsed_wildcard = settings.assemble_cors_origins("*")
-    assert "*" not in parsed_wildcard
-    assert "https://pay-scope-lake.vercel.app" in parsed_wildcard
+    with pytest.raises(ValueError, match="explicit origins"):
+        settings.assemble_cors_origins("*")
 
 
 def test_invalid_uuid_parameter_rejected_gracefully(client: TestClient):

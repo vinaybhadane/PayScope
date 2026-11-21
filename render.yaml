@@ -15,13 +15,19 @@ services:
     rootDir: apps/api
     buildCommand: pip install uv && uv sync --locked
     startCommand: uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
-    healthCheckPath: /api/v1/ready
+    healthCheckPath: /api/v1/health
     autoDeploy: true
     envVars:
       - key: PYTHON_VERSION
         value: 3.13.1
       - key: API_HOST
         value: 0.0.0.0
+      - key: ENVIRONMENT
+        value: production
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: payscope-db
+          property: password
       - key: DATABASE_URL
         fromDatabase:
           name: payscope-db
@@ -63,8 +69,8 @@ services:
     autoDeploy: true
     envVars:
       - key: NODE_VERSION
-        value: 22.16.0
-      - key: NEXT_PUBLIC_API_BASE_URL
+        value: 24.12.0
+      - key: API_BASE_URL
         value: https://payscope-api-08he.onrender.com
       - key: NEXT_PUBLIC_APP_NAME
         value: PayScope

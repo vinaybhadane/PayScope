@@ -62,10 +62,18 @@ export function AuthModal() {
       </div>
       <button
         className="button button-primary"
-        onClick={() => {
+        disabled={busy}
+        onClick={async () => {
           setError("");
-          signInAsGuest();
-          router.push("/dashboard");
+          setBusy(true);
+          try {
+            await signInAsGuest();
+            router.push("/dashboard");
+          } catch {
+            setError("Could not open your demo session. Please try again.");
+          } finally {
+            setBusy(false);
+          }
         }}
       >
         Explore the free demo <Icon name="arrow" size={16} />

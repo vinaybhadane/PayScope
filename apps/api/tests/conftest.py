@@ -1,5 +1,7 @@
 """Pytest configuration and test database fixtures."""
 import os
+# Never reset a configured production Redis instance from a test process.
+os.environ["RATE_LIMIT_STORAGE_URI"] = "memory://"
 import pytest
 from typing import Generator
 from fastapi.testclient import TestClient
@@ -8,7 +10,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from app.core.config import settings
 from app.db.session import get_db
 from app.main import app
-from app.core.auth import require_identity
+from app.core.auth import Identity, current_identity, require_identity
 
 # Explicit safety check: test engine must point strictly to test database
 assert "mandatelens_test" in settings.TEST_DATABASE_URL, (
@@ -84,8 +86,13 @@ def isolated_test_runtime(monkeypatch):
     monkeypatch.setattr(settings, "RUN_MIGRATIONS", False)
     monkeypatch.setattr(settings, "EMAIL_WORKER_ENABLED", False)
     monkeypatch.setattr(settings, "API_SESSION_SECRET", "test-only-session-signing-key-at-least-32-characters")
+    monkeypatch.setattr(settings, "GEMINI_API_KEY", "")
+    from app.core.rate_limit import limiter
+    limiter.reset()
+    identity_token = current_identity.set(Identity("test:isolated-workspace", "Demo User", False))
     app.dependency_overrides[require_identity] = lambda: None
     yield
+    current_identity.reset(identity_token)
     app.dependency_overrides.pop(require_identity, None)
 
 

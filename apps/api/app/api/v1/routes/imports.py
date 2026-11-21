@@ -3,7 +3,7 @@ import json
 import logging
 import uuid
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Query, Request, Response, UploadFile, status
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.ingestion.import_service import ImportService
@@ -12,14 +12,39 @@ from app.ingestion.refresh_service import refresh_imported_workspace
 from starlette.concurrency import run_in_threadpool
 from app.repositories.import_repository import ImportRepository
 from app.repositories.user_repository import UserRepository, resolve_workspace_user_id
+from app.ingestion.jobs import import_jobs
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/imports", tags=["Imports"])
 
 
+def requires_background_processing(filename):
+    return filename.lower().endswith((".pdf", ".png", ".jpg", ".jpeg", ".webp"))
+
+
+def enqueue_import(db, user_id, preview, arguments):
+    # A job owns its session. Request sessions may be closed before OCR completes.
+    bind = db.get_bind()
+    def process():
+        with Session(bind=bind, expire_on_commit=False) as job_db:
+            job_db.info["workspace_user_id"] = user_id
+            if preview:
+                result = ImportService.preview(db=job_db, user_id=user_id, **arguments)
+                if not result.get("success"):
+                    raise ValueError(result.get("error", "Failed to generate preview."))
+            else:
+                result = ImportService.execute_import(db=job_db, user_id=user_id, **arguments)
+                if result["status"] != "failed":
+                    result["workspace_refresh"] = refresh_imported_workspace(job_db, user_id)
+            return result
+    return import_jobs.submit(user_id, process)
+
+
 @router.post("/preview", status_code=status.HTTP_200_OK)
 async def preview_import(
+    request: Request,
+    response: Response,
     file: UploadFile = File(...),
     import_type: str = Form("statement"),
     synthetic_confirmed: bool = Form(False),
@@ -53,14 +78,15 @@ async def preview_import(
                 detail="column_overrides must be valid JSON object.",
             )
 
-    try:
-        user = UserRepository.get_or_create_demo_user(db)
-        user_id = user.id
-    except Exception as exc:
-        logger.warning("Could not resolve demo user from DB for preview: %s", exc)
-        user_id = uuid.UUID("00000000-0000-0000-0000-000000000001")
+    user = await run_in_threadpool(UserRepository.get_or_create_demo_user, db)
+    user_id = user.id
 
-    result = ImportService.preview(
+    if requires_background_processing(file.filename or ""):
+        response.status_code = 202
+        return enqueue_import(db, user_id, True, dict(filename=file.filename, content=content,
+            import_type=import_type, synthetic_confirmed=synthetic_confirmed, column_overrides=overrides_dict))
+
+    result = await run_in_threadpool(ImportService.preview,
         db=db,
         user_id=user_id,
         filename=file.filename or "uploaded_file",
@@ -81,11 +107,14 @@ async def preview_import(
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_import(
+    request: Request,
+    response: Response,
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     import_type: str = Form("statement"),
     synthetic_confirmed: bool = Form(False),
     column_overrides: Optional[str] = Form(None),
+    background_processing: bool = Form(False),
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
     """Execute import and persist valid non-duplicate records to PostgreSQL."""
@@ -114,7 +143,12 @@ async def create_import(
                 detail="column_overrides must be valid JSON object.",
             )
 
-    user = UserRepository.get_or_create_demo_user(db)
+    user = await run_in_threadpool(UserRepository.get_or_create_demo_user, db)
+
+    if background_processing or requires_background_processing(file.filename or ""):
+        response.status_code = 202
+        return enqueue_import(db, user.id, False, dict(filename=file.filename, content=content,
+            import_type=import_type, synthetic_confirmed=synthetic_confirmed, column_overrides=overrides_dict))
 
     try:
         result = await run_in_threadpool(ImportService.execute_import,
@@ -132,9 +166,15 @@ async def create_import(
             background_tasks.add_task(process_email_jobs)
         return result
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The operation could not be completed. Please retry.")
-    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception:
+        logger.exception("Import execution failed for workspace %s", user.id)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="The operation could not be completed. Please retry.")
+
+
+@router.get("/jobs/{job_id}")
+def get_import_job(job_id: uuid.UUID, db: Session = Depends(get_db)):
+    return import_jobs.get(job_id, resolve_workspace_user_id(db))
 
 
 @router.get("", status_code=status.HTTP_200_OK)

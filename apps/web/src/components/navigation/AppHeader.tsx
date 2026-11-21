@@ -70,6 +70,7 @@ function PageSearch({ close }: { close: () => void }) {
 export function AppHeader({}: { apiConnected?: boolean }) {
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [logoutFailed, setLogoutFailed] = useState(false);
   const sidebar = useRef<HTMLElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
@@ -154,7 +155,12 @@ export function AppHeader({}: { apiConnected?: boolean }) {
         <div className="sidebar-profile"><span className="workspace-avatar">{user?.displayName?.charAt(0) || "P"}</span>
           <span className="sidebar-profile-name">{user?.isDemo ? "Demo explorer" : user?.displayName || "Your workspace"}
             <small>{user?.isDemo ? "A little room to explore" : "Personal account"}</small></span>
-          {user ? <button aria-label="Sign out" title="Sign out" onClick={async () => { await signOut(); router.push("/"); }}><Icon name="exit" size={17} /></button>
+          {logoutFailed && <span role="alert">Sign-out failed. Please try again.</span>}
+          {user ? <button aria-label="Sign out" title="Sign out" onClick={async () => {
+            setLogoutFailed(false);
+            if (await signOut()) router.replace("/");
+            else setLogoutFailed(true);
+          }}><Icon name="exit" size={17} /></button>
             : <button aria-label="Sign in" onClick={openAuthModal}><Icon name="arrow" size={16} /></button>}
         </div>
       </aside>

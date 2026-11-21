@@ -1,5 +1,5 @@
 "use client";
-import { authFetch } from "@/lib/authFetch";
+import { authFetch, importResponse } from "@/lib/authFetch";
 import Link from "next/link";
 import { setWorkspaceMode } from "@/lib/useWorkspaceMode";
 import { invalidateWorkspaceResources } from "@/lib/useWorkspaceResource";
@@ -209,9 +209,9 @@ export default function UploadPage() {
         body: formData,
       });
 
-      const data = await res.json();
+      const data = await importResponse<PreviewResponse>(res);
       if (!res.ok) {
-        setPreviewError(data.detail || data.error || "Failed to generate preview.");
+        setPreviewError(data.error || "Failed to generate preview.");
       } else {
         setPreviewData(data);
         if (data.mapping) {
@@ -256,6 +256,7 @@ export default function UploadPage() {
     formData.append("file", selectedFile);
     formData.append("import_type", importType);
     formData.append("synthetic_confirmed", "true");
+    formData.append("background_processing", "true");
     if (Object.keys(columnOverrides).length > 0) {
       formData.append("column_overrides", JSON.stringify(columnOverrides));
     }
@@ -266,9 +267,9 @@ export default function UploadPage() {
         body: formData,
       });
 
-      const data = await res.json();
+      const data = await importResponse<ImportResult>(res);
       if (!res.ok) {
-        setExecutionError(data.detail || data.error || "Failed to persist import.");
+        setExecutionError("Failed to persist import.");
       } else {
         setImportResult(data);
         if (data.status !== "failed") {

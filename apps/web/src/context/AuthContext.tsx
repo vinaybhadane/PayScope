@@ -8,6 +8,7 @@ import {
   User as FirebaseUser,
 } from "firebase/auth";
 import { auth, googleProvider, isFirebaseConfigured } from "@/lib/firebase";
+import { clearApiSession, ensureGuestSession, establishFirebaseSession } from "@/lib/authFetch";
 
 export interface AppUser {
   uid: string;
@@ -24,8 +25,8 @@ interface AuthContextType {
   openAuthModal: () => void;
   closeAuthModal: () => void;
   signInWithGoogle: () => Promise<void>;
-  signInAsGuest: () => void;
-  signOut: () => Promise<void>;
+  signInAsGuest: () => Promise<void>;
+  signOut: () => Promise<boolean>;
   isConfigured: boolean;
 }
 
@@ -36,8 +37,8 @@ const AuthContext = createContext<AuthContextType>({
   openAuthModal: () => {},
   closeAuthModal: () => {},
   signInWithGoogle: async () => {},
-  signInAsGuest: () => {},
-  signOut: async () => {},
+  signInAsGuest: async () => {},
+  signOut: async () => false,
   isConfigured: false,
 });
 
@@ -108,8 +109,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (isFirebaseConfigured && auth && googleProvider) {
         const result = await signInWithPopup(auth, googleProvider);
         const fbUser = result.user;
+        await establishFirebaseSession();
         localStorage.removeItem("payscope_demo_user");
-        sessionStorage.removeItem("payscope_guest_session");
         setUser({
           uid: fbUser.uid,
           email: fbUser.email,
@@ -118,7 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         setIsAuthModalOpen(false);
       } else {
-        signInAsGuest();
+        await signInAsGuest();
       }
     } catch (err: unknown) {
       console.error("Google sign-in error:", err);
@@ -128,7 +129,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signInAsGuest = () => {
+  const signInAsGuest = async () => {
+    await ensureGuestSession();
     const demoUser: AppUser = {
       uid: crypto.randomUUID(),
       email: "guest@payscope.ai",
@@ -148,6 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     setLoading(true);
     try {
+      await clearApiSession();
       if (isFirebaseConfigured && auth) {
         await firebaseSignOut(auth);
       }
@@ -156,11 +159,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch {
         // Ignore
       }
-      sessionStorage.removeItem("payscope_guest_session");
       sessionStorage.removeItem("payscope_workspace_data_mode");
       setUser(null);
-    } catch (err) {
-      console.error("Sign-out error:", err);
+      return true;
+    } catch {
+      return false;
     } finally {
       setLoading(false);
     }

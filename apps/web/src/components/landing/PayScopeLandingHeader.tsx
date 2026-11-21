@@ -18,6 +18,7 @@ export function PayScopeLandingHeader({
   showFinalLogo = true,
 }: PayScopeLandingHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [logoutFailed, setLogoutFailed] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { user, openAuthModal, signOut } = useAuth();
@@ -32,9 +33,10 @@ export function PayScopeLandingHeader({
     router.push("/dashboard");
   };
 
-  const handleAuthAction = () => {
+  const handleAuthAction = async () => {
+    setLogoutFailed(false);
     if (user) {
-      signOut();
+      setLogoutFailed(!(await signOut()));
     } else {
       openAuthModal();
     }
@@ -42,6 +44,7 @@ export function PayScopeLandingHeader({
 
   return (
     <header className="sticky top-0 z-40 w-full pt-4 sm:pt-6 px-3 sm:px-6 pointer-events-none">
+      {logoutFailed && <p role="alert">Sign-out failed. Please try again.</p>}
       {/* Floating Island Navbar Capsule (matching uploaded visual) */}
       <div className="max-w-6xl mx-auto rounded-full bg-[#080C16]/85 border border-white/[0.09] backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.75)] px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between pointer-events-auto transition-all">
         {/* LEFT: PayScope Brand Logo */}

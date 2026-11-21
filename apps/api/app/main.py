@@ -3,11 +3,14 @@ from contextlib import asynccontextmanager
 import asyncio
 from contextlib import suppress
 import logging
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.api.v1.router import api_v1_router
+from app.core.rate_limit import UploadRateLimitMiddleware, limiter
+from app.core.auth import require_identity
+from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
 
 logger = logging.getLogger('app.main')
 
@@ -46,10 +49,19 @@ def create_application() -> FastAPI:
     application = FastAPI(
         title=settings.PROJECT_NAME,
         version=settings.VERSION,
-        openapi_url=f"{settings.API_V1_STR}/openapi.json",
-        docs_url=f"{settings.API_V1_STR}/docs",
-        redoc_url=f"{settings.API_V1_STR}/redoc",
+        openapi_url=None,
+        docs_url=None,
+        redoc_url=None,
         lifespan=lifespan,
+    )
+    application.state.limiter = limiter
+
+    application.add_middleware(UploadRateLimitMiddleware)
+    application.add_middleware(
+        CORSMiddleware, allow_origins=settings.BACKEND_CORS_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type"],
     )
 
     @application.exception_handler(Exception)
@@ -57,14 +69,15 @@ def create_application() -> FastAPI:
         logger.exception("Unhandled request failure: %s", request.url.path, exc_info=exc)
         response = JSONResponse(status_code=500, content={"detail": "An unexpected error occurred. Please try again."})
         origin = request.headers.get("origin")
-        policy = CORSMiddleware(application, allow_origins=settings.BACKEND_CORS_ORIGINS, allow_origin_regex=settings.BACKEND_CORS_ORIGIN_REGEX)
+        policy = CORSMiddleware(application, allow_origins=settings.BACKEND_CORS_ORIGINS, allow_credentials=True)
         if origin and policy.is_allowed_origin(origin):
             response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Vary"] = "Origin"
+            response.headers["Access-Control-Allow-Credentials"] = "true"
         return response
 
     # Root status endpoint for cloud health & quick browser checks
-    @application.get('/', tags=['Root'])
+    @application.get('/', tags=['Root'], dependencies=[Depends(require_identity)])
     def root():
         return {
             'name': settings.PROJECT_NAME,
@@ -74,6 +87,18 @@ def create_application() -> FastAPI:
             'health': f'{settings.API_V1_STR}/health',
         }
 
+    @application.get(f"{settings.API_V1_STR}/openapi.json", include_in_schema=False, dependencies=[Depends(require_identity)])
+    def openapi_schema():
+        return application.openapi()
+
+    @application.get(f"{settings.API_V1_STR}/docs", include_in_schema=False, dependencies=[Depends(require_identity)])
+    def api_docs():
+        return get_swagger_ui_html(openapi_url=f"{settings.API_V1_STR}/openapi.json", title=settings.PROJECT_NAME)
+
+    @application.get(f"{settings.API_V1_STR}/redoc", include_in_schema=False, dependencies=[Depends(require_identity)])
+    def api_redoc():
+        return get_redoc_html(openapi_url=f"{settings.API_V1_STR}/openapi.json", title=settings.PROJECT_NAME)
+
     # Include API routers
     application.include_router(api_v1_router, prefix=settings.API_V1_STR)
 
@@ -81,11 +106,3 @@ def create_application() -> FastAPI:
 
 
 app = create_application()
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.BACKEND_CORS_ORIGINS,
-    allow_origin_regex=settings.BACKEND_CORS_ORIGIN_REGEX,
-    allow_credentials=False,
-    allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type"],
-)

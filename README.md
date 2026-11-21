@@ -6,7 +6,7 @@ PayScope includes a Next.js frontend, FastAPI backend, PostgreSQL ledger, and an
 
 ## Local setup
 
-Requirements: Node.js 20+, Python 3.11+, and PostgreSQL 16. Neo4j is optional.
+Requirements: Node.js 24.12+, Python 3.11+, and PostgreSQL 16. Neo4j is optional.
 
 1. Copy `.env.example` to `apps/api/.env`. Set database credentials and a unique `API_SESSION_SECRET` of at least 32 characters. Generate one with `python -c "import secrets; print(secrets.token_urlsafe(48))"`.
 2. Create the PostgreSQL databases `mandatelens` and `mandatelens_test` with the configured database user. Keep `TEST_DATABASE_URL` pointed at the separate test database; tests truncate its tables.
@@ -35,13 +35,21 @@ npm ci
 npm run dev
 ```
 
-Set frontend API variables to `http://127.0.0.1:8000`. Fill in Firebase public client settings for Google sign-in. Open [PayScope](http://127.0.0.1:3000). The app uses pale sage ivory `#E5E8CE` and muted forest sage `#789575` across the landing page and workspace.
+Set frontend `API_BASE_URL` to `http://127.0.0.1:8000`. Fill in Firebase public client settings for Google sign-in. Open [PayScope](http://localhost:3000). The app uses pale sage ivory `#E5E8CE` and muted forest sage `#789575` across the landing page and workspace.
 
 ## Authentication and workspace isolation
 
-All financial, import, graph, and mutation APIs require `Authorization: Bearer <token>`. Google users send Firebase ID tokens; the server maps each verified subject to its own persistent workspace. Guest sessions use a signed token with a 24-hour expiry and an isolated workspace, stored in the browser tab. Set `ALLOW_GUEST_SESSIONS=false` to disable guest access. Never reuse a session signing secret between environments.
+All financial, import, graph, and mutation APIs require a verified session. The browser uses a server-issued `payscope_token` cookie with `HttpOnly`, `Secure`, and `SameSite=Strict`. Guest sessions expire after 24 hours and have isolated workspaces. Google users exchange a verified Firebase ID token at `POST /api/v1/auth/session` for the cookie. API clients can also use `Authorization: Bearer <token>`. No guest token is returned in JSON or stored in browser storage. Set `ALLOW_GUEST_SESSIONS=false` to disable guest access. Never reuse a session signing secret between environments.
+
+Browser requests use the Next.js `/api/v1` proxy. Set `API_BASE_URL` on the frontend server to the backend upstream (the legacy `NEXT_PUBLIC_API_BASE_URL` is also supported). Keep production HTTPS enabled. This makes browser API requests same-origin even when the backend is on a different hosting domain, so Strict cookies work without third-party cookies. Cookie-authenticated writes require an exact allowed `Origin`; cross-site writes are rejected. Configure `BACKEND_CORS_ORIGINS` as an explicit list of frontend origins. Wildcards and automatic preview-domain matching are disabled. Add individual preview origins only when trusted. Credentialed CORS is enabled. Use `localhost` for HTTP development if your browser does not accept Secure cookies on `127.0.0.1`, or run local HTTPS.
 
 `POST /api/v1/auth/guest` creates a guest session. `GET /api/v1/auth/me` returns the authenticated workspace ID. Caller-supplied `user_id` values must match this ID. Source queries, record lookups, writes, and read caches are scoped to that workspace. Merchant reference data is shared; user-created aliases are private and curated aliases are read-only.
+
+Only guest creation, health, and synthetic sample-file listings/downloads are public within the API router. Readiness requires authentication; hosting liveness probes should use `/api/v1/health`. Guest creation is limited to 5 requests/minute per remote IP; preview and import uploads are limited to 10/minute each. Exceeding a limit returns JSON `429` with `Retry-After`. The default limiter is process-local. Use one API worker per instance; configure `RATE_LIMIT_STORAGE_URI=redis://...` for a shared quota across instances, and configure trusted reverse-proxy addresses on your ASGI host so client IPs cannot be spoofed.
+
+PDF/image previews and imports return `202` with a `job_id`. Poll `GET /api/v1/imports/jobs/{job_id}` for the owner-scoped result. A dedicated OCR worker accepts at most four active/pending jobs to bound memory usage; excess submissions return `429`. Results expire after 15 minutes. The queue is in-process: use one API process per instance, retry interrupted jobs after restarts, and replace it with a shared durable broker before scaling to multiple workers/instances. Images are capped at 15 million pixels. PDF rendering is capped at 15 million pixels per page and 60 million per document, with at most 15 scanned pages per import. Native OCR currently requires Windows; hosts without the engine return an actionable error for scanned uploads, while selectable-text PDFs work normally.
+
+OCR records with invisible/private-use characters, instruction-like descriptors, invalid schemas, descriptors over 120 characters, or available confidence scores below 80% go to the manual-review queue and are excluded from automated analysis. Descriptors containing “instruction” require review, including the bank phrase “Standing Instruction”; canonical rail metadata generated by the parser remains allowed. Quarantine logs contain source hashes and reason codes; owner-scoped review entries retain the extracted evidence for inspection. Correct the source data and re-upload to include a quarantined record. Gemini receives only allow-listed evidence fields after account/IFSC/UPI redaction inside untrusted-data delimiters. Invalid responses, extra fields, or URLs trigger the local deterministic auditor. CSV and XLSX exports sanitize every string cell against spreadsheet formulas.
 
 The guest sample workspace uses predefined synthetic records. Google-authenticated workspaces start empty; import synthetic records to populate them. Public sample downloads and health/readiness checks require no session.
 
@@ -94,7 +102,7 @@ Browser smoke checks are in `scripts/check-sage-theme.cjs`. Run with both develo
 
 ## Deployment
 
-Configure database credentials, `API_SESSION_SECRET`, `FIREBASE_PROJECT_ID`, allowed frontend origins, and optional Neo4j credentials in your hosting secret store. Do not commit `.env` files. The Render blueprint generates a guest signing secret and requires Firebase/database configuration. Deploy the frontend with the corresponding Firebase project and backend URL.
+Set `ENVIRONMENT=production` and supply `POSTGRES_PASSWORD` and `DATABASE_URL` through environment variables or your secret manager. Production startup rejects the repository's development password and placeholder credentials, including defaults embedded in `DATABASE_URL`; development retains its local defaults. Configure `API_SESSION_SECRET`, `FIREBASE_PROJECT_ID`, allowed frontend origins, and optional Neo4j credentials in your hosting secret store. Do not commit `.env` files. The Render blueprint supplies the managed database password, generates a guest signing secret, and requires Firebase/database configuration. Deploy the frontend with the corresponding Firebase project and server-side `API_BASE_URL`.
 
 ### Deploy the full stack to Render
 
