@@ -60,7 +60,16 @@ export async function establishFirebaseSession(): Promise<void> {
         method: "POST", credentials: "include", cache: "no-store",
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!response.ok) throw new Error("Could not establish your session. Please sign in again.");
+      if (!response.ok) {
+        let detail = "";
+        try {
+          const body = await response.json();
+          detail = body.detail || body.error || "";
+        } catch {
+          // ignore parsing error
+        }
+        throw new Error(detail || `Could not establish your session (${response.status}). Please sign in again.`);
+      }
       // In-memory only. API requests use the HttpOnly cookie.
       firebaseSessionToken = token;
       guestReady = false;

@@ -1,10 +1,17 @@
 import type { NextConfig } from "next";
+import { loadEnvConfig } from "@next/env";
+
+loadEnvConfig(process.cwd());
 
 const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
   async rewrites() {
-    const backend = (process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL ||
-      (process.env.NODE_ENV === "production" ? "https://payscope-api-08he.onrender.com" : "http://127.0.0.1:8000")).replace(/\/+$/, "");
+    const backend = (
+      process.env.API_BASE_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      process.env.NEXT_PUBLIC_API_BASE_URL ||
+      "http://127.0.0.1:8000"
+    ).replace(/\/+$/, "");
     return [{ source: "/api/v1/:path*", destination: `${backend}/api/v1/:path*` }];
   },
   turbopack: {
