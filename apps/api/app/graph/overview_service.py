@@ -197,6 +197,7 @@ def relational_overview(db, user_id, limit=50):
             cadence=c.cadence,
             confidence_band=c.confidence_band,
             category=c.merchant.category if c.merchant else c.commitment_type,
+            metadata={"currency": c.currency},
         )
         edge(user_id, c.id, "HAS_COMMITMENT")
         if c.merchant:
@@ -231,6 +232,7 @@ def relational_overview(db, user_id, limit=50):
                 Transaction.account_id,
                 Transaction.raw_descriptor,
                 Transaction.amount,
+                Transaction.currency,
                 Transaction.transaction_date,
                 Transaction.payment_channel,
                 Transaction.merchant_id,
@@ -256,6 +258,7 @@ def relational_overview(db, user_id, limit=50):
                 metadata={
                     "transaction_date": t.transaction_date.isoformat(),
                     "payment_channel": t.payment_channel,
+                    "currency": t.currency,
                 },
             )
             edge(t.commitment_id, t.id, "SUPPORTED_BY")

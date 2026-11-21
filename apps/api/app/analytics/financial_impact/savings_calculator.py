@@ -32,12 +32,11 @@ def get_user_savings_opportunities(
     user_id: uuid.UUID,
     cost_items: Optional[List[CommitmentCostItem]] = None,
 ) -> List[SavingsOpportunityItem]:
-    """AI recommendations paired with recorded costs for explicit cancellation scenarios."""
+    """Recorded recurring costs available for explicit cancellation scenarios."""
     if cost_items is None:
         cost_items = get_user_commitment_costs(db, user_id)
     cost_map = {item.commitment_id: item for item in cost_items}
-    # AI chooses relevant product-specific scenarios. Currency arithmetic uses
-    # persisted observations; Gemini never supplies an invented savings amount.
+    # Cancellation scenarios use recorded costs and require an explicit selection.
     from app.models.workspace_intelligence import WorkspaceIntelligence
     review = db.get(WorkspaceIntelligence, user_id)
     if review:
@@ -50,7 +49,7 @@ def get_user_savings_opportunities(
             result.append(
                 SavingsOpportunityItem(
                     id=f'opp_ai_{item.commitment_id}',
-                    opportunity_type='AI_REVIEW',
+                    opportunity_type='FULL_CANCELLATION',
                     classification=SAVINGS_CLASS_POTENTIAL,
                     commitment_id=item.commitment_id,
                     commitment_name=item.display_name,

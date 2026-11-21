@@ -79,6 +79,7 @@ export interface DashboardData {
   insight_type_counts: Record<string, number>;
   cancellation_summary: Record<string, number>;
   merchant_review_pending: number;
+  statement_review_count?: number;
   canonical_merchants_count: number;
   autodebit_rail_distribution?: Record<string, number>;
   ai_audit_score?: number;

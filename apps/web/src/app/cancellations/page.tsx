@@ -1,5 +1,6 @@
 "use client";
 import { authFetch } from "@/lib/authFetch";
+import { useWorkspaceRevision } from "@/lib/useWorkspaceResource";
 
 import { getApiBaseUrl } from "@/lib/api";
 import React, { useState, useEffect, Suspense } from "react";
@@ -78,6 +79,7 @@ function CancellationCentreContent() {
   const [creatingCase, setCreatingCase] = useState(false);
 
   const apiBase = getApiBaseUrl();
+  const workspaceRevision = useWorkspaceRevision();
 
   useEffect(() => {
     let ignore = false;
@@ -111,7 +113,7 @@ function CancellationCentreContent() {
     return () => {
       ignore = true;
     };
-  }, [apiBase]);
+  }, [apiBase, workspaceRevision]);
 
   const handleCreateCase = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -54,8 +54,8 @@ class DashboardTopCommitment(BaseModel):
     monthly_cost: Decimal
     status: str
     confidence_band: str
-    payment_rail: Optional[str] = "UPI AutoPay"
-    verification_status: Optional[str] = "verified"
+    payment_rail: Optional[str] = None
+    verification_status: Optional[str] = "inferred"
 
 
 class DashboardRecentInsight(BaseModel):
@@ -88,10 +88,11 @@ class DashboardSummaryResponse(BaseModel):
     insight_type_counts: Dict[str, int]
     cancellation_summary: Dict[str, int]
     merchant_review_pending: int
+    statement_review_count: int = 0
     canonical_merchants_count: int
     autodebit_rail_distribution: Optional[Dict[str, int]] = None
-    ai_audit_score: Optional[int] = 100
-    ai_audit_status: Optional[str] = "verified"
+    ai_audit_score: Optional[int] = None
+    ai_audit_status: Optional[str] = "not_audited"
 
 
 def _resolve_user_id(db: Session, user_id: Optional[uuid.UUID] = None) -> uuid.UUID:
@@ -109,7 +110,7 @@ def _get_fallback_dashboard_summary() -> DashboardSummaryResponse:
             historical_months=[], historical_amounts=[]),
         top_commitments=[], category_distribution={}, recent_insights=[], insight_type_counts={},
         cancellation_summary={}, merchant_review_pending=0, canonical_merchants_count=0,
-        autodebit_rail_distribution={}, ai_audit_score=100, ai_audit_status="verified",
+        autodebit_rail_distribution={}, ai_audit_score=None, ai_audit_status="unavailable",
     )
 
 
@@ -135,7 +136,9 @@ def _build_dashboard_summary(db: Session, user_id: Optional[uuid.UUID]) -> Dashb
         return select(func.count(model.id)).where(model.user_id == target, *conditions).scalar_subquery()
     fields = {"open": count(CommitmentInsight, CommitmentInsight.status == "open"),
               "total": count(CancellationCase),
-              "pending": count(ManualReviewItem, ManualReviewItem.status == "pending")}
+              "statement_review": count(ManualReviewItem, ManualReviewItem.status.in_(["pending", "open"]),
+                                        ManualReviewItem.reason_code.in_(["invalid_statement_row", "security_quarantine"])),
+              "pending": count(ManualReviewItem, ManualReviewItem.status.in_(["pending", "open"]))}
     for kind in insight_types:
         fields[kind] = count(CommitmentInsight, CommitmentInsight.status == "open", CommitmentInsight.insight_type == kind)
     for name, state in cancellation_states.items():
@@ -163,7 +166,7 @@ def _build_dashboard_summary(db: Session, user_id: Optional[uuid.UUID]) -> Dashb
     
     for item in sorted(confirmed, key=lambda item: item.normalized_monthly_cost, reverse=True)[:6]:
         analysis = autodebit_service.analyze_descriptor(item.display_name)
-        rail = analysis.payment_rail if analysis.is_autodebit_candidate else "Standing Instruction"
+        rail = analysis.payment_rail if analysis.is_autodebit_candidate else "Unknown"
         rail_counts[rail] = rail_counts.get(rail, 0) + 1
         top_commitment_models.append(
             DashboardTopCommitment(
@@ -180,13 +183,9 @@ def _build_dashboard_summary(db: Session, user_id: Optional[uuid.UUID]) -> Dashb
                 status=item.status,
                 confidence_band=item.confidence_band,
                 payment_rail=rail,
-                verification_status="verified",
+                verification_status="inferred",
             )
         )
-
-    # If no rails calculated yet, provide standard distribution for confirmed mandates
-    if not rail_counts and confirmed:
-        rail_counts = {"UPI AutoPay": len(confirmed) // 2 or 1, "NACH / e-Mandate": 1, "Standing Instruction": 1}
 
     return DashboardSummaryResponse(
         generated_at=datetime.now(timezone.utc),
@@ -205,10 +204,11 @@ def _build_dashboard_summary(db: Session, user_id: Optional[uuid.UUID]) -> Dashb
             title=item.title, summary=item.summary) for item, name in recent],
         insight_type_counts={kind: int(values[kind]) for kind in insight_types},
         cancellation_summary=cancellation, merchant_review_pending=values["pending"],
+        statement_review_count=values["statement_review"],
         canonical_merchants_count=len({item.merchant_id for item in costs if item.merchant_id}),
         autodebit_rail_distribution=rail_counts,
-        ai_audit_score=100 if confirmed else 95,
-        ai_audit_status="verified",
+        ai_audit_score=None,
+        ai_audit_status="not_audited",
     )
 
 

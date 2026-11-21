@@ -69,7 +69,7 @@ def test_scanned_pdf_returns_actionable_error():
 
 def test_pdf_extension_accepted_with_synthetic_confirmation():
     assert FileValidator.validate_upload("statement.pdf", b"%PDF-1.4", True).is_valid
-    assert not FileValidator.validate_upload("statement.pdf", b"%PDF-1.4", False).is_valid
+    assert FileValidator.validate_upload("statement.pdf", b"%PDF-1.4", False).is_valid
     assert FileValidator.validate_upload("statement.png", b"\x89PNG\r\n\x1a\n", True).is_valid
     assert FileValidator.validate_upload("statement.jpg", b"\xff\xd8\xff", True).is_valid
 
@@ -90,4 +90,4 @@ def test_pdf_fallback_to_raw_text():
         headers, rows = PDFParser.parse(b"%PDF-1.4")
         assert len(rows) >= 2
         assert any("NETFLIX" in r["Description"] for r in rows)
-        assert any(r["Amount"] == 649.0 for r in rows)
+        assert any(float(r["Amount"]) == 649.0 for r in rows)

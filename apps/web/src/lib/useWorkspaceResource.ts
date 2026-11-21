@@ -48,7 +48,7 @@ async function request(key: string, endpoint: string) {
   return operation;
 }
 /** Memory-only, user-scoped cache. Keep visible data while revalidating; coalesce concurrent requests. */
-export function useWorkspaceResource<T>(endpoint: string, sample: T) {
+export function useWorkspaceResource<T>(endpoint: string) {
   const { user, loading: authLoading } = useAuth();
   const version = useSyncExternalStore(subscribe, () => revision, () => 0);
   const isDemo = false;
@@ -61,9 +61,7 @@ export function useWorkspaceResource<T>(endpoint: string, sample: T) {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
   const cached = snapshots.get(key);
-  const data = isDemo
-    ? sample
-    : snapshot?.key === key
+  const data = snapshot?.key === key
       ? snapshot.value
       : (cached?.value as T | undefined);
   const refresh = useCallback(

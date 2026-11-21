@@ -27,7 +27,8 @@ export const inr = (amount: number | string) =>
   new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(Number(amount) || 0);
 export const demoInsights = [
   { id: "ai-plans", icon: "spark", title: "Review your AI plans together", merchant: "ChatGPT Plus", text: "This sample includes three AI subscriptions. Compare their features and choose the plans that fit your needs.", type: "Review suggested", amount: "Illustrative sample", subId: "chatgpt" },

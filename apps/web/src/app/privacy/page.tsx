@@ -75,7 +75,7 @@ export default function PrivacyPolicyPage() {
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-white">2. Synthetic Data Protocol</h2>
             <p>
-              In sandbox and demonstration workspaces, PayScope operates exclusively on synthetic and anonymized test datasets. No real financial account, live credit card number, or Personally Identifiable Information (PII) is collected or stored during demonstration workflows.
+              PayScope stores the transaction data you import in your authenticated workspace. Guest workspaces are isolated temporary sessions. Import only statements you are authorized to process. Statement analysis runs locally on the API host; it does not send imported transactions to Gemini.
             </p>
           </section>
 

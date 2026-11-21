@@ -1,5 +1,6 @@
 "use client";
 import { authFetch } from "@/lib/authFetch";
+import { useWorkspaceRevision } from "@/lib/useWorkspaceResource";
 
 import { getApiBaseUrl } from "@/lib/api";
 import Link from "next/link";
@@ -93,6 +94,7 @@ export default function SavingsPage() {
   const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
 
   const apiBase = getApiBaseUrl();
+  const workspaceRevision = useWorkspaceRevision();
 
   // 1. Initial Load of Opportunities & Saved Scenarios
   useEffect(() => {
@@ -133,7 +135,7 @@ export default function SavingsPage() {
     return () => {
       ignore = true;
     };
-  }, [apiBase]);
+  }, [apiBase, workspaceRevision]);
 
   // Filtered opportunities preserved during filter changes
   const filteredOpportunities = (summary?.opportunities || []).filter((opp) => {
@@ -260,8 +262,8 @@ export default function SavingsPage() {
         return "Rarely Used";
       case "DUPLICATE_SERVICE":
         return "Duplicate Service";
-      case "AI_REVIEW":
-        return "Review Suggested";
+      case "FULL_CANCELLATION":
+        return "Full cancellation scenario";
       default:
         return type.replace(/_/g, " ");
     }
@@ -448,7 +450,7 @@ export default function SavingsPage() {
                       <option value="ALL">All Suggestions</option>
                       <option value="PRICE_INCREASE">Price Increases</option>
                       <option value="POTENTIALLY_UNUSED">Rarely Used</option>
-                      <option value="AI_REVIEW">Review Suggested</option>
+                      <option value="FULL_CANCELLATION">Full cancellation scenario</option>
                     </select>
                   </div>
                 </div>

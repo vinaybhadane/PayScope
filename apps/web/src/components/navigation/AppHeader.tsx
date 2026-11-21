@@ -10,8 +10,9 @@ import { Modal } from "@/components/ui/Modal";
 
 const groups = [
   { name: "Workspace", pages: [
-    { href: "/upload", name: "Import statement", icon: "upload", detail: "Upload your statement for AI review" },
+    { href: "/upload", name: "Import statement", icon: "upload", detail: "Upload your statement for analysis" },
     { href: "/dashboard", name: "Overview", icon: "grid", detail: "Your financial picture, at a glance" },
+    { href: "/payments", name: "Payments", icon: "wallet", detail: "Every imported debit and credit, with source evidence" },
     { href: "/commitments", name: "Subscriptions", icon: "repeat", detail: "Every recurring commitment in one place" },
     { href: "/insights", name: "Payment insights", icon: "spark", detail: "Discover changes worth a closer look" },
   ] },
@@ -133,8 +134,6 @@ export function AppHeader({}: { apiConnected?: boolean }) {
           <Link href="/" onClick={() => setOpen(false)} aria-label="PayScope home"><PayScopeLogo size={34} /></Link>
           <button className="icon-button sidebar-close" aria-label="Close workspace menu" onClick={() => { setOpen(false); toggle.current?.focus(); }}><Icon name="close" size={18} /></button>
         </div>
-        <div className="sidebar-workspace-card"><span className="sidebar-workspace-icon"><Icon name="wallet" size={19} /></span>
-          <div><strong>Personal space</strong><span>Your money, made clear.</span></div><span className="workspace-presence" title="Personal workspace" /></div>
         <div className="sidebar-scroll-area" tabIndex={0} aria-label="Scrollable workspace navigation">
           <nav className="workspace-nav" aria-label="Workspace navigation">
             {groups.map((group) => <div className="workspace-nav-group" key={group.name}>
@@ -146,11 +145,7 @@ export function AppHeader({}: { apiConnected?: boolean }) {
               </Link>)}
             </div>)}
           </nav>
-          <Link href="/privacy" className="sidebar-privacy-card" onClick={() => setOpen(false)}>
-            <span className="sidebar-privacy-emblem"><Icon name="shield" size={23} /></span>
-            <strong>A little peace of mind.</strong><p>Your data stays yours.<br />Clarity starts with a statement.</p>
-            <span className="sidebar-privacy-link">Privacy, by design <Icon name="arrow" size={13} /></span>
-          </Link>
+
         </div>
         <div className="sidebar-profile"><span className="workspace-avatar">{user?.displayName?.charAt(0) || "P"}</span>
           <span className="sidebar-profile-name">{user?.isDemo ? "Demo explorer" : user?.displayName || "Your workspace"}

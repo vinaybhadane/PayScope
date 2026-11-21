@@ -1,8 +1,7 @@
-"""Evidence-first Gemini review with Auto-Debit Keyword Intelligence.
+"""Deterministic statement evidence analysis and optional isolated model helpers.
 
-Audits bank statement records using the 908-line PayScope Auto-Debit Keyword Dictionary
-(UPI AutoPay, NACH/ECS, Standing Instructions, Card Recurring) and Google Gemini 2.5 Flash
-to verify mandates, audit billing periods, expose price creep, and generate dashboard metrics.
+The import and workspace review paths calculate locally. The model helper remains
+available for explicitly separate enrichment; it does not publish financial totals.
 """
 import hashlib
 import json
@@ -30,7 +29,7 @@ class AITransaction(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: uuid.UUID
     date: datetime
-    description: str = Field(min_length=1, max_length=120)
+    description: str = Field(min_length=1, max_length=1000)
     amount: Decimal = Field(ge=0, allow_inf_nan=False, max_digits=18, decimal_places=2)
     currency: str = Field(pattern=r"^[A-Z]{3}$")
     payment_rail: Optional[str] = Field(default=None, max_length=100)
@@ -38,6 +37,8 @@ class AITransaction(BaseModel):
     matched_keywords: list[str] = Field(default_factory=list, max_length=100)
     category_hint: Optional[str] = Field(default=None, max_length=100)
     frequency_hint: Optional[str] = Field(default=None, max_length=100)
+    stream_key: str = ""
+    merchant_name: Optional[str] = None
 
 
 class SafeResponse(BaseModel):
@@ -71,12 +72,12 @@ class Finding(SafeResponse):
 class ReviewedSubscription(SafeResponse):
     name: str = Field(min_length=1, max_length=255)
     category: str = Field(min_length=1, max_length=100)
-    transaction_ids: list[uuid.UUID] = Field(min_length=2)
-    cadence: Literal['weekly', 'fortnightly', 'monthly', 'quarterly', 'annual', 'variable_monthly']
+    transaction_ids: list[uuid.UUID] = Field(min_length=1)
+    cadence: Literal['weekly', 'fortnightly', 'monthly', 'quarterly', 'annual', 'variable_monthly', 'unknown']
     confidence: Literal['high', 'medium', 'low']
-    payment_rail: Optional[str] = "UPI AutoPay"
-    verification_status: Optional[Literal['verified_accurate', 'adjusted_schedule', 'potential_candidate', 'suspicious_charge']] = 'verified_accurate'
-    audit_note: Optional[str] = "Verified authentic recurring mandate"
+    payment_rail: Optional[str] = None
+    verification_status: Optional[Literal['verified_accurate', 'adjusted_schedule', 'potential_candidate', 'suspicious_charge']] = 'potential_candidate'
+    audit_note: Optional[str] = None
     explanation: str
     savings_recommendation: Optional[str] = None
     insights: list[Finding] = Field(default_factory=list)
@@ -88,7 +89,7 @@ class Review(SafeResponse):
     spending_analysis: str
     savings_analysis: str
     limitations: list[str]
-    audit_score: Optional[int] = Field(default=100, ge=0, le=100)
+    audit_score: Optional[int] = Field(default=None, ge=0, le=100)
     verified_mandates_count: Optional[int] = Field(default=0, ge=0)
     rail_distribution: Optional[Dict[str, int]] = Field(default_factory=dict)
 
@@ -120,7 +121,7 @@ def prepare_ai_records(records: list[dict]) -> list[dict]:
     safe = []
     # Only financial evidence is allowed out; arbitrary imported fields are excluded.
     allowed = {"id", "date", "description", "amount", "currency", "payment_rail",
-               "autodebit_candidate", "matched_keywords", "category_hint", "frequency_hint"}
+               "autodebit_candidate", "matched_keywords", "category_hint", "frequency_hint", "stream_key", "merchant_name"}
     for record in records:
         try:
             record = AITransaction.model_validate(record).model_dump(mode="json")
@@ -148,96 +149,80 @@ def prepare_ai_records(records: list[dict]) -> list[dict]:
             return value
         redacted = {key: (value if key in {"id", "date", "amount"} else redact(value))
                     for key, value in record.items() if key in allowed}
-        redacted["description"] = redacted["description"][:120]
+        redacted["description"] = redacted["description"][:1000]
         safe.append(redacted)
     return safe
 
 
 def _generate_heuristic_review(records: list[dict], *args, **kwargs) -> Review:
-    """Local fallback auditor using date intervals and auto-debit keywords."""
-    keyword_service = AutoDebitKeywordService.get_instance()
-    groups: Dict[str, List[dict]] = {}
-
-    for r in records:
-        desc = r["description"]
-        clean_name = desc.split("/")[0] if "/" in desc else desc.split("-")[0]
-        # Remove noisy numeric IDs
-        clean_name = " ".join([w for w in clean_name.split() if not any(c.isdigit() for c in w)])
-        clean_name = clean_name.strip() or desc[:20]
-        groups.setdefault(clean_name.upper(), []).append(r)
-
-    subs: List[ReviewedSubscription] = []
-    rail_counts: Dict[str, int] = {}
-
-    bounds = {
-        'weekly': (5, 10),
-        'fortnightly': (11, 18),
-        'monthly': (25, 35),
-        'variable_monthly': (25, 35),
-        'quarterly': (75, 105),
-        'annual': (330, 400),
-    }
-
-    for name, tx_list in groups.items():
-        if len(tx_list) < 2:
+    """Deterministic recurrence inference; statement amounts remain authoritative."""
+    import re
+    from app.matching.normalizer import DescriptorNormalizer
+    from app.analytics.amount_analyzer import analyze_amounts
+    from app.analytics.interval_analyzer import analyze_intervals
+    from app.analytics.cadence_classifier import classify_cadence
+    groups = {}
+    for record in records:
+        normalized = DescriptorNormalizer.normalize(record["description"])
+        normalized = re.sub(r"\b(?:upi|pos|nach|ecs|card|debit|dr)\b", " ", normalized)
+        normalized = re.sub(r"\b(?:[a-z]*\d{6,}[a-z0-9]*|ref\d+)\b", " ", normalized)
+        normalized = " ".join(normalized.split())
+        # Never cluster everything under UPI or a payment processor prefix.
+        key = (record.get("stream_key") or normalized, record["currency"])
+        groups.setdefault(key, []).append(record)
+    subscriptions = []
+    for grouped in groups.values():
+        txs = sorted(grouped, key=lambda item: item["date"])
+        if len(txs) == 1:
+            record = txs[0]
+            ad = AutoDebitKeywordService.get_instance().analyze_descriptor(record["description"])
+            if ad.is_autodebit_candidate:
+                subscriptions.append(ReviewedSubscription(
+                    name=(record.get("merchant_name") or record["description"])[:255],
+                    category=ad.category_hint or "Recurring payment candidate",
+                    transaction_ids=[uuid.UUID(record["id"])], cadence="unknown", confidence="low",
+                    payment_rail="Unknown", verification_status="potential_candidate",
+                    explanation="One debit contains a recurring-payment indicator. More billing history or your confirmation is required; no recurring cost or future date is assumed.",
+                ))
             continue
-
-        sorted_txs = sorted(tx_list, key=lambda x: x["date"])
-        d_dates = [datetime.fromisoformat(x["date"]).date() for x in sorted_txs]
-        gaps = [(b - a).days for a, b in zip(d_dates, d_dates[1:])]
-
-        matched_cadence = None
-        for cad, (low, high) in bounds.items():
-            if any(low <= g <= high for g in gaps):
-                matched_cadence = cad
-                break
-
-        if not matched_cadence:
-            avg_gap = sum(gaps) / len(gaps) if gaps else 0
-            if 20 <= avg_gap <= 40:
-                matched_cadence = "variable_monthly"
-            else:
-                continue
-
-        ad = keyword_service.analyze_descriptor(sorted_txs[-1]["description"])
-        rail = ad.payment_rail if ad.is_autodebit_candidate else "Standing Instruction"
-        rail_counts[rail] = rail_counts.get(rail, 0) + 1
-
-        amounts = [float(x["amount"]) for x in sorted_txs]
-        insights = []
-        if amounts[-1] > amounts[0]:
-            diff = amounts[-1] - amounts[0]
-            insights.append(Finding(
-                kind='price_increase',
-                severity='medium',
-                title=f'{name.title()} price increased',
-                summary=f'Debit increased by {sorted_txs[-1]["currency"]} {diff:.2f} compared to earlier cycles.',
-                explanation='Price increase detected by statement comparison engine.',
-            ))
-
-        subs.append(ReviewedSubscription(
-            name=name.title(),
-            category=ad.category_hint or "Subscription",
-            transaction_ids=[uuid.UUID(x["id"]) for x in sorted_txs],
-            cadence=matched_cadence,
-            confidence="high" if ad.is_autodebit_candidate else "medium",
-            payment_rail=rail,
-            verification_status="verified_accurate",
-            audit_note=f"Verified {rail} debit schedule with {len(sorted_txs)} regular cycles.",
-            explanation=f"Auto-debit verified on {rail} rail based on consistent {matched_cadence.replace('_', ' ')} billing schedule.",
-            insights=insights,
+        dates = [datetime.fromisoformat(item["date"]).date() for item in txs]
+        if len(set(dates)) != len(dates):
+            continue
+        amounts = [Decimal(item["amount"]) for item in txs]
+        result = classify_cadence(analyze_intervals(dates), analyze_amounts(amounts))
+        if not result.is_recurring or result.cadence in {"unknown", "irregular"}:
+            continue
+        desc = txs[-1]["description"]
+        explicit = bool(re.search(r"(?i)autopay|auto[- ]?debit|recurr|subscription|membership|monthly|quarterly|annual|\bnach\b|\becs\b|standing instruction|\bemi\b", desc))
+        if re.search(r"(?i)\batm\b|\bneft\b|\bimps\b|\brtgs\b|\btransfer\b", desc) and not explicit:
+            continue
+        # Every interval must support the claimed cadence. One matching interval
+        # amongst unrelated purchases cannot establish a subscription.
+        bounds = {"weekly": (5, 10), "fortnightly": (10, 18), "monthly": (20, 40),
+                  "variable_monthly": (20, 40), "quarterly": (75, 105), "annual": (330, 400)}
+        low, high = bounds[result.cadence]
+        if not all(low <= (b-a).days <= high for a,b in zip(dates, dates[1:])):
+            continue
+        ad = AutoDebitKeywordService.get_instance().analyze_descriptor(desc)
+        confidence = "high" if explicit and len(txs) >= 3 else "medium" if explicit or len(txs) >= 3 and len(set(amounts)) == 1 else "low"
+        rail = ad.payment_rail if re.search(r"(?i)autopay|auto[- ]?debit|\bnach\b|\becs\b|standing instruction|recurring card", desc) else "Unknown"
+        name = txs[-1].get("merchant_name") or desc
+        subscriptions.append(ReviewedSubscription(
+            name=name[:255], category=ad.category_hint or "Recurring payment",
+            transaction_ids=[uuid.UUID(item["id"]) for item in txs], cadence=result.cadence,
+            confidence=confidence, payment_rail=rail, verification_status="potential_candidate",
+            audit_note="Inferred from statement history; bank mandate status is unavailable.",
+            explanation=f"{len(txs)} observed debits on distinct dates. {result.primary_reason}",
+            savings_recommendation="Select this payment only if you want to model stopping its future charges.",
         ))
-
-    return Review(
-        subscriptions=subs,
-        overview=f"Audited {len(records)} transactions using PayScope Auto-Debit Keyword Intelligence. Identified {len(subs)} verified recurring mandates.",
-        spending_analysis="Subscriptions and mandates classified into active payment rails with verified billing periods.",
-        savings_analysis="Explore cancellation playbooks and simulate what-if savings for non-essential services.",
-        limitations=["Analysis based on imported debit statement records."],
-        audit_score=100 if subs else 85,
-        verified_mandates_count=len(subs),
-        rail_distribution=rail_counts,
-    )
+    return Review(subscriptions=subscriptions,
+        overview=f"Reviewed {len(records)} successful debit records. Found {len(subscriptions)} recurring payment patterns; inspect their payment evidence before confirming them.",
+        spending_analysis="Recorded payments and recurring cost estimates are calculated from imported amounts. INR totals exclude other currencies; all currencies remain available in Payments.",
+        savings_analysis="Savings are hypothetical future costs avoided for the subscriptions you select. No service usage or cancellation is inferred from a statement.",
+        limitations=["Recurrence and future payment dates are estimates from observed transactions, not bank-confirmed mandates.",
+                     "Rows that could not be read or validated are reported in the import result and excluded from totals.",
+                     "Without a bank reference, identical same-day entries in overlapping files may require manual review."],
+        audit_score=None)
 
 
 def call_gemini(records: list[dict], *args, **kwargs) -> Review:
@@ -288,13 +273,12 @@ def review_workspace(db: Session, user_id: uuid.UUID) -> dict:
                 Transaction.user_id == user_id,
                 Transaction.direction.ilike('debit'),
                 Transaction.transaction_status.ilike('successful'),
+                Transaction.amount > 0,
             )
             .order_by(Transaction.transaction_date)
         ).all()
     )
 
-    if len(transactions) > 3000:
-        raise ValueError('This workspace exceeds the 3,000-transaction AI review limit. No partial review was published.')
 
     autodebit_svc = AutoDebitKeywordService.get_instance()
     records = []
@@ -332,6 +316,8 @@ def review_workspace(db: Session, user_id: uuid.UUID) -> dict:
             'matched_keywords': ad.matched_keywords,
             'category_hint': ad.category_hint,
             'frequency_hint': ad.frequency_hint,
+            'stream_key': f'{t.account_id}:{t.merchant_id}' if t.merchant_id else '',
+            'merchant_name': t.merchant.canonical_name if t.merchant else None,
         })
 
     records = prepare_ai_records(records)
@@ -345,12 +331,12 @@ def review_workspace(db: Session, user_id: uuid.UUID) -> dict:
             spending_analysis='Upload a statement to generate spending analysis.',
             savings_analysis='No evidence-backed savings scenarios yet.',
             limitations=[],
-            audit_score=100,
+            audit_score=None,
             verified_mandates_count=0,
             rail_distribution={},
         )
     else:
-        review = Review.model_validate(call_gemini(records).model_dump())
+        review = _generate_heuristic_review(records)
 
     # Validate response
     seen = set()
@@ -366,15 +352,20 @@ def review_workspace(db: Session, user_id: uuid.UUID) -> dict:
 
     for sub in review.subscriptions:
         ids = set(sub.transaction_ids)
-        if len(ids) < 2 or not ids <= by_id.keys() or seen & ids:
+        if not ids or not ids <= by_id.keys() or seen & ids:
             continue
         txs = sorted([by_id[i] for i in ids], key=lambda t: t.transaction_date)
+        if len(ids) == 1:
+            if sub.confidence == 'low' and sub.cadence == 'unknown':
+                seen.update(ids)
+                valid_subs.append(sub)
+            continue
         if len({t.currency for t in txs}) != 1 or len({t.transaction_date.date() for t in txs}) < 2:
             continue
 
         gaps = [(b.transaction_date.date() - a.transaction_date.date()).days for a, b in zip(txs, txs[1:])]
         low, high = bounds.get(sub.cadence, (20, 45))
-        if any(low <= gap <= high for gap in gaps) or sub.cadence == 'variable_monthly':
+        if all(low <= gap <= high for gap in gaps):
             seen.update(ids)
             valid_subs.append(sub)
 
@@ -390,7 +381,6 @@ def review_workspace(db: Session, user_id: uuid.UUID) -> dict:
     for cid, tid in links:
         evidence.setdefault(cid, set()).add(tid)
 
-    db.execute(delete(CommitmentInsight).where(CommitmentInsight.user_id == user_id))
     claimed = set()
     saved = []
     rail_counts: Dict[str, int] = {}
@@ -406,7 +396,7 @@ def review_workspace(db: Session, user_id: uuid.UUID) -> dict:
 
         c.display_name = sub.name
         c.category = sub.category or "Subscription"
-        c.merchant_id = None
+        c.merchant_id = txs[-1].merchant_id
         c.commitment_type = 'subscription'
         c.cadence = sub.cadence
         c.currency = txs[-1].currency
@@ -421,17 +411,16 @@ def review_workspace(db: Session, user_id: uuid.UUID) -> dict:
         if not c.user_decision:
             c.status = 'active' if sub.confidence != 'low' else 'candidate'
 
-        rail = sub.payment_rail or "UPI AutoPay"
+        rail = sub.payment_rail or "Unknown"
         rail_counts[rail] = rail_counts.get(rail, 0) + 1
 
         c.detection_explanation = f"[{rail}] {sub.explanation} (Audit: {sub.audit_note or 'Verified Accurate'})"
         c.detection_reason_codes = [
-            'ai_evidence_reviewed',
-            'autodebit_keyword_verified',
+            'statement_evidence_reviewed',
             f'rail:{rail}',
             f'status:{sub.verification_status or "verified_accurate"}',
         ]
-        c.detector_version = 'gemini-v1'
+        c.detector_version = 'statement-rules-v2'
 
         db.flush()
         db.execute(delete(CommitmentTransaction).where(CommitmentTransaction.commitment_id == c.id))
@@ -440,7 +429,7 @@ def review_workspace(db: Session, user_id: uuid.UUID) -> dict:
                 commitment_id=c.id,
                 transaction_id=t.id,
                 relationship_role='recurrence_evidence',
-                reason=f'AI audited transaction on {rail} rail',
+                reason='Observed recurring payment evidence',
             ))
 
         for index, finding in enumerate(sub.insights):
@@ -479,13 +468,14 @@ def review_workspace(db: Session, user_id: uuid.UUID) -> dict:
         if c.id not in claimed and not c.user_decision:
             c.status = 'inactive'
 
-    audit_score = 100 if len(valid_subs) > 0 else 90
+    audit_score = None
     report = {
         **review.model_dump(mode='json'),
         'subscriptions': saved,
         'transaction_count': len(records),
         'audit_score': audit_score,
-        'verified_mandates_count': len(saved),
+        'verified_mandates_count': 0,
+        'inferred_patterns_count': len(saved),
         'rail_distribution': rail_counts,
         'source_digest': hashlib.sha256(json.dumps(records).encode()).hexdigest(),
     }
@@ -495,16 +485,19 @@ def review_workspace(db: Session, user_id: uuid.UUID) -> dict:
         state = WorkspaceIntelligence(user_id=user_id)
         db.add(state)
     state.status = 'completed'
-    state.model = settings.GEMINI_MODEL
+    state.model = 'statement-rules-v2'
     state.report = report
     state.error = None
     state.generated_at = now
+    db.flush()
+    from app.analytics.insights.insight_orchestrator import run_insight_detection
+    run_insight_detection(db, user_id)
     db.commit()
 
     return {
         'analysis_status': 'completed',
         'commitments_discovered': len(saved),
-        'model': settings.GEMINI_MODEL,
+        'model': 'statement-rules-v2',
         'audit_score': audit_score,
         'rail_distribution': rail_counts,
         'active_count': sum(s['status'] in ('active', 'user_confirmed') for s in saved),

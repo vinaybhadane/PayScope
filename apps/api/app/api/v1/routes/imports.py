@@ -31,7 +31,7 @@ def enqueue_import(db, user_id, preview, arguments):
             job_db.info["workspace_user_id"] = user_id
             if preview:
                 result = ImportService.preview(db=job_db, user_id=user_id, **arguments)
-                if not result.get("success"):
+                if not result.get("success") and not result.get("headers"):
                     raise ValueError(result.get("error", "Failed to generate preview."))
             else:
                 result = ImportService.execute_import(db=job_db, user_id=user_id, **arguments)
@@ -52,11 +52,8 @@ async def preview_import(
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
     """Generate unpersisted import preview with validation report and duplicate check."""
-    if not synthetic_confirmed:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Synthetic confirmation is required. Only synthetic demo data can be uploaded.",
-        )
+    if import_type not in {"statement", "notifications"}:
+        raise HTTPException(400, "import_type must be statement or notifications.")
 
     content = await file.read(MAX_FILE_SIZE_BYTES + 1)
     if len(content) > MAX_FILE_SIZE_BYTES:
@@ -72,6 +69,8 @@ async def preview_import(
     if column_overrides:
         try:
             overrides_dict = json.loads(column_overrides)
+            if not isinstance(overrides_dict, dict) or not all(isinstance(k, str) and isinstance(v, str) for k, v in overrides_dict.items()):
+                raise ValueError("Mapping must be an object of string column names.")
         except Exception:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -96,7 +95,7 @@ async def preview_import(
         column_overrides=overrides_dict,
     )
 
-    if not result.get("success"):
+    if not result.get("success") and not result.get("headers"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=result.get("error", "Failed to generate preview."),
@@ -118,11 +117,8 @@ async def create_import(
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
     """Execute import and persist valid non-duplicate records to PostgreSQL."""
-    if not synthetic_confirmed:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Synthetic confirmation is required. Only synthetic demo data can be uploaded.",
-        )
+    if import_type not in {"statement", "notifications"}:
+        raise HTTPException(400, "import_type must be statement or notifications.")
 
     content = await file.read(MAX_FILE_SIZE_BYTES + 1)
     if len(content) > MAX_FILE_SIZE_BYTES:
@@ -137,6 +133,8 @@ async def create_import(
     if column_overrides:
         try:
             overrides_dict = json.loads(column_overrides)
+            if not isinstance(overrides_dict, dict) or not all(isinstance(k, str) and isinstance(v, str) for k, v in overrides_dict.items()):
+                raise ValueError("Mapping must be an object of string column names.")
         except Exception:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,

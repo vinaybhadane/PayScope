@@ -87,12 +87,12 @@ def test_normalization_annual_cadence():
 
 
 def test_normalization_variable_monthly_cost():
-    """6. Variable monthly cost calculation: uses historical median amounts."""
+    """Variable monthly forecasts use the latest observed charge consistently."""
     historical = [Decimal("300.00"), Decimal("450.00"), Decimal("500.00")]
     monthly, annual, method = calculate_normalized_costs(Decimal("450.00"), "variable_monthly", historical)
     assert monthly == Decimal("450.00")
     assert annual == Decimal("5400.00")
-    assert "median" in method
+    assert "latest observed" in method
 
 
 # ==============================================================================

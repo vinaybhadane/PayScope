@@ -1,5 +1,6 @@
 "use client";
 import { authFetch } from "@/lib/authFetch";
+import { useWorkspaceRevision } from "@/lib/useWorkspaceResource";
 
 import { getApiBaseUrl } from "@/lib/api";
 import React, { useState, useEffect } from "react";
@@ -59,6 +60,7 @@ export default function InsightsPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   const apiBase = getApiBaseUrl();
+  const workspaceRevision = useWorkspaceRevision();
 
   const refreshInsights = async () => {
     try {
@@ -122,7 +124,7 @@ export default function InsightsPage() {
     return () => {
       ignore = true;
     };
-  }, [apiBase, activeTab, severityFilter, statusFilter]);
+  }, [apiBase, activeTab, severityFilter, statusFilter, workspaceRevision]);
 
   const handleRunDetection = async () => {
     setDetecting(true);

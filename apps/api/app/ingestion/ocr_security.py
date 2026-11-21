@@ -14,7 +14,7 @@ MIN_OCR_CONFIDENCE = 0.80
 class OCRRecord(BaseModel):
     model_config = ConfigDict(extra="forbid")
     date: str
-    descriptor: str = Field(min_length=2, max_length=120)
+    descriptor: str = Field(min_length=2, max_length=1000)
     amount: Decimal = Field(gt=0, allow_inf_nan=False, max_digits=18, decimal_places=2)
 
     @field_validator("date")
@@ -42,46 +42,42 @@ def confidence_score(value):
     return None
 
 
-def parse_ocr_result(result):
+def parse_ocr_result(result, *, initial_columns=()):
     lines = getattr(result, "lines", None)
+    confidence_by_line = {}
     if lines:
-        records = []
-        for line_number, line in enumerate(lines, 1):
-            score = confidence_score(getattr(line, "confidence", None))
-            word_scores = [confidence_score(getattr(word, "confidence", None)) for word in (getattr(line, "words", None) or [])]
-            available = [s for s in [score, *word_scores] if s is not None]
-            parsed = parse_ocr_text(getattr(line, "text", ""), min(available) if available else confidence_score(getattr(result, "confidence", None)), line_offset=line_number - 1)
-            for row in parsed:
-                row["_row_number"] = len(records) + 1
-                records.append(row)
-        return RawTextStatementParser.HEADERS, records
-    return RawTextStatementParser.HEADERS, parse_ocr_text(getattr(result, "text", ""), confidence_score(getattr(result, "confidence", None)))
+        text = "\n".join(getattr(line, "text", "") for line in lines)
+        for number, line in enumerate(lines, 1):
+            values = [confidence_score(getattr(line, "confidence", None))]
+            values.extend(confidence_score(getattr(word, "confidence", None)) for word in (getattr(line, "words", None) or []))
+            available = [value for value in values if value is not None]
+            confidence_by_line[number] = min(available) if available else confidence_score(getattr(result, "confidence", None))
+    else:
+        text = getattr(result, "text", "")
+    return RawTextStatementParser.HEADERS, parse_ocr_text(
+        text, confidence_score(getattr(result, "confidence", None)),
+        confidence_by_line=confidence_by_line, initial_columns=initial_columns,
+    )
 
 
-def parse_ocr_text(text, confidence=None, line_offset=0):
+def parse_ocr_text(text, confidence=None, line_offset=0, confidence_by_line=None, *, initial_columns=()):
+    _, parsed = RawTextStatementParser.parse(clean_invisible(text), initial_columns=initial_columns)
     rows = []
-    for line_number, raw_line in enumerate(text.splitlines(), line_offset + 1):
-        if not raw_line.strip():
-            continue
-        line = clean_invisible(raw_line)
-        reasons = text_risks(raw_line)
-        _, parsed = RawTextStatementParser.parse(line)
-        if not parsed and not reasons and not re.search(r"\b\d{1,4}[-/]\d{1,2}[-/]\d{1,4}\b", line):
-            continue  # Headers and non-transaction metadata.
-        if not parsed:
-            parsed = [{"Date": "", "Description": line[:120], "Amount": ""}]
-            reasons.append("invalid_ocr_record")
-        for row in parsed:
-            row_reasons = list(reasons) + text_risks(row["Description"], descriptor=True)
+    original_lines = text.splitlines()
+    for row in parsed:
+        line_number = row.get("_row_number", 1)
+        raw_line = original_lines[line_number - 1] if line_number <= len(original_lines) else row.get("_raw_line", "")
+        reasons = text_risks(raw_line) + text_risks(row["Description"], descriptor=True)
+        if not row.get("_parse_error"):
             try:
                 OCRRecord(date=row["Date"], descriptor=row["Description"], amount=str(row["Amount"]))
             except ValueError:
-                row_reasons.append("invalid_ocr_schema")
-            if confidence is not None and confidence < MIN_OCR_CONFIDENCE:
-                row_reasons.append("low_ocr_confidence")
-            row["_ocr_security"] = {"reasons": sorted(set(row_reasons)), "confidence": confidence, "line": line_number}
-            row["_row_number"] = len(rows) + 1
-            if row_reasons:
-                log_quarantine(raw_line, row["_ocr_security"]["reasons"], line=line_number, confidence=confidence)
-            rows.append(row)
+                reasons.append("invalid_ocr_schema")
+        score = (confidence_by_line or {}).get(line_number, confidence)
+        if score is not None and score < MIN_OCR_CONFIDENCE:
+            reasons.append("low_ocr_confidence")
+        row["_ocr_security"] = {"reasons": sorted(set(reasons)), "confidence": score, "line": line_number + line_offset}
+        if reasons:
+            log_quarantine(raw_line, reasons, line=line_number, confidence=score)
+        rows.append(row)
     return rows

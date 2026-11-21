@@ -3,11 +3,10 @@ import { authFetch } from "@/lib/authFetch";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
-import { inr } from "@/lib/demo-data";
+import { formatMoney } from "@/lib/formatMoney";
 import { formatPeriod } from "@/lib/formatPeriod";
 import { useAuth } from "@/context/AuthContext";
 import {
-  sampleGraph,
   type GraphData,
   type GraphEdge,
 } from "@/lib/workspace-data";
@@ -47,8 +46,7 @@ export default function RelationshipExplorer({
   const { user } = useAuth();
   const resource = useWorkspaceResource<GraphData>(
     "/api/v1/graph/explorer?limit=50",
-    sampleGraph,
-  );
+    );
   const [mode, setMode] = useState("Overview");
   const [evidenceSubscription, setEvidenceSubscription] = useState("");
   const [query, setQuery] = useState("");
@@ -254,10 +252,7 @@ export default function RelationshipExplorer({
     >
       <div className="relation-heading">
         <div>
-          <span className="dash-eyebrow">
-            <Icon name="network" size={13} />
-            CONNECTED INTELLIGENCE
-          </span>
+
           <h2>
             {compact ? "Follow the money." : "Every payment has a connection."}
           </h2>
@@ -499,9 +494,9 @@ export default function RelationshipExplorer({
                       </text>
                       <text x="30" y="36" className="graph-node-subtitle">
                         {n.data.node_type === "Transaction" && n.data.metadata?.transaction_date
-                          ? `${new Date(String(n.data.metadata.transaction_date)).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} · ${inr(n.data.amount || 0)}`
+                          ? `${new Date(String(n.data.metadata.transaction_date)).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} · ${formatMoney(n.data.amount || 0, String(n.data.metadata?.currency || "INR"))}`
                           : ["Commitment", "Transaction"].includes(n.data.node_type) && n.data.amount !== undefined
-                          ? `${inr(n.data.amount)}${n.data.cadence ? ` · ${formatPeriod(n.data.cadence)}` : ""}`
+                          ? `${formatMoney(n.data.amount, String(n.data.metadata?.currency || "INR"))}${n.data.cadence ? ` · ${formatPeriod(n.data.cadence)}` : ""}`
                           : n.data.category ||
                           kinds[n.data.node_type]?.label ||
                           n.data.node_type}
@@ -537,7 +532,7 @@ export default function RelationshipExplorer({
                     <h3>{selectedNode.data.name}</h3>
                     {selectedNode.data.amount !== undefined && (
                       <strong className="inspector-amount">
-                        {inr(selectedNode.data.amount)}
+                        {formatMoney(selectedNode.data.amount, String(selectedNode.data.metadata?.currency || "INR"))}
                       </strong>
                     )}
                     <dl>

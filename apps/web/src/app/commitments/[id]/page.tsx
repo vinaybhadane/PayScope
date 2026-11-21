@@ -1,4 +1,5 @@
 "use client";
+import { formatMoney } from "@/lib/formatMoney";
 import { authFetch } from "@/lib/authFetch";
 
 import { getApiBaseUrl } from "@/lib/api";
@@ -470,7 +471,7 @@ export default function CommitmentDetailPage({
           <div className="p-5 rounded-2xl bg-[#0D1322]/60 border border-[#1E293B]/80">
             <div className="text-xs font-medium text-[#8E9CAE]">Representative Amount</div>
             <div className="mt-2 text-2xl font-bold tracking-tight text-[#F4F7FB]">
-              ₹{Number(commitment.representative_amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+              {formatMoney(commitment.representative_amount || 0, commitment.currency)}
             </div>
             <div className="mt-1 text-xs text-[#8E9CAE]">
               Pattern: <span className="capitalize">{commitment.amount_pattern}</span>
@@ -480,7 +481,7 @@ export default function CommitmentDetailPage({
           <div className="p-5 rounded-2xl bg-[#0D1322]/60 border border-[#1E293B]/80">
             <div className="text-xs font-medium text-[#8E9CAE]">Annualised Impact</div>
             <div className="mt-2 text-2xl font-bold tracking-tight text-emerald-400">
-              ₹{Number(commitment.annualised_amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+              {commitment.annualised_amount == null ? "Not enough billing history" : formatMoney(commitment.annualised_amount, commitment.currency)}
             </div>
             <div className="mt-1 text-xs text-[#8E9CAE]">
               Method: {commitment.annualisation_method ? commitment.annualisation_method.replace("_", " ") : "standard"}
@@ -490,9 +491,9 @@ export default function CommitmentDetailPage({
           <div className="p-5 rounded-2xl bg-[#0D1322]/60 border border-[#1E293B]/80">
             <div className="text-xs font-medium text-[#8E9CAE]">Observed Range</div>
             <div className="mt-2 text-2xl font-bold tracking-tight text-[#8E9CAE]">
-              ₹{Number(commitment.amount_min || commitment.representative_amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 0 })}
+              {formatMoney(commitment.amount_min || commitment.representative_amount || 0, commitment.currency)}
               {" – "}
-              ₹{Number(commitment.amount_max || commitment.representative_amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 0 })}
+              {formatMoney(commitment.amount_max || commitment.representative_amount || 0, commitment.currency)}
             </div>
             <div className="mt-1 text-xs text-[#8E9CAE]">Historical Min / Max</div>
           </div>
@@ -617,7 +618,7 @@ export default function CommitmentDetailPage({
                         {tx.raw_descriptor}
                       </td>
                       <td className="py-3 px-4 font-bold text-[#F4F7FB]">
-                        ₹{Number(tx.amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                        {formatMoney(tx.amount, tx.currency || commitment.currency)}
                       </td>
                       <td className="py-3 px-4 text-[#8E9CAE] font-sans uppercase text-[11px]">
                         {tx.payment_channel}
@@ -679,7 +680,7 @@ export default function CommitmentDetailPage({
                       <p className="text-xs text-[#8E9CAE] mt-1 leading-relaxed">{evt.description}</p>
                       {evt.amount && (
                         <div className="mt-2 text-xs font-mono font-medium text-emerald-400">
-                          ₹{Number(evt.amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                          {formatMoney(evt.amount, evt.currency || commitment.currency)}
                           {evt.payment_channel && (
                             <span className="text-[#8E9CAE] ml-2 uppercase font-sans text-[11px]">
                               via {evt.payment_channel}

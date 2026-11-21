@@ -12,8 +12,8 @@ type EmailSettings = { recipient: string | null; sender: string; can_email: bool
   deliveries: { kind: string; status: string; error: string | null; created_at: string }[] };
 
 export function AIWorkspacePanel({ section = "overview", controls = false }: { section?: "overview" | "spending_analysis" | "savings_analysis"; controls?: boolean }) {
-  const review = useWorkspaceResource<ReviewState>("/api/v1/workspace/intelligence", { status: "empty", model: "", generated_at: null, error: null, report: null });
-  const settings = useWorkspaceResource<EmailSettings>("/api/v1/workspace/email-settings", { recipient: null, sender: "", can_email: false, reports_enabled: false, reminders_enabled: false, deliveries: [] });
+  const review = useWorkspaceResource<ReviewState>("/api/v1/workspace/intelligence");
+  const settings = useWorkspaceResource<EmailSettings>("/api/v1/workspace/email-settings");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [showClear, setShowClear] = useState(false);
@@ -36,16 +36,16 @@ export function AIWorkspacePanel({ section = "overview", controls = false }: { s
     setBusy(true); setMessage("");
     try {
       const response = await authFetch(`${getApiBaseUrl()}/api/v1/workspace/report.pdf`);
-      if (!response.ok) throw new Error("Complete an AI review before downloading the report.");
+      if (!response.ok) throw new Error("Complete a statement review before downloading the report.");
       const url = URL.createObjectURL(await response.blob());
       const anchor = document.createElement("a"); anchor.href = url; anchor.download = "payscope-subscription-report.pdf"; anchor.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (error) { setMessage(error instanceof Error ? error.message : "Download failed."); }
     finally { setBusy(false); }
   }
-  return <section className="ai-workspace-panel" aria-label="AI review and workspace controls">
+  return <section className="ai-workspace-panel" aria-label="Statement analysis and workspace controls">
     <div className="ai-panel-heading"><div><span className="dash-eyebrow"><Icon name="spark" size={14} />{isDemoReport ? "SAMPLE DATA, REVIEWED" : "YOUR STATEMENT, REVIEWED"}</span>
-      <h2>{isDemoReport ? `Sample ${sectionTitle}` : section === "overview" ? "Your AI subscription report" : section === "spending_analysis" ? "AI spending analysis" : "AI savings review"}</h2></div>
+      <h2>{isDemoReport ? `Sample ${sectionTitle}` : section === "overview" ? "Your subscription report" : section === "spending_analysis" ? "Statement spending analysis" : "Savings estimates"}</h2></div>
       <span className="ai-review-state">{state?.status === "completed" ? isDemoReport ? "Demo analysis ready" : "Review complete" : state?.status === "failed" ? "Review needs attention" : "Awaiting upload"}</span></div>
     {review.error && <p role="alert">{review.error}</p>}
     {state?.error && <p role="alert">{state.error}</p>}
@@ -57,7 +57,7 @@ export function AIWorkspacePanel({ section = "overview", controls = false }: { s
       <button className="button button-subtle" disabled={busy} onClick={() => setEmailOpen(!emailOpen)}><Icon name="bell" size={15} />Report emails & alerts</button>
       <button className="button button-subtle" disabled={busy} onClick={async () => {
         const result = await action("/workspace/review", { method: "POST" });
-        if (result) { invalidateWorkspaceResources(); setMessage(result.message || "AI review completed."); }
+        if (result) { invalidateWorkspaceResources(); setMessage(result.message || "Statement analysis completed."); }
       }}>{busy ? "Working…" : isDemoReport ? "Refresh sample analysis" : "Review uploaded records"}</button>
       <button className="button ai-clear-button" onClick={() => setShowClear(true)}>Clear dashboard</button>
     </div>}

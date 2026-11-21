@@ -25,14 +25,14 @@ def text_risks(value: str, *, descriptor: bool = False) -> list[str]:
     reasons = []
     if any(unicodedata.category(c) in {"Cf", "Co"} for c in value):
         reasons.append("invisible_unicode")
-    # Parser-generated rail metadata uses this bank term. Descriptors always
-    # apply the complete keyword rule, including the word "instruction".
-    instruction_text = clean if descriptor else re.sub(r"\bstanding instructions?\b", "", clean, flags=re.I)
+    # Standing Instruction is a legitimate bank narration, including in source
+    # descriptors. Other instruction-like phrases still require review.
+    instruction_text = re.sub(r"\bstanding instructions?\b", "", clean, flags=re.I)
     if INSTRUCTION.search(instruction_text):
         reasons.append("instruction_like_text")
     if URL.search(clean):
         reasons.append("url_in_text")
-    if descriptor and (not clean.strip() or len(clean) > 120):
+    if descriptor and (not clean.strip() or len(clean) > 1000):
         reasons.append("descriptor_length")
     return reasons
 

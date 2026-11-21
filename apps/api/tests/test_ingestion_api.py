@@ -10,16 +10,16 @@ from app.models.payment_notification import PaymentNotification
 from app.models.transaction import Transaction
 
 
-def test_preview_rejection_without_synthetic_confirmation(client: TestClient):
-    """Attempting import preview without explicit synthetic confirmation must return 400."""
+def test_preview_accepts_bank_statements_without_synthetic_confirmation(client: TestClient):
+    """Bank statements do not require a synthetic-data claim."""
     csv_content = b"Date,Description,Amount\n2026-05-01,Test Merchant,500.00\n"
     response = client.post(
         "/api/v1/imports/preview",
         files={"file": ("statement.csv", csv_content, "text/csv")},
         data={"import_type": "statement", "synthetic_confirmed": "false"},
     )
-    assert response.status_code == 400
-    assert "Synthetic confirmation is required" in response.json()["detail"]
+    assert response.status_code == 200
+    assert response.json()["valid_count"] == 1
 
 
 def test_preview_valid_csv(client: TestClient):

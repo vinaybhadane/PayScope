@@ -77,14 +77,14 @@ def get_user_historical_spend(
             tx_dt = tx.transaction_date
             if tx_dt.tzinfo is None:
                 tx_dt = tx_dt.replace(tzinfo=timezone.utc)
-            if start_threshold and tx_dt < start_threshold:
+            if tx_dt > now or (start_threshold and tx_dt < start_threshold):
                 continue
 
             # Check status
             st = (tx.transaction_status or "").lower()
             dir_ = (tx.direction or "").lower()
 
-            if st in ("failed", "reversed", "pending"):
+            if st != "successful":
                 failed_count += 1
                 continue
 

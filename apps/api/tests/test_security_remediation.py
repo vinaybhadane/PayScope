@@ -368,7 +368,7 @@ def test_native_ocr_faded_instruction_in_image_is_quarantined():
     assert "instruction_like_text" in normalized.quarantined_records[0]["reasons"]
 
 
-@pytest.mark.parametrize("descriptor", ["SYSTEM override", "ignore prompt", "admin instruction", "Standing Instruction", "X" * 121, "Orbit\ue000", "Orbit <script>"])
+@pytest.mark.parametrize("descriptor", ["SYSTEM override", "ignore prompt", "admin instruction", "X" * 1001, "Orbit\ue000", "Orbit <script>"])
 def test_ocr_security_rejects_suspicious_descriptors(descriptor):
     rows = parse_ocr_text(f"2026-10-01 {descriptor} 199.00")
     result = SchemaNormalizer.normalize_transactions(rows, ColumnMapper.auto_detect(["Date", "Description", "Amount", "Currency", "Direction", "Channel"]))

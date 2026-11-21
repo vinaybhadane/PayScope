@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Set
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 from app.ingestion.column_mapper import ColumnMapper
 from app.ingestion.csv_parser import CSVParser
@@ -41,7 +41,7 @@ class ImportService:
         elif lower.endswith(".pdf"):
             headers, rows = PDFParser.parse(content)
             return "pdf", headers, rows
-        elif lower.endswith(".xlsx"):
+        elif lower.endswith((".xlsx", ".xls")):
             headers, rows = XLSXParser.parse(content)
             return "xlsx", headers, rows
         elif lower.endswith(".json"):
@@ -105,6 +105,9 @@ class ImportService:
                     "headers": headers,
                     "mapping": final_mapping,
                     "available_targets": ColumnMapper.TARGET_COLUMNS,
+                    "import_type": "statement", "total_rows": len(rows),
+                    "valid_count": 0, "duplicate_count": 0, "invalid_count": 0,
+                    "errors": [], "preview_rows": [],
                 }
 
             norm_result = SchemaNormalizer.normalize_transactions(rows, final_mapping)
@@ -126,6 +129,14 @@ class ImportService:
 
             # Count duplicates vs new
             duplicate_count = sum(1 for r in norm_result.valid_records if r.get("external_synthetic_id") in existing_ids)
+            # Preview must also count duplicate IDs within this upload.
+            seen_preview = set(existing_ids)
+            duplicate_count = 0
+            for record in norm_result.valid_records:
+                key = record.get("external_synthetic_id")
+                duplicate_count += int(key in seen_preview)
+                if key:
+                    seen_preview.add(key)
             net_valid_count = len(norm_result.valid_records) - duplicate_count
 
             # Pre-load resolver for diagnostic preview
@@ -137,8 +148,10 @@ class ImportService:
 
             # Build preview rows (first 15)
             preview_rows = []
+            preview_seen = set(existing_ids)
             for r in norm_result.valid_records[:15]:
-                is_dup = r.get("external_synthetic_id") in existing_ids
+                is_dup = r.get("external_synthetic_id") in preview_seen
+                preview_seen.add(r.get("external_synthetic_id"))
                 res = resolver.resolve(r["raw_descriptor"])
                 preview_rows.append({
                     "date": r["transaction_date"].strftime("%Y-%m-%d"),
@@ -170,7 +183,7 @@ class ImportService:
                 "total_rows": norm_result.total_rows,
                 "valid_count": net_valid_count,
                 "duplicate_count": duplicate_count,
-                "invalid_count": len(norm_result.errors),
+                "invalid_count": len({err.row for err in norm_result.errors}),
                 "quarantined_count": len(norm_result.quarantined_records),
                 "errors": [err.to_dict() for err in norm_result.errors[:50]],
                 "preview_rows": preview_rows,
@@ -225,7 +238,7 @@ class ImportService:
                 "total_rows": norm_result.total_rows,
                 "valid_count": net_valid_count,
                 "duplicate_count": duplicate_count,
-                "invalid_count": len(norm_result.errors),
+                "invalid_count": len({err.row for err in norm_result.errors}),
                 "errors": [err.to_dict() for err in norm_result.errors[:50]],
                 "preview_rows": preview_rows,
             }
@@ -259,13 +272,13 @@ class ImportService:
                 Account.user_id == user_id, Account.label == "Imported statements"
             ).order_by(Account.created_at).limit(1))
             if account is None:
-                account = Account(user_id=user_id, label="Imported statements", is_synthetic=True)
+                account = Account(user_id=user_id, label="Imported statements", is_synthetic=synthetic_confirmed)
                 db.add(account)
                 db.flush()
             account_id = account.id
 
         # 3. Create ImportRecord in DB
-        storage_key = f"synthetic/{user_id}/{uuid.uuid4()}_{filename}"
+        storage_key = f"imports/{user_id}/{uuid.uuid4()}"
         import_record = ImportRepository.create(
             db=db,
             user_id=user_id,
@@ -273,7 +286,7 @@ class ImportService:
             filename_display=filename,
             storage_key=storage_key,
             file_type=file_type,
-            source_label="synthetic_statement" if import_type == "statement" else "synthetic_notifications",
+            source_label="bank_statement" if import_type == "statement" else "payment_notifications",
             status="processing",
             row_count=len(rows),
             synthetic_confirmed=synthetic_confirmed,
@@ -285,6 +298,8 @@ class ImportService:
         errors_list: List[Dict[str, Any]] = []
 
         try:
+            db.execute(text("SELECT pg_advisory_xact_lock(hashtextextended(:key, 0))"),
+                       {"key": "import:" + str(user_id)})
             if import_type == "statement":
                 detected_mapping = ColumnMapper.auto_detect(headers)
                 final_mapping = ColumnMapper.apply_overrides(detected_mapping, column_overrides)
@@ -293,9 +308,21 @@ class ImportService:
                     raise ValueError("Column mapping incomplete: " + "; ".join(mapping_errors))
 
                 norm_result = SchemaNormalizer.normalize_transactions(rows, final_mapping)
-                rejected_count = len(norm_result.errors)
+                rejected_count = len({err.row for err in norm_result.errors})
                 errors_list = [e.to_dict() for e in norm_result.errors]
                 from app.models.manual_review_item import ManualReviewItem
+                errors_by_row = {}
+                quarantined_rows = {item["row"] for item in norm_result.quarantined_records}
+                for error in norm_result.errors:
+                    if error.row not in quarantined_rows:
+                        errors_by_row.setdefault(error.row, []).append(error.to_dict())
+                for row_number, row_errors in errors_by_row.items():
+                    source = next((row for row in rows if row.get("_row_number") == row_number), {})
+                    db.add(ManualReviewItem(user_id=user_id, item_type="statement_parse",
+                        raw_descriptor=str(source.get(final_mapping.get("raw_descriptor")) or "Unparsed statement row")[:1000],
+                        normalised_descriptor="", reason_code="invalid_statement_row", status="open",
+                        candidate_payload={"import_id": str(import_record.id), "row": row_number, "errors": row_errors, "source": source},
+                        explanation="; ".join(error["reason"] for error in row_errors)))
                 for quarantined in norm_result.quarantined_records:
                     db.add(ManualReviewItem(
                         user_id=user_id, item_type="ocr_security" if "_ocr_security" in quarantined["source"] else "input_security",
@@ -345,8 +372,8 @@ class ImportService:
 
                     # Auto-debit keyword intelligence analysis
                     autodebit_analysis = analyze_transaction_descriptor(r["raw_descriptor"])
-                    resolved_channel = autodebit_analysis.payment_rail if autodebit_analysis.is_autodebit_candidate else (r.get("payment_channel") or "General Debit")
-                    resolved_status = "failed" if autodebit_analysis.is_failure_or_reversal else r["transaction_status"]
+                    resolved_channel = r.get("payment_channel") or "unknown"
+                    resolved_status = r["transaction_status"]
 
                     txn = Transaction(
                         user_id=user_id,
@@ -364,7 +391,7 @@ class ImportService:
                         payment_reference=r["payment_reference"],
                         source_row_number=r["source_row_number"],
                         raw_source_snapshot=r["raw_source_snapshot"],
-                        is_synthetic=True,
+                        is_synthetic=synthetic_confirmed,
                         # Merchant resolution fields
                         merchant_id=merchant_id,
                         merchant_match_status=m_status,
@@ -395,7 +422,7 @@ class ImportService:
 
             else:  # notifications
                 norm_result = SchemaNormalizer.normalize_notifications(rows)
-                rejected_count = len(norm_result.errors)
+                rejected_count = len({err.row for err in norm_result.errors})
                 errors_list = [e.to_dict() for e in norm_result.errors]
 
                 candidate_ext_ids = [
@@ -428,7 +455,7 @@ class ImportService:
                         mandate_external_ref=r["mandate_external_ref"],
                         message_text=r["message_text"],
                         raw_payload=r["raw_payload"],
-                        is_synthetic=True,
+                        is_synthetic=synthetic_confirmed,
                     )
                     new_records.append(notif)
                     if r.get("external_synthetic_id"):

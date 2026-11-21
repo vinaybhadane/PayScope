@@ -33,17 +33,13 @@ class ImageStatementParser:
 
         rows = []
         try:
-            import winocr
-            ocr_op = winocr.recognize_pil(pil_image, lang="en")
-            if hasattr(ocr_op, "get"):
-                ocr_result = ocr_op.get()
-            elif asyncio.iscoroutine(ocr_op):
-                ocr_result = asyncio.run(ocr_op)
-            else:
-                ocr_result = ocr_op
+            from app.ingestion.ocr_engine import recognize
+            ocr_result = recognize(pil_image)
 
             if ocr_result:
                 headers, rows = parse_ocr_result(ocr_result)
+        except ValueError:
+            raise
         except Exception as ocr_err:
             logger.warning(f"Native Windows OCR error for '{filename}': {ocr_err}")
         finally:

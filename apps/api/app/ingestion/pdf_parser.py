@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Tuple
 import pdfplumber
 
 from app.ingestion.column_mapper import ColumnMapper
-from app.ingestion.raw_text_parser import RawTextStatementParser
+from app.ingestion.raw_text_parser import RawTextStatementParser, statement_amount_columns
 from app.ingestion.ocr_security import parse_ocr_result
 
 OCR_DPI = 200
@@ -61,91 +61,69 @@ class PDFParser:
             for page in document.pages:
                 page_render_pixels(page)
 
-            # Strategy 1: Grid and text table extraction
-            for page in document.pages:
+            from app.ingestion.tabular import statement_matrix
+            from app.ingestion.ocr_engine import recognize
+            total_pixels = 0
+            scanned_pages = 0
+            carried_headers = []
+            amount_columns = ()
+            for page_number, page in enumerate(document.pages, 1):
+                page_rows, page_headers = [], []
                 tables = page.extract_tables()
                 if not tables:
                     tables = page.extract_tables({"vertical_strategy": "text", "horizontal_strategy": "text"})
                 for table in tables:
-                    for cells in table:
-                        cleaned = [re.sub(r"\s+", " ", str(cell or "")).strip() for cell in cells]
-                        if not any(cleaned):
-                            continue
-                        mapping = ColumnMapper.auto_detect(cleaned)
-                        if not ColumnMapper.validate_mapping(mapping, cleaned):
-                            if headers and cleaned != headers:
-                                continue
-                            headers = cleaned
-                            continue
-                        if not headers or len(cleaned) != len(headers):
-                            continue
-                        row = dict(zip(headers, cleaned))
-                        row["_row_number"] = len(rows) + 1
-                        rows.append(row)
-
-            if headers and rows:
-                return headers, rows
-
-            # Strategy 2: Raw selectable text extraction and regex pattern parsing
-            logger.info("PDF table extraction yielded 0 rows; falling back to RawTextStatementParser.")
-            raw_text_parts: List[str] = []
-            for page in document.pages:
-                try:
-                    txt = page.extract_text()
-                    if isinstance(txt, str) and txt.strip():
-                        raw_text_parts.append(txt)
-                except Exception:
-                    pass
-
-            combined_raw_text = "\n".join(raw_text_parts)
-            if len(combined_raw_text.strip()) > 20:
-                h, r = RawTextStatementParser.parse(combined_raw_text)
-                if r:
-                    return h, r
-
-            # Strategy 3: Scanned / Image-only PDF fallback using OCR
-            logger.info("Selectable text empty or unparseable; attempting OCR on rendered PDF pages.")
-            try:
-                import winocr
-                if len(document.pages) > 15:
-                    raise ValueError("Scanned PDFs must contain at most 15 pages; split the document before uploading.")
-                total_pixels = 0
-                ocr_rows = []
-                for page_number, page in enumerate(document.pages, 1):
+                    if not isinstance(table, list):
+                        continue
+                    matrix = [[re.sub(r"\s+", " ", str(cell or "")).strip() for cell in cells] for cells in table]
+                    # A continuation page may repeat no header at all.
+                    candidate = matrix
+                    if carried_headers and matrix and not any(not ColumnMapper.validate_mapping(ColumnMapper.auto_detect(cells), cells) for cells in matrix):
+                        candidate = [carried_headers, *matrix]
+                    found, extracted = statement_matrix(candidate)
+                    if extracted:
+                        page_headers = found
+                        page_rows.extend(extracted)
+                        carried_headers = found
+                if not page_rows:
+                    raw = page.extract_text() or ""
+                    if isinstance(raw, str) and raw.strip():
+                        page_headers, page_rows = RawTextStatementParser.parse(raw, initial_columns=amount_columns)
+                # Process every page independently, including image pages following
+                # selectable-text pages. Never publish only the first readable page.
+                if not page_rows:
+                    raw = page.extract_text() or ""
+                    if isinstance(raw, str) and raw.strip():
+                        # No dated records on this readable page: summary or cover.
+                        continue
+                    scanned_pages += 1
+                    if scanned_pages > 15:
+                        raise ValueError("Scanned PDFs must contain at most 15 scanned pages; split the document.")
                     total_pixels += page_render_pixels(page)
                     if total_pixels > MAX_DOCUMENT_RENDER_PIXELS:
-                        raise ValueError("Scanned PDF exceeds the total rendering pixel budget; split the document.")
-                    if hasattr(page, "to_image"):
-                        img_obj = page.to_image(resolution=OCR_DPI)
-                        pil_img = getattr(img_obj, "original", None)
-                        if pil_img:
-                            ocr_op = winocr.recognize_pil(pil_img, lang="en")
-                            if hasattr(ocr_op, "get"):
-                                ocr_res = ocr_op.get()
-                            elif asyncio.iscoroutine(ocr_op):
-                                ocr_res = asyncio.run(ocr_op)
-                            else:
-                                ocr_res = ocr_op
-
-                            try:
-                                if ocr_res:
-                                    _, page_rows = parse_ocr_result(ocr_res)
-                                    for row in page_rows:
-                                        row["_row_number"] = len(ocr_rows) + 1
-                                        row["_ocr_security"]["page"] = page_number
-                                        ocr_rows.append(row)
-                            finally:
-                                pil_img.close()
-
-                if ocr_rows:
-                    return RawTextStatementParser.HEADERS, ocr_rows
-            except ValueError:
-                raise
-            except Exception as ocr_err:
-                logger.warning(f"Native OCR fallback on PDF pages encountered: {ocr_err}")
-
-        # If all strategies fail:
-        raise ValueError(
-            "No readable statement transactions found in this PDF. "
-            "Please ensure the document contains clear transaction dates, descriptions, and debit amounts."
-        )
+                        raise ValueError("Scanned PDF exceeds the rendering pixel budget; split the document.")
+                    image = page.to_image(resolution=OCR_DPI).original
+                    if image is None:
+                        raise ValueError(f"No readable statement transactions found on PDF page {page_number}.")
+                    try:
+                        page_headers, page_rows = parse_ocr_result(recognize(image), initial_columns=amount_columns)
+                    finally:
+                        image.close()
+                    if not page_rows:
+                        raise ValueError(f"No readable statement transactions found on scanned page {page_number}. Upload a clearer scan or CSV/Excel.")
+                mapping = ColumnMapper.auto_detect(page_headers)
+                amount_columns = page_rows[-1].get("_amount_columns")
+                if amount_columns is None:
+                    amount_columns = statement_amount_columns(" ".join(page_headers)) or ()
+                for header in page_headers:
+                    if header not in headers:
+                        headers.append(header)
+                for row in page_rows:
+                    row["_column_mapping"] = mapping
+                    row["_page"] = page_number
+                    row["_source_row_number"] = row["_row_number"]
+                    row["_row_number"] = len(rows) + 1
+                    rows.append(row)
+        if not rows:
+            raise ValueError("No readable statement transactions found in this PDF. Include dates, descriptions and amounts.")
+        return headers, rows

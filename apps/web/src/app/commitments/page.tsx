@@ -7,6 +7,7 @@ import Link from "next/link";
 
 import AppHeader from "@/components/navigation/AppHeader";
 import { MerchantLogo } from "@/components/brand/MerchantLogo";
+import { formatMoney } from "@/lib/formatMoney";
 import { formatPeriod } from "@/lib/formatPeriod";
 import { useWorkspaceRevision } from "@/lib/useWorkspaceResource";
 
@@ -313,7 +314,7 @@ export default function CommitmentsPage() {
                 ₹{Number(summary.total_monthly_spend).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
               <span className="text-[11px] text-[#8E9CAE] mt-1">
-                Annualised: ₹{Number(summary.total_annualised_spend).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+                Annualised: ₹{Number(summary.total_annualised_spend).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
             <div className="p-4 rounded-xl bg-[#0D1322]/60 border border-[#1E293B]/80 flex flex-col">
@@ -471,10 +472,10 @@ export default function CommitmentsPage() {
                         )}
                       </td>
                       <td className="py-3.5 px-4 font-mono font-medium text-[#8E9CAE]">
-                        ₹{Number(c.representative_amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                        {formatMoney(c.representative_amount || 0, c.currency)}
                       </td>
                       <td className="py-3.5 px-4 font-mono text-[#8E9CAE]">
-                        {c.annualised_amount ? `₹${Number(c.annualised_amount).toLocaleString("en-IN")}` : "—"}
+                        {c.annualised_amount ? formatMoney(c.annualised_amount, c.currency) : "—"}
                       </td>
                       <td className="py-3.5 px-4">
                         {getConfidenceBadge(c.confidence_band)}

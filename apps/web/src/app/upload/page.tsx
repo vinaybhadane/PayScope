@@ -94,7 +94,6 @@ interface ImportHistoryItem {
 export default function UploadPage() {
   const fileInputId = useId();
   // State
-  const [syntheticConfirmed, setSyntheticConfirmed] = useState<boolean>(false);
   const [importType, setImportType] = useState<"statement" | "notifications">("statement");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -184,11 +183,6 @@ export default function UploadPage() {
     typeToPreview: "statement" | "notifications",
     overrides?: Record<string, string>
   ) => {
-    if (!syntheticConfirmed) {
-      setPreviewError("Please check the synthetic data confirmation box before uploading.");
-      return;
-    }
-
     setLoadingPreview(true);
     setPreviewError(null);
     setPreviewData(null);
@@ -198,7 +192,6 @@ export default function UploadPage() {
     const formData = new FormData();
     formData.append("file", fileToPreview);
     formData.append("import_type", typeToPreview);
-    formData.append("synthetic_confirmed", "true");
     if (overrides && Object.keys(overrides).length > 0) {
       formData.append("column_overrides", JSON.stringify(overrides));
     }
@@ -233,9 +226,8 @@ export default function UploadPage() {
     const detectedType = ext === "json" ? "notifications" : "statement";
     setImportType(detectedType);
 
-    if (syntheticConfirmed) {
-      handleGeneratePreview(file, detectedType);
-    }
+    setColumnOverrides({});
+    handleGeneratePreview(file, detectedType);
   };
 
   // Re-run preview when column mapping changes
@@ -247,7 +239,7 @@ export default function UploadPage() {
 
   // Execute actual import
   const handleConfirmImport = async () => {
-    if (!selectedFile || !syntheticConfirmed) return;
+    if (!selectedFile) return;
 
     setImporting(true);
     setExecutionError(null);
@@ -255,7 +247,6 @@ export default function UploadPage() {
     const formData = new FormData();
     formData.append("file", selectedFile);
     formData.append("import_type", importType);
-    formData.append("synthetic_confirmed", "true");
     formData.append("background_processing", "true");
     if (Object.keys(columnOverrides).length > 0) {
       formData.append("column_overrides", JSON.stringify(columnOverrides));
@@ -298,44 +289,12 @@ export default function UploadPage() {
             Upload Centre & Ingestion Pipeline
           </h1>
           <p className="mt-1 text-sm sm:text-base text-[#8E9CAE]">
-            Ingest synthetic bank statements (CSV, XLSX, PDF) or simulated payment notifications (JSON) to feed the PayScope recurring intelligence engine.
+            Import bank statements in PDF, CSV, Excel, JPG, PNG or WEBP format. Payments, subscriptions and analysis update from your uploaded records.
           </p>
         </div>
 
-        {/* SECTION A: Synthetic Data Disclaimer Banner */}
-        <section className="rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-950/40 to-slate-900/60 p-5 shadow-sm flex flex-col gap-4">
-          <div className="flex items-start gap-3.5">
-            <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0 mt-0.5">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-amber-300">
-                Prototype Constraint: Strict Synthetic Data Enforcement
-              </h3>
-              <p className="text-xs text-amber-200/80 leading-relaxed">
-                PayScope is a recurring payment intelligence platform designed for research and testing. It operates solely on synthetic or anonymised test fixtures. <strong>Do NOT upload real bank statements, real credit card bills, or actual financial records containing personally identifiable data.</strong>
-              </p>
-            </div>
-          </div>
-
-          <label className="flex items-center gap-3 pt-2 border-t border-amber-500/20 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={syntheticConfirmed}
-              onChange={(e) => {
-                setSyntheticConfirmed(e.target.checked);
-                if (e.target.checked && selectedFile && !previewData) {
-                  handleGeneratePreview(selectedFile, importType);
-                }
-              }}
-              className="w-4 h-4 rounded border-amber-500/50 bg-[#040711] text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-950 cursor-pointer"
-            />
-            <span className="text-xs sm:text-sm font-medium text-[#8E9CAE]">
-              I explicitly confirm that this file contains <span className="text-amber-300 font-semibold">ONLY synthetic demo data</span> and no real personal financial records.
-            </span>
-          </label>
+        <section className="dash-notice" role="note">
+          <p>Upload a bank statement and review the detected dates, debit/credit direction, duplicates and row errors before importing. Unreadable rows are excluded from totals and listed for correction.</p>
         </section>
 
         {/* SECTION B: Sample Dataset Downloads */}
@@ -346,7 +305,7 @@ export default function UploadPage() {
                 Download Synthetic Demo Files
               </h2>
               <p className="text-xs text-[#8E9CAE]">
-                Ready-to-use synthetic test files containing 12 distinct recurring payment scenarios and 80+ records.
+                Optional synthetic examples for testing the import workflow.
               </p>
             </div>
             <button
@@ -418,7 +377,7 @@ export default function UploadPage() {
                   }`}
                 >
                   <span className="text-xs font-semibold">Bank Statement</span>
-                  <span className="text-[11px] text-[#8E9CAE]">CSV, XLSX, PDF, or screenshot image</span>
+                  <span className="text-[11px] text-[#8E9CAE]">CSV, XLSX, XLS, PDF, or screenshot image</span>
                 </button>
 
                 <button
@@ -447,7 +406,7 @@ export default function UploadPage() {
               </div>
               <div className="flex justify-between">
                 <span>Accepted Formats:</span>
-                <span className="text-[#8E9CAE] font-mono">.csv, .xlsx, .json, .pdf, .png, .jpg, .webp</span>
+                <span className="text-[#8E9CAE] font-mono">.csv, .xlsx, .xls, .json, .pdf, .png, .jpg, .jpeg, .webp</span>
               </div>
               <div className="flex justify-between">
                 <span>Idempotency Check:</span>
@@ -522,7 +481,7 @@ export default function UploadPage() {
                   <input
                     id={fileInputId}
                     type="file"
-                    accept=".csv,.xlsx,.json,.pdf,.png,.jpg,.jpeg,.webp"
+                    accept=".csv,.xlsx,.xls,.json,.pdf,.png,.jpg,.jpeg,.webp"
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
                         handleFileSelect(e.target.files[0]);
@@ -531,7 +490,7 @@ export default function UploadPage() {
                     className="hidden"
                   />
                   <p className="text-[11px] text-[#8E9CAE]">
-                    Supports CSV, XLSX, JSON, PDF (tables, text &amp; OCR), and images/screenshots (PNG, JPG, WEBP) up to 10 MB.
+                    Supports CSV, XLSX, XLS, JSON, PDF (tables, text &amp; OCR), and images/screenshots (PNG, JPG, WEBP) up to 10 MB.
                   </p>
                 </div>
               )}
@@ -550,7 +509,7 @@ export default function UploadPage() {
               <button
                 type="button"
                 onClick={() => handleGeneratePreview(selectedFile, importType)}
-                disabled={loadingPreview || !syntheticConfirmed}
+                disabled={loadingPreview}
                 className="w-full py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-[#F4F7FB] text-xs font-semibold transition-colors"
               >
                 {loadingPreview ? "Analyzing File..." : "Preview File Records"}
@@ -562,6 +521,7 @@ export default function UploadPage() {
         {/* SECTION E: Ingestion Preview & Column Mapping */}
         {previewData && (
           <section className="rounded-xl border border-[#1E293B] bg-[#0D1322]/50 p-6 flex flex-col gap-6">
+            {previewData.error && <p role="alert">{previewData.error} Select the matching source columns below, then apply the mapping.</p>}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1E293B] pb-4">
               <div>
                 <h3 className="text-base font-semibold text-[#F4F7FB]">
@@ -605,10 +565,24 @@ export default function UploadPage() {
                     disabled={loadingPreview}
                     className="text-xs px-2.5 py-1 rounded bg-[#0D1322] hover:bg-[#0D1322] text-[#8E9CAE] transition-colors"
                   >
-                    Re-evaluate Mapping
+                    Apply mapping and date format
                   </button>
                 </div>
 
+                <label className="block text-sm">Statement date format
+                  <select aria-label="Statement date format" className="ml-3 rounded border p-2" value={columnOverrides._date_order || "dayfirst"}
+                    onChange={e => setColumnOverrides({ ...columnOverrides, _date_order: e.target.value })}>
+                    <option value="dayfirst">Day / Month / Year (Indian statements)</option>
+                    <option value="monthfirst">Month / Day / Year</option>
+                  </select>
+                </label>
+                <label className="block text-sm">Signed amount convention
+                  <select aria-label="Signed amount convention" className="ml-3 rounded border p-2" value={columnOverrides._amount_convention || "positive_debit"}
+                    onChange={e => setColumnOverrides({ ...columnOverrides, _amount_convention: e.target.value })}>
+                    <option value="positive_debit">Amounts are debits unless a direction or credit column is present</option>
+                    <option value="negative_debit">Negative amounts are debits, positive amounts are credits</option>
+                  </select>
+                </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   {previewData.available_targets.map((target) => (
                     <div key={target} className="space-y-1">
@@ -669,9 +643,10 @@ export default function UploadPage() {
                       <th className="px-3 py-2">Date / Time</th>
                       <th className="px-3 py-2">Descriptor / Event</th>
                       <th className="px-3 py-2">Amount</th>
+                      <th className="px-3 py-2">Direction</th>
                       <th className="px-3 py-2">Channel / Mechanism</th>
                       <th className="px-3 py-2">Reference / UMN</th>
-                      <th className="px-3 py-2">Synthetic ID</th>
+                      <th className="px-3 py-2">Source ID</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-850">
@@ -699,6 +674,7 @@ export default function UploadPage() {
                             ? `${row.currency || "INR"} ${row.amount.toFixed(2)}`
                             : "—"}
                         </td>
+                        <td className="px-3 py-2">{row.direction || "?"}</td>
                         <td className="px-3 py-2 text-[#8E9CAE]">
                           {row.channel || row.mechanism || "—"}
                         </td>
@@ -733,7 +709,7 @@ export default function UploadPage() {
               <button
                 type="button"
                 onClick={handleConfirmImport}
-                disabled={importing || !syntheticConfirmed || (previewData.valid_count === 0 && previewData.duplicate_count === 0)}
+                disabled={importing || (previewData.valid_count === 0 && previewData.duplicate_count === 0)}
                 className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-[#F4F7FB] text-xs font-semibold shadow-md transition-all flex items-center justify-center gap-2"
               >
                 {importing ? (
@@ -781,6 +757,7 @@ export default function UploadPage() {
               <p>{importResult.workspace_refresh.message}</p>
               <div className="flex flex-wrap gap-3 mt-3">
                 <Link href="/dashboard" className="button button-primary">View updated dashboard →</Link>
+                <Link href="/payments" className="button button-subtle">Review all payments</Link>
                 <Link href="/relationships" className="button button-subtle">Explore relationships →</Link>
                 {(importResult.workspace_refresh.analysis_status === "failed" || importResult.workspace_refresh.graph_status === "failed") &&
                   <button disabled={importing} className="button button-subtle" onClick={async () => {
@@ -795,6 +772,10 @@ export default function UploadPage() {
                     finally { setImporting(false); }
                   }}>{importing ? "Updating…" : "Retry workspace update"}</button>}
               </div>
+            </div>}
+            {importResult.rejected_count > 0 && <div role="alert" className="dash-notice">
+              <p>{importResult.rejected_count} rows were excluded. Correct these rows and re-upload the statement; accepted records will be skipped as duplicates.</p>
+              {importResult.errors.map((error, index) => <p key={index}>Row {error.row}: {error.reason}</p>)}
             </div>}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
               <div className="rounded bg-[#0D1322]/80 p-3 border border-[#1E293B]">
@@ -839,7 +820,7 @@ export default function UploadPage() {
 
           {historyItems.length === 0 ? (
             <div className="py-8 text-center text-xs text-[#8E9CAE] border border-dashed border-[#1E293B] rounded-lg">
-              No previous imports found in this workspace. Upload a synthetic statement above to populate.
+              No previous imports found in this workspace. Upload a statement above to populate.
             </div>
           ) : (
             <div className="overflow-x-auto rounded-lg border border-[#1E293B] bg-[#040711]">

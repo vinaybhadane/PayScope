@@ -1,5 +1,6 @@
 "use client";
 import { authFetch } from "@/lib/authFetch";
+import { useWorkspaceRevision } from "@/lib/useWorkspaceResource";
 
 import { getApiBaseUrl } from "@/lib/api";
 import Link from "next/link";
@@ -111,6 +112,7 @@ export default function FinancialImpactPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const apiBase = getApiBaseUrl();
+  const workspaceRevision = useWorkspaceRevision();
 
   useEffect(() => {
     let ignore = false;
@@ -162,7 +164,7 @@ export default function FinancialImpactPage() {
     return () => {
       ignore = true;
     };
-  }, [apiBase]);
+  }, [apiBase, workspaceRevision]);
 
   const filteredCommitments = commitments.filter((item) => {
     if (activeTab === "confirmed" && !item.is_confirmed) return false;

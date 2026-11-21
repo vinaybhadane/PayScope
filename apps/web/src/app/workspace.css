@@ -1531,3 +1531,16 @@
 .dashboard-v2, .workspace-shell { background: #040711; color: #F4F7FB; }
 
 .dashboard-metric:first-child > div, .dashboard-metric:first-child > footer, .dashboard-metric:first-child > div > svg { color: #F4F7FB; }
+/* Imported payment ledger */
+.payment-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 1rem; padding: 1.25rem; margin-bottom: 1.5rem; }
+.payment-filters label { display: grid; gap: .5rem; font-size: .875rem; }
+.payment-filters input, .payment-filters select { padding: .65rem; border: 1px solid var(--border, #789575); border-radius: .5rem; background: transparent; color: inherit; }
+.payment-totals { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+.payment-totals section { padding: 1.25rem; min-width: min(100%, 20rem); flex: 1; }
+.payment-totals dl { display: grid; grid-template-columns: 1fr auto; gap: .75rem; margin-top: 1rem; }
+.payment-totals dd { margin: 0; font-variant-numeric: tabular-nums; }
+.payment-table-wrap { overflow-x: auto; margin-top: 1rem; }
+.payment-table { width: 100%; text-align: left; font-size: .875rem; border-collapse: collapse; }
+.payment-table th, .payment-table td { padding: 1rem .75rem; border-bottom: 1px solid #78957533; vertical-align: top; }
+.payment-table small { display: block; margin-top: .35rem; opacity: .75; }
+.payment-pagination { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1.25rem; }

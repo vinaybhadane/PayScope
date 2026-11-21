@@ -8,7 +8,7 @@ import { Icon } from "@/components/ui/Icon";
 import { MerchantLogo } from "@/components/brand/MerchantLogo";
 import { inr } from "@/lib/demo-data";
 import { formatPeriod } from "@/lib/formatPeriod";
-import { sampleDashboard, type DashboardData } from "@/lib/workspace-data";
+import { type DashboardData } from "@/lib/workspace-data";
 import { useWorkspaceResource } from "@/lib/useWorkspaceResource";
 const RelationshipExplorer = dynamic(
   () => import("@/components/relationships/RelationshipExplorer"),
@@ -266,7 +266,6 @@ function CategoryCard({ data }: { data: DashboardData }) {
 export default function DashboardClient() {
   const resource = useWorkspaceResource<DashboardData>(
     "/api/v1/dashboard/summary",
-    sampleDashboard,
   );
   const [search, setSearch] = useState("");
   const [notesOpen, setNotesOpen] = useState(false);
@@ -341,18 +340,7 @@ export default function DashboardClient() {
               <Icon name="plus" size={17} />
               Import statement
             </Link>
-            <Link
-              href="/upload"
-              className="button button-accent"
-              style={{
-                background: "linear-gradient(135deg, #00E0E0 0%, #10B981 100%)",
-                color: "#040711",
-                fontWeight: 700,
-                border: "none",
-              }}
-            >
-              ⚡ Winning Demo
-            </Link>
+
             </div>
           </div>
         </header>
@@ -394,6 +382,10 @@ export default function DashboardClient() {
             <button onClick={() => void resource.refresh()}>Retry</button>
           </div>
         )}
+        {!!data?.statement_review_count && <div className="dash-notice" role="alert">
+          <span>{data.statement_review_count} extracted rows need review and are excluded from payment totals.</span>
+          <Link href="/merchant-review">Review import issues</Link>
+        </div>}
         {!data ? (
           <div
             className="dashboard-skeleton"
@@ -409,87 +401,6 @@ export default function DashboardClient() {
           </div>
         ) : (
           <>
-            {/* AI Statement Audit Banner & Auto-Debit Intelligence */}
-            <div className="rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-cyan-950/40 via-slate-900 to-[#0D1322] p-5 shadow-[0_0_25px_rgba(6,182,212,0.1)] mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
-              <div className="flex items-start sm:items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/30 to-emerald-500/20 text-cyan-300 flex items-center justify-center font-bold text-base border border-cyan-500/40 shrink-0 shadow-inner">
-                  ⚡
-                </div>
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="text-base font-bold text-[#F4F7FB]">
-                      100% Statement Debits Audited & Verified
-                    </h2>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-wide">
-                      Gemini 2.5 Flash Audited
-                    </span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-cyan-950/60 text-cyan-300 border border-cyan-800/40">
-                      Audit Score: {data.ai_audit_score ?? 100}%
-                    </span>
-                  </div>
-                  <p className="text-xs text-[#8E9CAE] mt-1 leading-relaxed">
-                    Cross-verified against 908 Auto-Debit Mandate keywords across Indian & international rails (UPI AutoPay, NACH e-Mandate, SI, Recurring Card Tokens). 0 false positives detected.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <Link
-                  href="/financial-impact"
-                  className="px-3.5 py-2 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-200 text-xs font-semibold transition-all whitespace-nowrap shadow-sm"
-                >
-                  View Spending Analysis &rarr;
-                </Link>
-              </div>
-            </div>
-
-            {/* Auto-Debit Rails Breakdown Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-              <div className="p-3.5 rounded-xl bg-[#0D1322]/80 border border-[#1E293B] hover:border-cyan-500/30 transition-all flex flex-col justify-between">
-                <span className="text-[11px] text-[#8E9CAE] font-medium flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-cyan-400"></span>
-                  UPI AutoPay
-                </span>
-                <strong className="text-lg font-bold text-[#F4F7FB] font-mono mt-1">
-                  {data.autodebit_rail_distribution?.["UPI AutoPay"] ?? 3} Mandates
-                </strong>
-                <span className="text-[10px] text-cyan-400 mt-1">GPay, PhonePe, Paytm</span>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-[#0D1322]/80 border border-[#1E293B] hover:border-emerald-500/30 transition-all flex flex-col justify-between">
-                <span className="text-[11px] text-[#8E9CAE] font-medium flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                  NACH / e-Mandate
-                </span>
-                <strong className="text-lg font-bold text-[#F4F7FB] font-mono mt-1">
-                  {data.autodebit_rail_distribution?.["NACH / e-Mandate"] ?? 1} Mandates
-                </strong>
-                <span className="text-[10px] text-emerald-400 mt-1">Bank e-NACH / UMRN</span>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-[#0D1322]/80 border border-[#1E293B] hover:border-amber-500/30 transition-all flex flex-col justify-between">
-                <span className="text-[11px] text-[#8E9CAE] font-medium flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-                  Standing Instructions
-                </span>
-                <strong className="text-lg font-bold text-[#F4F7FB] font-mono mt-1">
-                  {data.autodebit_rail_distribution?.["Standing Instruction"] ?? 1} Scheduled
-                </strong>
-                <span className="text-[10px] text-amber-400 mt-1">NetBanking SI Debit</span>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-[#0D1322]/80 border border-[#1E293B] hover:border-purple-500/30 transition-all flex flex-col justify-between">
-                <span className="text-[11px] text-[#8E9CAE] font-medium flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-purple-400"></span>
-                  Card Recurring
-                </span>
-                <strong className="text-lg font-bold text-[#F4F7FB] font-mono mt-1">
-                  {data.autodebit_rail_distribution?.["Credit Card Recurring"] ?? 1} Tokens
-                </strong>
-                <span className="text-[10px] text-purple-400 mt-1">Visa / MC Standing</span>
-              </div>
-            </div>
-
-            <div className="dashboard-section-label"><span>At a glance</span><span>Small details. A clearer perspective.</span></div>
             <section
               className="dashboard-metrics"
               aria-label="Financial summary"
@@ -703,21 +614,7 @@ export default function DashboardClient() {
                 </Link>
               </section>
             </div>
-            <section className="dashboard-next-step">
-              <span className="next-step-icon">
-                <Icon name="wallet" size={28} />
-              </span>
-              <div>
-                <h2>A little less spending. A little more possibility.</h2>
-                <p>
-                  See what could change when you let go of the commitments you
-                  no longer need.
-                </p>
-              </div>
-              <Link className="button button-subtle" href="/savings">
-                Explore your savings <Icon name="arrow" size={16} />
-              </Link>
-            </section>
+
           </>
         )}
         {!resource.isDemo && (
