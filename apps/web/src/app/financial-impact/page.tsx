@@ -464,9 +464,9 @@ export default function FinancialImpactPage() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
-                  {upcoming.items.slice(0, 8).map((up) => (
+                  {upcoming.items.slice(0, 8).map((up, idx) => (
                     <div
-                      key={up.commitment_id}
+                      key={`${up.commitment_id}-${up.expected_date}-${idx}`}
                       className="p-3.5 rounded-xl bg-[#040711]/70 border border-[#1E293B] hover:border-cyan-500/30 flex flex-col justify-between text-xs transition-colors"
                     >
                       <div className="flex items-center gap-2.5">
