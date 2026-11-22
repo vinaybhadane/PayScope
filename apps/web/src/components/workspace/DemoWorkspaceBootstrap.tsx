@@ -12,7 +12,7 @@ export function DemoWorkspaceBootstrap() {
   useEffect(() => {
     if (!user?.isDemo) return;
     const seedKey = `payscope_demo_seed_${DEMO_VERSION}_${user.uid}`;
-    if (sessionStorage.getItem(seedKey)) return;
+    if (sessionStorage.getItem(seedKey) === "ready") return;
 
     sessionStorage.setItem(seedKey, "pending");
     void authFetch(`${getApiBaseUrl()}/api/v1/demo/seed`, { method: "POST" })

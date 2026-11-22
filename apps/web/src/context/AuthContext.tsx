@@ -8,7 +8,7 @@ import {
   User as FirebaseUser,
 } from "firebase/auth";
 import { auth, googleProvider, isFirebaseConfigured } from "@/lib/firebase";
-import { clearApiSession, ensureGuestSession, establishFirebaseSession } from "@/lib/authFetch";
+import { clearApiSession, ensureGuestSession, establishFirebaseSession, authFetch } from "@/lib/authFetch";
 
 export interface AppUser {
   uid: string;
@@ -131,6 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInAsGuest = async () => {
     await ensureGuestSession();
+    void authFetch("/api/v1/demo/seed", { method: "POST" }).catch(() => {});
     const demoUser: AppUser = {
       uid: crypto.randomUUID(),
       email: "guest@payscope.ai",

@@ -71,11 +71,15 @@ export async function establishFirebaseSession(): Promise<void> {
 }
 
 export async function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-  const inputStr = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+  let target = input;
+  if (typeof input === "string" && input.startsWith("/api/v1/")) {
+    target = `${getApiBaseUrl()}${input}`;
+  }
+  const inputStr = typeof target === "string" ? target : target instanceof URL ? target.href : target.url;
   const isApi = inputStr.includes("/api/v1/");
 
   if (!isApi) {
-    return globalThis.fetch(input, init);
+    return globalThis.fetch(target, init);
   }
 
   if (auth) {
@@ -103,7 +107,7 @@ export async function authFetch(input: RequestInfo | URL, init?: RequestInit): P
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  return globalThis.fetch(input, {
+  return globalThis.fetch(target, {
     ...init,
     headers,
     credentials: "include",

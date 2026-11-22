@@ -7,6 +7,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { ExperienceBoundary } from "@/components/workspace/ExperienceBoundary";
 import { WorkspaceMotion } from "@/components/ui/WorkspaceMotion";
+import { DemoWorkspaceBootstrap } from "@/components/workspace/DemoWorkspaceBootstrap";
 import { publicPages, publicSite } from "@/lib/public-site";
 
 const geistSans = Geist({
@@ -36,6 +37,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col font-sans">
         <AuthProvider>
+          <DemoWorkspaceBootstrap />
           <WorkspaceMotion />
           <ExperienceBoundary>{children}</ExperienceBoundary>
           <AuthModal />
