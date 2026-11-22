@@ -147,6 +147,7 @@ def detect_insights(
     counts = lambda kind: sum(i.insight_type == kind for i in insights)
     return InsightDetectionSummary(status='completed', total_detected=len(insights),
         price_increases_detected=counts('price_increase'), trial_conversions_detected=counts('trial_conversion'),
+        duplicate_subscriptions_detected=counts('duplicate_subscription'),
         potentially_unused_detected=counts('potentially_unused'), post_cancellation_charges_detected=counts('post_cancellation_charge'),
         unusual_amounts_detected=counts('unusual_amount'), duration_ms=0)
 
@@ -173,6 +174,7 @@ def get_insights_summary(
 
     price_increases = sum(1 for i in open_insights if i.insight_type == "price_increase")
     trial_conversions = sum(1 for i in open_insights if i.insight_type == "trial_conversion")
+    duplicate_subscriptions = sum(1 for i in open_insights if i.insight_type == "duplicate_subscription")
     potentially_unused = sum(1 for i in open_insights if i.insight_type == "potentially_unused")
     post_cancellation = sum(1 for i in open_insights if i.insight_type == "post_cancellation_charge")
     unusual_amounts = sum(1 for i in open_insights if i.insight_type == "unusual_amount")
@@ -199,6 +201,7 @@ def get_insights_summary(
         total_open=len(open_insights),
         price_increases=price_increases,
         trial_conversions=trial_conversions,
+        duplicate_subscriptions=duplicate_subscriptions,
         potentially_unused=potentially_unused,
         post_cancellation_charges=post_cancellation,
         unusual_amounts=unusual_amounts,
@@ -291,6 +294,16 @@ def get_unusual_amount_insights(
 ):
     """Retrieve all isolated unusual charge amount insights."""
     return _query_insights(db, user_id=user_id, insight_type="unusual_amount")
+
+
+@router.get("/duplicates", response_model=List[InsightResponse], status_code=status.HTTP_200_OK)
+@router.get("/duplicate-subscriptions", response_model=List[InsightResponse], status_code=status.HTTP_200_OK, include_in_schema=False)
+def get_duplicate_subscription_insights(
+    user_id: Optional[uuid.UUID] = Query(None),
+    db: Session = Depends(get_db),
+):
+    """Retrieve all duplicate/overlapping subscription insights."""
+    return _query_insights(db, user_id=user_id, insight_type="duplicate_subscription")
 
 
 @router.get("", response_model=List[InsightResponse], status_code=status.HTTP_200_OK)

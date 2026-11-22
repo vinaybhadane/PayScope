@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.models.cancellation_event import CancellationEvent
 from app.models.commitment import Commitment
+from app.models.payment_notification import PaymentNotification
 from app.models.usage_coverage import UsageCoverage
 
 
@@ -63,5 +64,33 @@ def seed_phase6_supporting_data(db: Session, user_id: uuid.UUID) -> None:
                 is_synthetic=True,
             )
             db.add(cancel_evt)
+
+    # 3. Look up SynthWrite AI commitment for trial
+    synth_stmt = (
+        select(Commitment)
+        .where(
+            Commitment.user_id == user_id,
+            Commitment.display_name.ilike("%SynthWrite%"),
+        )
+    )
+    synth = db.execute(synth_stmt).scalars().first()
+    if synth:
+        notif_stmt = select(PaymentNotification).where(
+            PaymentNotification.user_id == user_id,
+            PaymentNotification.event_type == "trial_started",
+        )
+        existing_notif = db.execute(notif_stmt).scalars().first()
+        if not existing_notif:
+            trial_notif = PaymentNotification(
+                id=uuid.uuid4(),
+                user_id=user_id,
+                merchant_hint="SynthWrite AI",
+                event_type="trial_started",
+                event_timestamp=datetime(2026, 5, 10, 9, 0, tzinfo=timezone.utc),
+                message_text="Your free trial ends in 3 days; the next charge will be ₹799.",
+                payment_mechanism="upi_autopay",
+                is_synthetic=True,
+            )
+            db.add(trial_notif)
 
     db.commit()

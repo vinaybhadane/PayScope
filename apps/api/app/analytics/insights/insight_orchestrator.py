@@ -7,12 +7,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 from app.analytics.insights.config import INSIGHT_DETECTOR_VERSION
 from app.analytics.insights.insight_sync import (
+    sync_duplicate_subscription_insight,
     sync_post_cancellation_insight,
     sync_potentially_unused_insight,
     sync_price_increase_insight,
     sync_trial_conversion_insight,
     sync_unusual_amount_insight,
 )
+from app.analytics.insights.duplicate_subscription_detector import detect_duplicate_subscriptions
 from app.analytics.insights.post_cancellation_detector import detect_post_cancellation
 from app.analytics.insights.price_change_detector import detect_price_increases
 from app.analytics.insights.schemas import InsightDetectionSummary, InsightResponse
@@ -123,6 +125,14 @@ def run_insight_detection(db: Session, user_id: uuid.UUID) -> InsightDetectionSu
             newly_created_insights.append(ins)
             unusual_amount_cnt += 1
 
+    # F. Detect duplicate subscriptions across similar products
+    duplicate_results = detect_duplicate_subscriptions(commitments)
+    duplicate_sub_cnt = 0
+    for dup in duplicate_results:
+        ins = sync_duplicate_subscription_insight(db, user_id, dup.primary_commitment, dup)
+        newly_created_insights.append(ins)
+        duplicate_sub_cnt += 1
+
     db.commit()
 
     # 4. Record Audit Event
@@ -141,6 +151,7 @@ def run_insight_detection(db: Session, user_id: uuid.UUID) -> InsightDetectionSu
             "potentially_unused": unused_cnt,
             "post_cancellation_charges": post_cancellation_cnt,
             "unusual_amounts": unusual_amount_cnt,
+            "duplicate_subscriptions": duplicate_sub_cnt,
         },
         created_at=datetime.now(timezone.utc),
     )
@@ -196,6 +207,7 @@ def run_insight_detection(db: Session, user_id: uuid.UUID) -> InsightDetectionSu
         total_detected=len(all_insights),
         price_increases_detected=price_increase_cnt,
         trial_conversions_detected=trial_conversion_cnt,
+        duplicate_subscriptions_detected=duplicate_sub_cnt,
         potentially_unused_detected=unused_cnt,
         post_cancellation_charges_detected=post_cancellation_cnt,
         unusual_amounts_detected=unusual_amount_cnt,

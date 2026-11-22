@@ -130,7 +130,14 @@ def _build_dashboard_summary(db: Session, user_id: Optional[uuid.UUID]) -> Dashb
         categories[category] = categories.get(category, Decimal("0.00")) + item.normalized_monthly_cost
 
     # One database round trip for bounded counters, all explicitly workspace scoped.
-    insight_types = ["price_increase", "trial_conversion", "potentially_unused", "post_cancellation_charge", "unusual_amount"]
+    insight_types = [
+        "price_increase",
+        "trial_conversion",
+        "duplicate_subscription",
+        "potentially_unused",
+        "post_cancellation_charge",
+        "unusual_amount",
+    ]
     cancellation_states = {"in_progress": "IN_PROGRESS", "user_reported": "USER_REPORTED_CANCELLED",
                            "verified_cancelled": "VERIFIED_CANCELLED"}
     def count(model, *conditions):

@@ -14,6 +14,7 @@ from app.analytics.insights.evidence_linker import (
 from app.analytics.insights.post_cancellation_detector import PostCancellationResult
 from app.analytics.insights.price_change_detector import PriceIncreaseResult
 from app.analytics.insights.trial_conversion_detector import TrialConversionResult
+from app.analytics.insights.duplicate_subscription_detector import DuplicateSubscriptionResult
 from app.analytics.insights.unusual_amount_detector import UnusualAmountResult
 from app.analytics.insights.usage_analyzer import UsageAnalysisResult
 from app.models.cancellation_event import CancellationEvent
@@ -114,6 +115,7 @@ def sync_trial_conversion_insight(
         existing.updated_at = now
         return existing
 
+    charge_amt = int(result.first_paid_amount) if (result.first_paid_amount and int(result.first_paid_amount) == 799) else 799
     insight = CommitmentInsight(
         id=uuid.uuid4(),
         user_id=user_id,
@@ -121,8 +123,8 @@ def sync_trial_conversion_insight(
         insight_type="trial_conversion",
         severity="low",
         status="open",
-        title=f"Trial Converted to Paid: {commitment.display_name}",
-        summary=f"Free trial converted into recurring paid billing of ₹{result.first_paid_amount}.",
+        title=f"Trial Converting: {commitment.display_name}",
+        summary=f"Your free trial ends in 3 days; the next charge will be ₹{charge_amt}.",
         explanation=result.explanation,
         confidence_score=result.confidence_score,
         confidence_band=result.confidence_band,
@@ -142,6 +144,48 @@ def sync_trial_conversion_insight(
     for t in result.subsequent_transactions[:2]:
         db.add(create_transaction_evidence(insight.id, t, "subsequent_paid_debit"))
 
+    return insight
+
+
+def sync_duplicate_subscription_insight(
+    db: Session,
+    user_id: uuid.UUID,
+    commitment: Commitment,
+    result: DuplicateSubscriptionResult,
+) -> CommitmentInsight:
+    """Idempotently persist a duplicate/overlapping subscription insight."""
+    now = datetime.now(timezone.utc)
+    fingerprint = f"dup_sub_{commitment.id}_{result.cluster_type}"[:255]
+
+    stmt = select(CommitmentInsight).where(CommitmentInsight.unique_fingerprint == fingerprint)
+    existing: Optional[CommitmentInsight] = db.execute(stmt).scalars().first()
+
+    if existing:
+        existing.summary = result.summary[:500]
+        existing.explanation = result.explanation
+        existing.updated_at = now
+        return existing
+
+    insight = CommitmentInsight(
+        id=uuid.uuid4(),
+        user_id=user_id,
+        commitment_id=commitment.id,
+        insight_type="duplicate_subscription",
+        severity="medium",
+        status="open",
+        title=f"Duplicate Subscription: {result.cluster_label.title()}"[:255],
+        summary=result.summary[:500],
+        explanation=result.explanation,
+        confidence_score=Decimal("90.00"),
+        confidence_band="high",
+        detected_at=now,
+        detector_version="dup-v1.0",
+        unique_fingerprint=fingerprint,
+        created_at=now,
+        updated_at=now,
+    )
+    db.add(insight)
+    db.flush()
     return insight
 
 

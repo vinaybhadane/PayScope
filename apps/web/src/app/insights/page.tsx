@@ -244,6 +244,8 @@ export default function InsightsPage() {
         return "Price Increase";
       case "trial_conversion":
         return "Trial Conversion";
+      case "duplicate_subscription":
+        return "Duplicate Subscription";
       case "potentially_unused":
         return "Potentially Unused";
       case "post_cancellation_charge":
@@ -380,6 +382,7 @@ export default function InsightsPage() {
               { id: "all", label: "All Insights" },
               { id: "price_increase", label: "Price Increases" },
               { id: "trial_conversion", label: "Trial Conversions" },
+              { id: "duplicate_subscription", label: "Duplicate Subscriptions" },
               { id: "potentially_unused", label: "Potentially Unused" },
               { id: "post_cancellation_charge", label: "Post-Cancellation" },
               { id: "unusual_amount", label: "Unusual Amounts" },

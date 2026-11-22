@@ -85,6 +85,7 @@ class InsightSummaryResponse(BaseModel):
     total_open: int
     price_increases: int
     trial_conversions: int
+    duplicate_subscriptions: int = 0
     potentially_unused: int
     post_cancellation_charges: int
     unusual_amounts: int
@@ -100,6 +101,7 @@ class InsightDetectionSummary(BaseModel):
     total_detected: int
     price_increases_detected: int
     trial_conversions_detected: int
+    duplicate_subscriptions_detected: int = 0
     potentially_unused_detected: int
     post_cancellation_charges_detected: int
     unusual_amounts_detected: int

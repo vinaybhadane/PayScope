@@ -14,6 +14,7 @@ from app.analytics.insights.schemas import (
     PriceEventResponse,
 )
 from app.analytics.insights.trial_conversion_detector import detect_trial_conversion
+from app.analytics.insights.duplicate_subscription_detector import detect_duplicate_subscriptions
 from app.analytics.insights.unusual_amount_detector import detect_unusual_amount
 from app.analytics.insights.usage_analyzer import UsageAnalysisStatus, analyze_usage
 
