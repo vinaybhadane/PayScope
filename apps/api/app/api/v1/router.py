@@ -21,7 +21,7 @@ from app.api.v1.routes.transactions import router as transactions_router
 from app.api.v1.routes.mobile import router as mobile_router
 from app.api.v1.routes.assistant import router as assistant_router
 
-api_v1_router = APIRouter()
+api_v1_router = APIRouter(dependencies=[Depends(require_identity)])
 api_v1_router.include_router(transactions_router, dependencies=[Depends(require_identity)])
 api_v1_router.include_router(workspace_router, dependencies=[Depends(require_identity)])
 api_v1_router.include_router(health_router)
