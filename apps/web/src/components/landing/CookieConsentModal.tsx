@@ -23,7 +23,8 @@ export function CookieConsentModal({ isOpen = false, onClose }: CookieConsentMod
   // Allow external trigger if passed isOpen=true
   useEffect(() => {
     if (isOpen) {
-      setVisible(true);
+      const timer = setTimeout(() => setVisible(true), 0);
+      return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
@@ -44,7 +45,7 @@ export function CookieConsentModal({ isOpen = false, onClose }: CookieConsentMod
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 w-full bg-[#080C16]/95 border-t border-white/[0.12] backdrop-blur-2xl shadow-[0_-15px_40px_rgba(0,0,0,0.85)] px-4 sm:px-8 py-3.5 sm:py-4 text-slate-100 animate-in slide-in-from-bottom duration-300">
+    <aside aria-labelledby="cookie-consent-title" className="fixed bottom-0 left-0 right-0 z-50 w-full bg-[#080C16]/95 border-t border-white/[0.12] backdrop-blur-2xl shadow-[0_-15px_40px_rgba(0,0,0,0.85)] px-4 sm:px-8 py-3.5 sm:py-4 text-slate-100 animate-in slide-in-from-bottom duration-300">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 md:gap-8">
         {/* Left: Info & Description without 'Local-First' badge */}
         <div className="flex items-center gap-3 text-left w-full md:w-auto">
@@ -54,7 +55,7 @@ export function CookieConsentModal({ isOpen = false, onClose }: CookieConsentMod
             </svg>
           </div>
           <div>
-            <h4 className="text-xs sm:text-sm font-bold text-white tracking-tight">Cookie Policy &amp; Consent</h4>
+            <h2 id="cookie-consent-title" className="text-xs sm:text-sm font-bold text-white tracking-tight">Cookie Policy &amp; Consent</h2>
             <p className="text-xs text-[#8E9CAE] leading-relaxed mt-0.5 max-w-3xl">
               PayScope uses local storage and strictly essential session cookies to authenticate your workspace and run offline statement parsing. We do not track or sell personal browsing data.
             </p>
@@ -72,7 +73,7 @@ export function CookieConsentModal({ isOpen = false, onClose }: CookieConsentMod
 
           <button
             onClick={() => handleChoice(true)}
-            className="px-5 sm:px-6 py-1.5 sm:py-2 rounded-full bg-[#FF5500] hover:bg-[#FF6611] text-white font-bold text-xs tracking-wider uppercase transition-all shadow-[0_0_15px_rgba(255,85,0,0.4)] hover:scale-[1.02] cursor-pointer"
+            className="px-5 sm:px-6 py-1.5 sm:py-2 rounded-full bg-[#FF5500] hover:bg-[#FF6611] text-[#040711] font-bold text-xs tracking-wider uppercase transition-all shadow-[0_0_15px_rgba(255,85,0,0.4)] hover:scale-[1.02] cursor-pointer"
           >
             Accept All
           </button>
@@ -89,7 +90,7 @@ export function CookieConsentModal({ isOpen = false, onClose }: CookieConsentMod
           </button>
         </div>
       </div>
-    </div>
+    </aside>
   );
 }
 

@@ -34,7 +34,7 @@ export function LandingClientContainer({}: LandingClientContainerProps) {
   return (
     <div className={styles.page}>
       <PayScopeLandingHeader />
-      <main id="main-content" className={styles.main}>
+      <main id="main-content" tabIndex={-1} className={styles.main}>
         <section className={styles.hero} aria-labelledby="hero-title">
           <div className={styles.heroCopy}>
             <div className={styles.eyebrow}>

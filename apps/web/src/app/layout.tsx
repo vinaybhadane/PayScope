@@ -7,6 +7,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { ExperienceBoundary } from "@/components/workspace/ExperienceBoundary";
 import { WorkspaceMotion } from "@/components/ui/WorkspaceMotion";
+import { publicPages, publicSite } from "@/lib/public-site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,9 +20,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PayScope | A clearer picture of your money",
-  description:
-    "Discover recurring payments, understand hidden charges, detect silent price increases and take control of your financial commitments.",
+  metadataBase: new URL(publicSite),
+  ...publicPages["/"],
 };
 
 export default function RootLayout({

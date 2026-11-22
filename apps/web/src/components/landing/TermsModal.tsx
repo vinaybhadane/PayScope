@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useDialogFocus } from "@/components/ui/useDialogFocus";
 
 interface TermsModalProps {
   isOpen: boolean;
@@ -8,12 +9,15 @@ interface TermsModalProps {
 }
 
 export function TermsModal({ isOpen, onClose }: TermsModalProps) {
+  const dialog = useDialogFocus(isOpen, onClose);
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
       <div 
         className="relative w-full max-w-2xl max-h-[85vh] rounded-3xl bg-[#080C16] border border-white/[0.12] p-6 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.85)] flex flex-col gap-5 text-slate-100 overflow-hidden"
+        ref={dialog}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="terms-modal-title"

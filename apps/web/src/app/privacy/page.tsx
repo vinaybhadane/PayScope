@@ -17,7 +17,7 @@ export default function PrivacyPolicyPage() {
       <PayScopeLandingHeader />
 
       {/* Main Content */}
-      <main className="relative z-10 flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20 flex flex-col gap-12">
+      <main id="main-content" tabIndex={-1} className="relative z-10 flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20 flex flex-col gap-12">
         {/* Header Section */}
         <div className="space-y-4">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white/[0.05] border border-white/10 text-[#00E0E0]">
@@ -39,7 +39,7 @@ export default function PrivacyPolicyPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
-            <h3 className="font-semibold text-white text-base mb-1">Zero Bank Credential Access</h3>
+            <h2 className="font-semibold text-white text-base mb-1">Zero Bank Credential Access</h2>
             <p className="text-xs text-[#8E9CAE] leading-relaxed">
               PayScope never asks for, stores, or transmits your online banking passwords, debit card PINs, or OTPs.
             </p>
@@ -51,7 +51,7 @@ export default function PrivacyPolicyPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
             </div>
-            <h3 className="font-semibold text-white text-base mb-1">Instant Data Purging</h3>
+            <h2 className="font-semibold text-white text-base mb-1">Instant Data Purging</h2>
             <p className="text-xs text-[#8E9CAE] leading-relaxed">
               You retain total control over uploaded records and can purge your statement data and detected commitments at any time.
             </p>

@@ -32,6 +32,11 @@ current_identity: ContextVar[Optional[Identity]] = ContextVar("identity", defaul
 bearer = HTTPBearer(auto_error=False)
 certificate_request = GoogleRequest(session=CacheControl(requests.Session()))
 SESSION_COOKIE = "payscope_token"
+DEPLOYED_WEB_ORIGINS = (
+    "https://payscope-web.onrender.com",
+    "https://pay-scope-lake.vercel.app",
+    "https://payscope.vercel.app",
+)
 
 
 def public_endpoint(request: Request) -> bool:
@@ -45,21 +50,16 @@ def public_endpoint(request: Request) -> bool:
     )
 
 
+def allowed_browser_origins() -> list[str]:
+    configured = list(settings.BACKEND_CORS_ORIGINS)
+    if settings.ENVIRONMENT.lower() == "production":
+        # Keep the existing PayScope deployments, without trusting shared hosting suffixes.
+        configured.extend(DEPLOYED_WEB_ORIGINS)
+    return list(dict.fromkeys(configured))
+
+
 def is_allowed_origin(origin: Optional[str]) -> bool:
-    if not origin:
-        return False
-    clean = origin.rstrip("/")
-    allowed = [o.rstrip("/") for o in settings.BACKEND_CORS_ORIGINS]
-    if clean in allowed:
-        return True
-    if (
-        clean.endswith(".vercel.app")
-        or clean.endswith(".onrender.com")
-        or "localhost:" in clean
-        or "127.0.0.1:" in clean
-    ):
-        return True
-    return False
+    return bool(origin and origin in allowed_browser_origins())
 
 
 def check_cookie_origin(request: Request) -> None:

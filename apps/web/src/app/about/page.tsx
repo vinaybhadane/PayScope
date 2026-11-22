@@ -17,7 +17,7 @@ export default function AboutUsPage() {
       <PayScopeLandingHeader />
 
       {/* Main Content */}
-      <main className="relative z-10 flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20 flex flex-col gap-16">
+      <main id="main-content" tabIndex={-1} className="relative z-10 flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20 flex flex-col gap-16">
         {/* Hero Section */}
         <div className="text-left space-y-4 max-w-3xl">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white/[0.05] border border-white/10 text-[#00E0E0]">
@@ -42,7 +42,7 @@ export default function AboutUsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Statement-First Intelligence</h3>
+            <h2 className="text-lg font-bold text-white mb-2">Statement-First Intelligence</h2>
             <p className="text-sm text-[#8E9CAE] leading-relaxed">
               We ingest statement exports directly without needing permanent third-party bank linking. We normalize messy merchant descriptors into clear canonical commitments.
             </p>
@@ -54,7 +54,7 @@ export default function AboutUsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Anomaly & Price Creep Detection</h3>
+            <h2 className="text-lg font-bold text-white mb-2">Anomaly & Price Creep Detection</h2>
             <p className="text-sm text-[#8E9CAE] leading-relaxed">
               Our pattern engine flags sustained price increases, expired trial conversions, and post-cancellation zombie debits before they accumulate.
             </p>
@@ -66,7 +66,7 @@ export default function AboutUsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Mechanism-Aware Cancellation</h3>
+            <h2 className="text-lg font-bold text-white mb-2">Mechanism-Aware Cancellation</h2>
             <p className="text-sm text-[#8E9CAE] leading-relaxed">
               Different subscriptions demand different cancellation tactics. We guide you through merchant web portals, payment rails, UPI e-mandates, and card block protocols.
             </p>
@@ -88,7 +88,7 @@ export default function AboutUsPage() {
           <div className="pt-4 flex flex-wrap items-center gap-4">
             <Link
               href="/dashboard"
-              className="px-6 py-3.5 rounded-xl bg-[#FF5500] hover:bg-[#FF6611] text-white font-bold text-sm shadow-[0_0_25px_rgba(255,85,0,0.35)] transition-all hover:scale-[1.02]"
+              className="px-6 py-3.5 rounded-xl bg-[#FF5500] hover:bg-[#FF6611] text-[#040711] font-bold text-sm shadow-[0_0_25px_rgba(255,85,0,0.35)] transition-all hover:scale-[1.02]"
             >
               Explore Unified Dashboard →
             </Link>

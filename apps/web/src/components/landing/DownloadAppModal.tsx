@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useDialogFocus } from "@/components/ui/useDialogFocus";
 
 interface DownloadAppModalProps {
   isOpen: boolean;
@@ -8,6 +9,7 @@ interface DownloadAppModalProps {
 }
 
 export function DownloadAppModal({ isOpen, onClose }: DownloadAppModalProps) {
+  const dialog = useDialogFocus(isOpen, onClose);
   const [downloadStarted, setDownloadStarted] = useState(false);
 
   if (!isOpen) return null;
@@ -21,6 +23,8 @@ export function DownloadAppModal({ isOpen, onClose }: DownloadAppModalProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
       <div 
         className="relative w-full max-w-lg rounded-3xl bg-[#080C16] border border-white/[0.12] p-6 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.85)] flex flex-col gap-6 text-slate-100"
+        ref={dialog}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="download-modal-title"
@@ -109,7 +113,7 @@ export function DownloadAppModal({ isOpen, onClose }: DownloadAppModalProps) {
 
           <button
             onClick={handleSimulateDownload}
-            className="w-full py-3.5 rounded-xl bg-[#FF5500] hover:bg-[#FF6611] text-white font-bold text-xs tracking-wider uppercase transition-all shadow-[0_0_25px_rgba(255,85,0,0.45)] cursor-pointer"
+            className="w-full py-3.5 rounded-xl bg-[#FF5500] hover:bg-[#FF6611] text-[#040711] font-bold text-xs tracking-wider uppercase transition-all shadow-[0_0_25px_rgba(255,85,0,0.45)] cursor-pointer"
           >
             {downloadStarted ? "Downloading PayScope Client..." : "Direct APK Package Download"}
           </button>

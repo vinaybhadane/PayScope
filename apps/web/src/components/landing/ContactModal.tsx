@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useDialogFocus } from "@/components/ui/useDialogFocus";
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -8,6 +9,7 @@ interface ContactModalProps {
 }
 
 export function ContactModal({ isOpen, onClose }: ContactModalProps) {
+  const dialog = useDialogFocus(isOpen, onClose);
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
 
@@ -26,6 +28,8 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
       <div 
         className="relative w-full max-w-lg rounded-3xl bg-[#080C16] border border-white/[0.12] p-6 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.85)] flex flex-col gap-6 text-slate-100"
+        ref={dialog}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="contact-modal-title"
@@ -58,14 +62,15 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h4 className="text-sm font-bold text-emerald-300">Message Delivered</h4>
+            <h3 className="text-sm font-bold text-emerald-300">Message Delivered</h3>
             <p className="text-xs text-[#8E9CAE]">Thank you for reaching out. Our engineering team will respond promptly.</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-[#8E9CAE]">Your Name</label>
+              <label htmlFor="contact-name" className="text-xs font-medium text-[#8E9CAE]">Your Name</label>
               <input
+                id="contact-name"
                 type="text"
                 required
                 value={formData.name}
@@ -76,8 +81,9 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-[#8E9CAE]">Email Address</label>
+              <label htmlFor="contact-email" className="text-xs font-medium text-[#8E9CAE]">Email Address</label>
               <input
+                id="contact-email"
                 type="email"
                 required
                 value={formData.email}
@@ -88,8 +94,9 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-[#8E9CAE]">Message</label>
+              <label htmlFor="contact-message" className="text-xs font-medium text-[#8E9CAE]">Message</label>
               <textarea
+                id="contact-message"
                 required
                 rows={3}
                 value={formData.message}
@@ -101,7 +108,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
 
             <button
               type="submit"
-              className="w-full py-3 rounded-xl bg-[#FF5500] hover:bg-[#FF6611] text-white font-bold text-xs tracking-wider uppercase transition-all shadow-[0_0_20px_rgba(255,85,0,0.45)] cursor-pointer"
+              className="w-full py-3 rounded-xl bg-[#FF5500] hover:bg-[#FF6611] text-[#040711] font-bold text-xs tracking-wider uppercase transition-all shadow-[0_0_20px_rgba(255,85,0,0.45)] cursor-pointer"
             >
               Send Message
             </button>

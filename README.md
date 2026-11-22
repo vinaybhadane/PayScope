@@ -39,9 +39,9 @@ Set frontend `API_BASE_URL` to `http://127.0.0.1:8000`. Fill in Firebase public 
 
 ## Authentication and workspace isolation
 
-All financial, import, graph, and mutation APIs require a verified session. The browser uses a server-issued `payscope_token` cookie with `HttpOnly`, `Secure`, and `SameSite=Strict`. Guest sessions expire after 24 hours and have isolated workspaces. Google users exchange a verified Firebase ID token at `POST /api/v1/auth/session` for the cookie. API clients can also use `Authorization: Bearer <token>`. No guest token is returned in JSON or stored in browser storage. Set `ALLOW_GUEST_SESSIONS=false` to disable guest access. Never reuse a session signing secret between environments.
+Financial, import, graph, and workspace mutation APIs require a verified session. The server issues a `payscope_token` cookie with `HttpOnly`, `Secure`, and `SameSite=None` to support the existing separate frontend and API origins. Guest sessions expire after 24 hours and have isolated workspaces. The guest response also includes a signed bearer token for browsers that block third-party cookies. PayScope keeps that token in session storage and clears it at logout. Google users exchange a verified Firebase ID token at `POST /api/v1/auth/session`. Set `ALLOW_GUEST_SESSIONS=false` to disable guest access. Production guest sessions require a unique `API_SESSION_SECRET` of at least 32 characters.
 
-Browser requests use the Next.js `/api/v1` proxy. Set `API_BASE_URL` on the frontend server to the backend upstream (the legacy `NEXT_PUBLIC_API_BASE_URL` is also supported). Keep production HTTPS enabled. This makes browser API requests same-origin even when the backend is on a different hosting domain, so Strict cookies work without third-party cookies. Cookie-authenticated writes require an exact allowed `Origin`; cross-site writes are rejected. Configure `BACKEND_CORS_ORIGINS` as an explicit list of frontend origins. Wildcards and automatic preview-domain matching are disabled. Add individual preview origins only when trusted. Credentialed CORS is enabled. Use `localhost` for HTTP development if your browser does not accept Secure cookies on `127.0.0.1`, or run local HTTPS.
+Set `API_BASE_URL` on the frontend server for the Next.js `/api/v1` proxy. The public API URL settings also support direct requests. Cookie-authenticated writes require an exact allowed `Origin`. Production retains the known PayScope Render and Vercel origins. Add each trusted staging or preview origin explicitly to `BACKEND_CORS_ORIGINS`. Wildcards and automatic matching of hosting provider subdomains are disabled. Keep production HTTPS enabled. Use `localhost` for HTTP development if your browser does not accept Secure cookies on `127.0.0.1`, or run local HTTPS.
 
 `POST /api/v1/auth/guest` creates a guest session. `GET /api/v1/auth/me` returns the authenticated workspace ID. Caller-supplied `user_id` values must match this ID. Source queries, record lookups, writes, and read caches are scoped to that workspace. Merchant reference data is shared; user-created aliases are private and curated aliases are read-only.
 
@@ -57,7 +57,7 @@ Choose **Explain with Gemini** to generate plain language highlights. Configure 
 
 Guest and signed-in workspaces start empty. Guest sessions are isolated and expire after 24 hours. There is no automatic demo seeding or sample-value fallback in dashboard resources. Example downloads are optional and are imported only when explicitly uploaded.
 
-CORS allows configured origins only. Set `BACKEND_CORS_ORIGINS` for your frontend host and remove unused production defaults when deploying. Unexpected server errors return a generic message; details stay in server logs.
+Credentialed CORS uses the same exact allowlist as cookie mutation checks. Unexpected server errors return a generic message, with diagnostic details left in server logs.
 
 ## Imports
 

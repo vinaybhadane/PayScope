@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     RATE_LIMIT_STORAGE_URI: str = "memory://"
     
     FIREBASE_PROJECT_ID: str = "payscope18"
-    API_SESSION_SECRET: str = "payscope-secure-session-key-fallback-min-32-chars-for-dev-and-prod-token-signing"
+    API_SESSION_SECRET: str = ""
     ALLOW_GUEST_SESSIONS: bool = True
     RUN_MIGRATIONS: bool = True
     GEMINI_API_KEY: str = ""
@@ -99,6 +99,13 @@ class Settings(BaseSettings):
         elif v.startswith("postgresql://") and not v.startswith("postgresql+psycopg://"):
             return v.replace("postgresql://", "postgresql+psycopg://", 1)
         return v
+
+    @model_validator(mode="after")
+    def validate_production_guest_sessions(self):
+        if self.ENVIRONMENT.lower() == "production" and self.ALLOW_GUEST_SESSIONS:
+            if len(self.API_SESSION_SECRET.strip()) < 32 or self.API_SESSION_SECRET.startswith("payscope-secure-session-key-fallback"):
+                raise ValueError("Production guest sessions require a unique API_SESSION_SECRET of at least 32 characters")
+        return self
 
     @model_validator(mode="after")
     def validate_production_database(self):

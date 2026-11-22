@@ -69,7 +69,7 @@ def gemini_response(payload):
     return Mock(ok=True, json=Mock(return_value={"candidates": [{"finishReason": "STOP", "content": {"parts": [{"text": json.dumps(payload)}]}}]}))
 
 
-@pytest.mark.parametrize("path", ["dashboard/summary", "commitments", "imports", "financial-impact/summary", "ready", "auth/me", "graph/health", "workspace/intelligence"])
+@pytest.mark.parametrize("path", ["dashboard/summary", "commitments", "imports", "transactions", "financial-impact/summary", "auth/me", "graph/health", "workspace/intelligence"])
 def test_protected_endpoints_fail_closed(secured_client, path):
     assert secured_client.get(f"/api/v1/{path}").status_code == 401
 
@@ -78,12 +78,14 @@ def test_router_defaults_to_identity_and_public_allowlist(secured_client):
     from app.api.v1.router import api_v1_router
     assert require_identity in [dependency.dependency for dependency in api_v1_router.dependencies]
     assert secured_client.get("/api/v1/health").status_code == 200
+    assert secured_client.get("/").status_code == 200
+    assert secured_client.get("/api/v1/ready").json() == {"status": "ready", "database": "connected"}
     assert secured_client.get("/api/v1/demo/sample-files").status_code == 200
     assert secured_client.post("/api/v1/demo/seed").status_code == 401
 
 
 def test_every_registered_route_denies_anonymous_access(secured_client):
-    public = {"/api/v1/health", "/api/v1/auth/guest", "/api/v1/demo/sample-files", "/api/v1/demo/sample-files/{filename}"}
+    public = {"/", "/api/v1/health", "/api/v1/ready", "/api/v1/auth/guest", "/api/v1/demo/sample-files", "/api/v1/demo/sample-files/{filename}"}
     # OpenAPI includes effective paths from FastAPI's lazy router wrappers.
     for template, operations in app.openapi()["paths"].items():
         if template not in public:
@@ -121,9 +123,9 @@ def test_repository_never_uses_shared_workspace(db_session):
 def test_guest_cookie_and_authenticated_dashboard(secured_client):
     response = secured_client.post("/api/v1/auth/guest")
     assert response.status_code == 200
-    assert "access_token" not in response.json()
+    assert response.json()["token_type"] == "bearer"
     cookie = response.headers["set-cookie"]
-    for attribute in ("HttpOnly", "Secure", "SameSite=strict", "Max-Age=86400"):
+    for attribute in ("HttpOnly", "Secure", "SameSite=none", "Max-Age=86400"):
         assert attribute in cookie
     assert secured_client.get("/api/v1/auth/me").status_code == 200
     assert secured_client.get("/api/v1/dashboard/summary").status_code == 200
@@ -134,7 +136,11 @@ def test_guest_cookie_and_authenticated_dashboard(secured_client):
 def test_cookie_csrf_and_exact_cors_allowlist(secured_client):
     login(secured_client)
     assert secured_client.post("/api/v1/auth/logout", headers={"Origin": "https://evil.example"}).status_code == 403
-    assert secured_client.post("/api/v1/auth/logout", headers={"Sec-Fetch-Site": "cross-site"}).status_code == 403
+    for origin in ("https://unlisted-preview.vercel.app", "https://unlisted-app.onrender.com", "https://localhost:3000.untrusted.example"):
+        assert secured_client.post("/api/v1/auth/logout", headers={"Origin": origin}).status_code == 403
+        rejected = secured_client.options("/api/v1/health", headers={"Origin": origin, "Access-Control-Request-Method": "POST"})
+        assert rejected.status_code == 400
+        assert "access-control-allow-origin" not in rejected.headers
     secured_client.headers.pop("Origin")
     assert secured_client.post("/api/v1/auth/logout").status_code == 403
     good = secured_client.options("/api/v1/health", headers={"Origin": ORIGIN, "Access-Control-Request-Method": "POST"})
@@ -398,7 +404,60 @@ def test_production_default_password_rejected_and_development_preserved():
         Settings(_env_file=None, ENVIRONMENT="production", POSTGRES_PASSWORD="mandatelens_dev_password")
     assert Settings(_env_file=None, ENVIRONMENT="development", POSTGRES_PASSWORD="mandatelens_dev_password").POSTGRES_PASSWORD == "mandatelens_dev_password"
     with pytest.raises(ValidationError, match="DATABASE_URL"):
-        Settings(_env_file=None, ENVIRONMENT="production", POSTGRES_PASSWORD="unique-secure-password", DATABASE_URL="postgresql://u:mandatelens_dev_password@localhost/db")
+        Settings(_env_file=None, ENVIRONMENT="production", POSTGRES_PASSWORD="unique-secure-password",
+                 ALLOW_GUEST_SESSIONS=False, DATABASE_URL="postgresql://u:mandatelens_dev_password@localhost/db")
+
+
+def test_production_requires_non_default_guest_signing_configuration():
+    with pytest.raises(ValidationError, match="unique API_SESSION_SECRET"):
+        Settings(_env_file=None, ENVIRONMENT="production", POSTGRES_PASSWORD="synthetic-test-password",
+                 ALLOW_GUEST_SESSIONS=True, API_SESSION_SECRET="",
+                 DATABASE_URL="postgresql://u:synthetic-test-password@localhost/db")
+
+
+def test_production_cors_and_error_responses_use_the_same_exact_origins(monkeypatch):
+    from fastapi.testclient import TestClient
+    from app.main import create_application
+
+    monkeypatch.setattr(settings, "ENVIRONMENT", "production")
+    monkeypatch.setattr(settings, "BACKEND_CORS_ORIGINS", ["https://approved-staging.example"])
+    app_under_test = create_application()
+
+    @app_under_test.get("/test-error")
+    def synthetic_error():
+        raise RuntimeError("Synthetic error details")
+
+    with TestClient(app_under_test, raise_server_exceptions=False) as browser:
+        for origin in ("https://payscope-web.onrender.com", "https://pay-scope-lake.vercel.app",
+                       "https://payscope.vercel.app", "https://approved-staging.example"):
+            response = browser.options("/api/v1/health", headers={"Origin": origin, "Access-Control-Request-Method": "GET"})
+            assert response.status_code == 200
+            assert response.headers["access-control-allow-origin"] == origin
+            response = browser.get("/test-error", headers={"Origin": origin})
+            assert response.status_code == 500
+            assert response.headers["access-control-allow-origin"] == origin
+            assert "Synthetic error details" not in response.text
+        response = browser.get("/test-error", headers={"Origin": "https://unlisted-app.onrender.com"})
+        assert response.status_code == 500
+        assert "access-control-allow-origin" not in response.headers
+
+
+def test_authenticated_download_serves_real_pdf_with_pdf_mime(secured_client, db_session):
+    from app.models.workspace_intelligence import WorkspaceIntelligence
+
+    path = "/api/v1/workspace/report.pdf"
+    assert secured_client.get(path).status_code == 401
+    login(secured_client)
+    owner_id = uuid.UUID(secured_client.get("/api/v1/auth/me").json()["id"])
+    db_session.add(WorkspaceIntelligence(user_id=owner_id, status="completed", model="statement-rules-v2",
+                                         report={"overview": "Synthetic test report"}))
+    db_session.commit()
+
+    response = secured_client.get(path)
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/pdf"
+    assert response.headers["cache-control"] == "no-store"
+    assert response.content.startswith(b"%PDF-")
 
 
 def test_production_config_error_never_prints_other_secrets():

@@ -253,7 +253,7 @@ export default function CommitmentsPage() {
           <button
             onClick={handleDiscover}
             disabled={discovering}
-            className="px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-[#F4F7FB] text-xs font-semibold shadow-sm transition-all flex items-center gap-2 self-start sm:self-auto cursor-pointer"
+            className="px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-[#040711] text-xs font-semibold shadow-sm transition-all flex items-center gap-2 self-start sm:self-auto cursor-pointer"
           >
             {discovering ? (
               <>

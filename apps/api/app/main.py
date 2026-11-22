@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.api.v1.router import api_v1_router
 from app.core.rate_limit import UploadRateLimitMiddleware, limiter
-from app.core.auth import require_identity
+from app.core.auth import allowed_browser_origins, is_allowed_origin, require_identity
 from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
 
 logger = logging.getLogger('app.main')
@@ -59,8 +59,7 @@ def create_application() -> FastAPI:
     application.add_middleware(UploadRateLimitMiddleware)
     application.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.BACKEND_CORS_ORIGINS,
-        allow_origin_regex=r"https://.*\.vercel\.app|https://.*\.onrender\.com|http://localhost:\d+|http://127\.0\.0\.1:\d+",
+        allow_origins=allowed_browser_origins(),
         allow_credentials=True,
         allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
         allow_headers=["*"],
@@ -70,7 +69,7 @@ def create_application() -> FastAPI:
     async def unexpected_error(request: Request, exc: Exception):
         logger.exception("Unhandled request failure: %s", request.url.path, exc_info=exc)
         response = JSONResponse(status_code=500, content={"detail": "An unexpected error occurred. Please try again."})
-        from app.core.auth import is_allowed_origin
+        origin = request.headers.get("origin")
         if origin and is_allowed_origin(origin):
             response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Vary"] = "Origin"

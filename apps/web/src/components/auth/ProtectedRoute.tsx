@@ -29,7 +29,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen bg-[#040711] text-slate-100 flex flex-col justify-between">
         <PayScopeLandingHeader />
 
-        <div className="flex-1 flex items-center justify-center p-4">
+        <main id="main-content" tabIndex={-1} className="flex-1 flex items-center justify-center p-4">
           <div className="max-w-md w-full p-8 rounded-3xl bg-[#0D1322]/90 border border-[#FF5500]/[0.08] backdrop-blur-2xl text-center space-y-6 shadow-2xl">
             <div className="w-14 h-14 mx-auto rounded-2xl bg-[#FF5500]/10 border border-[#FF5500]/20 flex items-center justify-center text-[#8E9CAE]">
               <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -38,9 +38,9 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold tracking-tight text-[#F4F7FB]">
+              <h1 className="text-2xl font-bold tracking-tight text-[#F4F7FB]">
                 Dashboard Locked
-              </h2>
+              </h1>
               <p className="text-sm text-[#8E9CAE] leading-relaxed">
                 Please log in with Google to access recurring payment intelligence and financial commitments.
               </p>
@@ -53,7 +53,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
               Log In with Google
             </button>
           </div>
-        </div>
+        </main>
 
         <footer className="border-t border-[#FF5500]/[0.05] py-6 text-center text-xs text-[#8E9CAE]">
           © {new Date().getFullYear()} PayScope. All rights reserved.

@@ -1,9 +1,11 @@
 import type { NextConfig } from "next";
 import { loadEnvConfig } from "@next/env";
+import { securityHeaders } from "./security-headers";
 
 loadEnvConfig(process.cwd());
 
 const nextConfig: NextConfig = {
+  headers: securityHeaders,
   distDir: process.env.NEXT_DIST_DIR || ".next",
   async rewrites() {
     const backend = (
