@@ -38,6 +38,7 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3001",
         "https://pay-scope-lake.vercel.app",
         "https://payscope.vercel.app",
+        "https://payscope-web.onrender.com",
     ]
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")

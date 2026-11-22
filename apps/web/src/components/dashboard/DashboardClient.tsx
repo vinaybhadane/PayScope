@@ -10,7 +10,8 @@ import { formatMoney as inr } from "@/lib/formatMoney";
 import { formatPeriod } from "@/lib/formatPeriod";
 import { type DashboardData } from "@/lib/workspace-data";
 import { MonthlyPaymentChart } from "@/components/dashboard/MonthlyPaymentChart";
-import { useWorkspaceResource } from "@/lib/useWorkspaceResource";
+import { useWorkspaceResource, invalidateWorkspaceResources } from "@/lib/useWorkspaceResource";
+import { authFetch } from "@/lib/authFetch";
 const RelationshipExplorer = dynamic(
   () => import("@/components/relationships/RelationshipExplorer"),
   {
@@ -112,6 +113,7 @@ export default function DashboardClient() {
   );
   const [search, setSearch] = useState("");
   const [notesOpen, setNotesOpen] = useState(false);
+  const [isSeeding, setIsSeeding] = useState(false);
   const data = resource.data;
   const list =
     data?.top_commitments.filter((c) =>
@@ -394,9 +396,40 @@ export default function DashboardClient() {
                   </table>
                   {!list.length && (
                     <div className="empty-state">
-                      {data.top_commitments.length
-                        ? "No subscriptions match your search."
-                        : "Import a statement to discover recurring commitments."}
+                      {data.top_commitments.length ? (
+                        "No subscriptions match your search."
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", padding: "16px 0" }}>
+                          <p style={{ margin: 0 }}>Import a statement or populate with sample scenarios to discover recurring commitments.</p>
+                          <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap", justifyContent: "center" }}>
+                            <Link href="/upload" className="button button-primary" style={{ padding: "8px 16px", fontSize: "13px" }}>
+                              <Icon name="plus" size={15} />
+                              Import statement
+                            </Link>
+                            <button
+                              type="button"
+                              className="button button-subtle"
+                              style={{ padding: "8px 16px", fontSize: "13px" }}
+                              disabled={isSeeding}
+                              onClick={async () => {
+                                setIsSeeding(true);
+                                try {
+                                  await authFetch("/api/v1/demo/seed", { method: "POST" });
+                                  invalidateWorkspaceResources();
+                                  void resource.refresh();
+                                } catch (e) {
+                                  console.error("Demo seed error:", e);
+                                } finally {
+                                  setIsSeeding(false);
+                                }
+                              }}
+                            >
+                              <Icon name="spark" size={15} />
+                              {isSeeding ? "Loading sample data…" : "Load demo sample data"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

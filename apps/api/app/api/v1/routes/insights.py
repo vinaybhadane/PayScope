@@ -293,7 +293,8 @@ def get_unusual_amount_insights(
     return _query_insights(db, user_id=user_id, insight_type="unusual_amount")
 
 
-@router.get("/", response_model=List[InsightResponse], status_code=status.HTTP_200_OK)
+@router.get("", response_model=List[InsightResponse], status_code=status.HTTP_200_OK)
+@router.get("/", response_model=List[InsightResponse], status_code=status.HTTP_200_OK, include_in_schema=False)
 def get_insights(
     insight_type: Optional[str] = Query(None),
     severity: Optional[str] = Query(None),

@@ -25,13 +25,9 @@ services:
       - key: ENVIRONMENT
         value: production
       - key: POSTGRES_PASSWORD
-        fromDatabase:
-          name: payscope-db
-          property: password
+        value: npg_BvOlyD6h1EMn
       - key: DATABASE_URL
-        fromDatabase:
-          name: payscope-db
-          property: connectionString
+        value: postgresql+psycopg://neondb_owner:npg_BvOlyD6h1EMn@ep-calm-fog-az6aivg7-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
       - key: API_SESSION_SECRET
         generateValue: true
       - key: ALLOW_GUEST_SESSIONS
@@ -39,7 +35,7 @@ services:
       - key: RUN_MIGRATIONS
         value: "true"
       - key: FIREBASE_PROJECT_ID
-        sync: false
+        value: payscope18
       - key: GEMINI_API_KEY
         sync: false
       - key: GEMINI_MODEL
@@ -61,7 +57,7 @@ services:
       - key: NEO4J_PASSWORD
         sync: false
       - key: BACKEND_CORS_ORIGINS
-        value: https://payscope-web.onrender.com
+        value: https://payscope-web.onrender.com,https://pay-scope-lake.vercel.app,https://payscope.vercel.app
 
   - type: web
     name: payscope-web
@@ -78,17 +74,21 @@ services:
         value: 24.12.0
       - key: API_BASE_URL
         value: https://payscope-api-08he.onrender.com
+      - key: NEXT_PUBLIC_API_BASE_URL
+        value: https://payscope-api-08he.onrender.com
+      - key: NEXT_PUBLIC_API_URL
+        value: https://payscope-api-08he.onrender.com
       - key: NEXT_PUBLIC_APP_NAME
         value: PayScope
       - key: NEXT_PUBLIC_FIREBASE_API_KEY
-        sync: false
+        value: AIzaSyCMi4MDAtJhPfqCgBhXNYQgHaglgSQf0vA
       - key: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-        sync: false
+        value: payscope18.firebaseapp.com
       - key: NEXT_PUBLIC_FIREBASE_PROJECT_ID
-        sync: false
+        value: payscope18
       - key: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-        sync: false
+        value: payscope18.firebasestorage.app
       - key: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-        sync: false
+        value: "104812680638"
       - key: NEXT_PUBLIC_FIREBASE_APP_ID
-        sync: false
+        value: 1:104812680638:web:f68d549e42ef8a845015ef
