@@ -71,37 +71,6 @@ export function LandingClientContainer({}: LandingClientContainerProps) {
             <div className={styles.orbit} aria-hidden="true" />
             <div className={styles.orbitInner} aria-hidden="true" />
             <div className={styles.visualGlow} aria-hidden="true" />
-            <div className={styles.visualLabel}>
-              <span className={styles.visualLabelIcon}><Icon name="spark" size={20} /></span>
-              <span>Less guesswork.<br /><strong>More peace of mind.</strong></span>
-            </div>
-
-            {/* Floating Alert: Duplicate Subscription */}
-            <div className={styles.heroAlertLeft} aria-label="Duplicate Subscription Alert Preview">
-              <span className={styles.heroAlertBadgeCyan}>
-                <Icon name="repeat" size={13} /> Duplicate subscription
-              </span>
-              <p className={styles.heroAlertQuote}>
-                “You have two music subscriptions: Spotify and YouTube Premium.”
-              </p>
-              <p className={styles.heroAlertSub}>
-                Also flags AI overlap: “You have two AI subscriptions: ChatGPT and Gemini.”
-              </p>
-            </div>
-
-            {/* Floating Alert: Trial Converting */}
-            <div className={styles.heroAlertRight} aria-label="Trial Converting Alert Preview">
-              <span className={styles.heroAlertBadgeOrange}>
-                <Icon name="clock" size={13} /> Trial converting
-              </span>
-              <p className={styles.heroAlertQuote}>
-                “Your free trial ends in 3 days; the next charge will be ₹799.”
-              </p>
-              <p className={styles.heroAlertSub}>
-                Automatic warning before bank auto-debit triggers.
-              </p>
-            </div>
-
             <Image
               src="/holdingPhone.png"
               alt="A hand holding a phone showing the PayScope sample dashboard and recurring payment overview"
@@ -114,46 +83,6 @@ export function LandingClientContainer({}: LandingClientContainerProps) {
             />
             <div className={styles.visualCaption}>
               <span className={styles.captionLine} aria-hidden="true" /> YOUR FINANCES, IN FOCUS
-            </div>
-          </div>
-        </section>
-
-        <section className={styles.intelligenceShowcase} aria-label="Autonomous Detection Showcase">
-          <div className={styles.showcaseHeader}>
-            <span className={styles.showcaseEyebrow}>
-              <Icon name="spark" size={14} /> Autonomous Detection In Action
-            </span>
-            <h2 className={styles.showcaseTitle}>Alerts that catch what bank statements hide.</h2>
-          </div>
-          <div className={styles.showcaseGrid}>
-            <div className={styles.showcaseCard}>
-              <div className={styles.cardHeader}>
-                <span className={styles.cardBadgeOrange}>
-                  <Icon name="clock" size={14} /> Trial converting
-                </span>
-                <span className={styles.cardStatus}>Active Alert</span>
-              </div>
-              <p className={styles.cardQuote}>
-                “Your free trial ends in 3 days; the next charge will be ₹799.”
-              </p>
-              <p className={styles.cardDesc}>
-                Proactively notifies you 3 days before free trials expire and convert into recurring paid debit mandates.
-              </p>
-            </div>
-
-            <div className={styles.showcaseCard}>
-              <div className={styles.cardHeader}>
-                <span className={styles.cardBadgeCyan}>
-                  <Icon name="repeat" size={14} /> Duplicate subscription
-                </span>
-                <span className={styles.cardStatus}>Redundant Spend</span>
-              </div>
-              <p className={styles.cardQuote}>
-                “You have two music subscriptions: Spotify and YouTube Premium.”
-              </p>
-              <p className={styles.cardDesc}>
-                Flags redundant services in the same category, including AI: “You have two AI subscriptions: ChatGPT and Gemini.”
-              </p>
             </div>
           </div>
         </section>
