@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { PayScopeLogo } from "@/components/brand/PayScopeLogo";
 import { Icon } from "@/components/ui/Icon";
 import { useAuth } from "@/context/AuthContext";
-import { DownloadAppModal } from "./DownloadAppModal";
+import { DownloadAppLink } from "./DownloadAppLink";
 import { TermsModal } from "./TermsModal";
 import { ContactModal } from "./ContactModal";
 import styles from "./Landing.module.css";
@@ -26,7 +26,6 @@ const navLinks = [
 export function PayScopeLandingHeader({ headerLogoRef, showFinalLogo = true }: PayScopeLandingHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [logoutFailed, setLogoutFailed] = useState(false);
-  const [downloadModalOpen, setDownloadModalOpen] = useState(false);
   const [termsModalOpen, setTermsModalOpen] = useState(false);
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
@@ -68,9 +67,7 @@ export function PayScopeLandingHeader({ headerLogoRef, showFinalLogo = true }: P
             <button type="button" onClick={() => setContactModalOpen(true)}>Contact</button>
           </nav>
           <div className={styles.headerActions}>
-            <button type="button" className={styles.headerDownload} onClick={() => setDownloadModalOpen(true)}>
-              <Icon name="download" size={16} /> Download app
-            </button>
+            <DownloadAppLink className={styles.headerDownload} iconSize={16} />
             <button type="button" className={styles.signInButton} onClick={handleAuthAction}>{user ? "Sign out" : "Sign in"}</button>
             <button ref={menuButtonRef} type="button" className={styles.menuButton} aria-controls="landing-mobile-menu" aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} aria-expanded={mobileMenuOpen} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
               <Icon name={mobileMenuOpen ? "close" : "menu"} size={21} />
@@ -86,11 +83,10 @@ export function PayScopeLandingHeader({ headerLogoRef, showFinalLogo = true }: P
             <button type="button" onClick={() => { setMobileMenuOpen(false); setTermsModalOpen(true); }}>Terms and conditions</button>
             <button type="button" onClick={() => { setMobileMenuOpen(false); setContactModalOpen(true); }}>Contact us</button>
             {user && <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>Open dashboard</Link>}
-            <button type="button" className={styles.mobileDownload} onClick={() => { setMobileMenuOpen(false); setDownloadModalOpen(true); }}><Icon name="download" size={17} /> Download app</button>
+            <DownloadAppLink className={styles.mobileDownload} iconSize={17} onClick={() => setMobileMenuOpen(false)} />
           </nav>
         )}
       </header>
-      <DownloadAppModal isOpen={downloadModalOpen} onClose={() => setDownloadModalOpen(false)} />
       <TermsModal isOpen={termsModalOpen} onClose={() => setTermsModalOpen(false)} />
       <ContactModal isOpen={contactModalOpen} onClose={() => setContactModalOpen(false)} />
     </>

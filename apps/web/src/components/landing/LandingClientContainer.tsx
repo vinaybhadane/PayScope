@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PayScopeLandingHeader } from "@/components/landing/PayScopeLandingHeader";
-import { DownloadAppModal } from "@/components/landing/DownloadAppModal";
+import { DownloadAppLink } from "@/components/landing/DownloadAppLink";
 import { CookieConsentModal } from "@/components/landing/CookieConsentModal";
 import { Icon } from "@/components/ui/Icon";
 import { useAuth } from "@/context/AuthContext";
@@ -22,7 +21,6 @@ const features = [
 ];
 
 export function LandingClientContainer({}: LandingClientContainerProps) {
-  const [downloadModalOpen, setDownloadModalOpen] = useState(false);
   const router = useRouter();
   const { user, openAuthModal } = useAuth();
 
@@ -54,9 +52,7 @@ export function LandingClientContainer({}: LandingClientContainerProps) {
                 <Icon name="grid" size={18} />
                 {user ? "Open dashboard" : "Explore PayScope"}
               </button>
-              <button type="button" className={styles.secondaryButton} onClick={() => setDownloadModalOpen(true)}>
-                <Icon name="download" size={18} /> Download app
-              </button>
+              <DownloadAppLink className={styles.secondaryButton} iconSize={18} />
             </div>
             <p className={styles.reassurance}>
               <Icon name="shield" size={15} /> No bank login required
@@ -114,7 +110,6 @@ export function LandingClientContainer({}: LandingClientContainerProps) {
           </nav>
         </div>
       </footer>
-      <DownloadAppModal isOpen={downloadModalOpen} onClose={() => setDownloadModalOpen(false)} />
       <CookieConsentModal />
     </div>
   );

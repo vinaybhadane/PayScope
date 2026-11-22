@@ -78,3 +78,6 @@ Thumbs.db
 
 .pytest_temp/
 
+
+/*.apk
+!apps/web/public/*.apk

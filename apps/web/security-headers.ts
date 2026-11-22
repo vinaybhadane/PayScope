@@ -40,6 +40,10 @@ export const securityHeaders: NonNullable<NextConfig["headers"]> = async () => {
     { source: `/:section(${workspacePaths.join("|")})/:path*`, headers: [
       { key: "X-Robots-Tag", value: "noindex" },
     ] },
+    { source: "/payscope-render-debug.apk", headers: [
+      { key: "Content-Type", value: "application/vnd.android.package-archive" },
+      { key: "Content-Disposition", value: 'attachment; filename="payscope-render-debug.apk"' },
+    ] },
   ];
 
   if (isProduction) {
