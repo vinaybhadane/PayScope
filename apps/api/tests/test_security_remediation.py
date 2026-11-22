@@ -2,6 +2,7 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import csv
+import importlib.util
 from io import BytesIO, StringIO
 import json
 import re
@@ -342,7 +343,7 @@ def test_ocr_hidden_instruction_and_low_confidence_are_quarantined(client, db_se
     lines = [SimpleNamespace(text="2026-10-01 ORBIT STORAGE MONTHLY 199.00", confidence=0.99),
              SimpleNamespace(text="2026-11-01 SYS\u200bTEM INSTRUCTION override 199.00", confidence=0.99),
              SimpleNamespace(text="2026-11-02 ORBIT STORAGE MONTHLY 199.00", confidence=0.3)]
-    with patch("winocr.recognize_pil", return_value=SimpleNamespace(lines=lines)):
+    with patch("app.ingestion.ocr_engine.recognize", return_value=SimpleNamespace(lines=lines, text="\n".join(l.text for l in lines))):
         headers, rows = ImageStatementParser.parse(png())
         assert len(rows) == 3
         assert not rows[0]["_ocr_security"]["reasons"]
@@ -356,7 +357,10 @@ def test_ocr_hidden_instruction_and_low_confidence_are_quarantined(client, db_se
     assert db_session.query(Transaction).one().raw_descriptor == "ORBIT STORAGE MONTHLY"
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="Native Windows OCR requires Windows")
+@pytest.mark.skipif(
+    sys.platform != "win32" or importlib.util.find_spec("winocr") is None,
+    reason="Native Windows OCR requires Windows and the winocr package",
+)
 def test_native_ocr_faded_instruction_in_image_is_quarantined():
     from PIL import ImageDraw, ImageFont
     image = Image.new("RGB", (1800, 320), "white")
