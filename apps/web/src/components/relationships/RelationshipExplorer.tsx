@@ -328,7 +328,7 @@ export default function RelationshipExplorer({
           >
             <Icon name="repeat" size={16} />
           </button>
-          {!user?.isDemo && !resource.isDemo && (
+          {!user?.isDemo && (
             <button
               className="button button-subtle relation-sync"
               onClick={sync}

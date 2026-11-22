@@ -1,6 +1,6 @@
 "use client";
 import { authFetch } from "@/lib/authFetch";
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { getApiBaseUrl } from "./api";
 
@@ -51,7 +51,6 @@ async function request(key: string, endpoint: string) {
 export function useWorkspaceResource<T>(endpoint: string) {
   const { user, loading: authLoading } = useAuth();
   const version = useSyncExternalStore(subscribe, () => revision, () => 0);
-  const isDemo = false;
   const key = `${getApiBaseUrl()}:${user?.uid || "anonymous"}:${endpoint}:${version}`;
   const [snapshot, setSnapshot] = useState<{
     key: string;
@@ -60,24 +59,29 @@ export function useWorkspaceResource<T>(endpoint: string) {
   } | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
+  const requestEpoch = useRef(0);
   const cached = snapshots.get(key);
   const data = snapshot?.key === key
       ? snapshot.value
       : (cached?.value as T | undefined);
   const refresh = useCallback(
     async (force = true) => {
-      if (authLoading || !user || isDemo) return;
+      if (authLoading || !user) return;
+      const epoch = ++requestEpoch.current;
       const cached = snapshots.get(key);
       if (!force && cached && Date.now() - cached.at < FRESH_MS) {
         setSnapshot({ key, value: cached.value as T, at: cached.at });
+        setRefreshing(false);
+        setError("");
         return;
       }
       setRefreshing(true);
       setError("");
       try {
         const value = (await request(key, endpoint)) as T;
-        setSnapshot({ key, value, at: Date.now() });
+        if (epoch === requestEpoch.current) setSnapshot({ key, value, at: Date.now() });
       } catch (e) {
+        if (epoch !== requestEpoch.current) return;
         setError(
           e instanceof Error && e.name === "AbortError"
             ? "This is taking longer than expected. Retry when you’re ready."
@@ -86,10 +90,10 @@ export function useWorkspaceResource<T>(endpoint: string) {
               : "Couldn’t refresh this view.",
         );
       } finally {
-        setRefreshing(false);
+        if (epoch === requestEpoch.current) setRefreshing(false);
       }
     },
-    [authLoading, endpoint, isDemo, key, user],
+    [authLoading, endpoint, key, user],
   );
   useEffect(() => {
     const timer = setTimeout(() => void refresh(false), 0);
@@ -97,15 +101,14 @@ export function useWorkspaceResource<T>(endpoint: string) {
       if (document.visibilityState === "visible") void refresh(false);
     };
     document.addEventListener("visibilitychange", visible);
-    return () => { clearTimeout(timer); document.removeEventListener("visibilitychange", visible); };
+    return () => { requestEpoch.current += 1; clearTimeout(timer); document.removeEventListener("visibilitychange", visible); };
   }, [refresh]);
   return {
     data,
     error,
     refreshing,
-    isDemo,
     loading: authLoading || (!data && refreshing),
     refresh: () => refresh(true),
-    updatedAt: isDemo ? null : snapshot?.at || cached?.at || null,
+    updatedAt: (snapshot?.key === key ? snapshot.at : cached?.at) ?? null,
   };
 }

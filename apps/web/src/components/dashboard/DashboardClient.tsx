@@ -1,14 +1,15 @@
 "use client";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { AIWorkspacePanel } from "@/components/workspace/AIWorkspacePanel";
 import AppHeader from "@/components/navigation/AppHeader";
 import { Icon } from "@/components/ui/Icon";
 import { MerchantLogo } from "@/components/brand/MerchantLogo";
-import { inr } from "@/lib/demo-data";
+import { formatMoney as inr } from "@/lib/formatMoney";
 import { formatPeriod } from "@/lib/formatPeriod";
 import { type DashboardData } from "@/lib/workspace-data";
+import { MonthlyPaymentChart } from "@/components/dashboard/MonthlyPaymentChart";
 import { useWorkspaceResource } from "@/lib/useWorkspaceResource";
 const RelationshipExplorer = dynamic(
   () => import("@/components/relationships/RelationshipExplorer"),
@@ -49,164 +50,6 @@ function DeferredRelationships() {
         </div>
       )}
     </div>
-  );
-}
-function SpendTimeline({ data }: { data: DashboardData }) {
-  const [period, setPeriod] = useState(6);
-  const [hovered, setHovered] = useState<number | null>(null);
-  const gradient = useId().replaceAll(":", "");
-  const months = data.financial_overview.historical_months.slice(-period);
-  const values = data.financial_overview.historical_amounts
-    .slice(-period)
-    .map(Number);
-  const max = Math.max(...values, 1) * 1.18;
-  const points = values.map((v, i) => ({
-    x: 52 + (i * 572) / Math.max(values.length - 1, 1),
-    y: 184 - (v / max) * 158,
-  }));
-  const line = points
-    .map((p, i) =>
-      i === 0
-        ? `M${p.x},${p.y}`
-        : `C${(points[i - 1].x + p.x) / 2},${points[i - 1].y} ${(points[i - 1].x + p.x) / 2},${p.y} ${p.x},${p.y}`,
-    )
-    .join(" ");
-  const last = hovered === null ? values.length - 1 : hovered;
-  const change =
-    values.length > 1 && values[values.length - 2]
-      ? ((values[values.length - 1] - values[values.length - 2]) /
-          values[values.length - 2]) *
-        100
-      : null;
-  return (
-    <section className="dash-panel spend-timeline">
-      <div className="dash-panel-heading">
-        <div>
-          <h2>Your spending, in perspective</h2>
-          <p>Recurring payments across your statement history.</p>
-        </div>
-        <div className="segmented-control">
-          {[6, 12].map((p) => (
-            <button
-              key={p}
-              className={period === p ? "active" : ""}
-              aria-pressed={period === p}
-              onClick={() => {
-                setPeriod(p);
-                setHovered(null);
-              }}
-            >
-              {p} months
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="timeline-readout">
-        <strong>{inr(values[last] || 0)}</strong>
-        {change !== null && (
-          <span className={change <= 0 ? "trend-positive" : "trend-caution"}>
-            <Icon name="trend" size={13} />
-            {change > 0 ? "+" : ""}
-            {change.toFixed(1)}%<small> vs previous month</small>
-          </span>
-        )}
-        <span className="timeline-month">
-          {months[last] || "No statement history"}
-        </span>
-      </div>
-      {points.length ? (
-        <svg
-          className="timeline-svg"
-          viewBox="0 0 650 225"
-          role="group"
-          aria-label={months
-            .map((m, i) => `${m}: ${inr(values[i])}`)
-            .join(", ")}
-        >
-          <defs>
-            <linearGradient id={gradient} x1="0" y1="0" x2="0" y2="1">
-              <stop stopColor="#FF5500" stopOpacity=".2" />
-              <stop offset="1" stopColor="#FF5500" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          {[0, 1, 2, 3].map((i) => (
-            <g key={i}>
-              <line
-                x1="47"
-                x2="633"
-                y1={26 + i * 52.5}
-                y2={26 + i * 52.5}
-                stroke="#FFFFFF09"
-                strokeDasharray="3 5"
-              />
-              <text x="0" y={30 + i * 52.5} className="timeline-axis">
-                {inr((max * (3 - i)) / 3).replace("₹", "")}
-              </text>
-            </g>
-          ))}
-          <path
-            d={`${line} L${points[points.length - 1].x},185 L52,185 Z`}
-            fill={`url(#${gradient})`}
-          />
-          <path className="timeline-stroke" pathLength="1" d={line} fill="none" stroke="#FF5500" strokeWidth="3" />
-          {points.map((p, i) => (
-            <g
-              key={i}
-              role="button"
-              tabIndex={0}
-              aria-label={`${months[i]}: ${inr(values[i])}`}
-              onFocus={() => setHovered(i)}
-              onBlur={() => setHovered(null)}
-              onClick={() => setHovered(i)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setHovered(i); }
-              }}
-              onMouseEnter={() => setHovered(i)}
-              onMouseLeave={() => setHovered(null)}
-            >
-              {hovered === i && <line className="timeline-crosshair" x1={p.x} x2={p.x} y1="20" y2="185" stroke="#FF5500" strokeOpacity=".35" strokeDasharray="3 4" />}
-              <rect
-                x={p.x - 22}
-                y="0"
-                width="44"
-                height="200"
-                fill="transparent"
-              />
-              <circle
-                cx={p.x}
-                cy={p.y}
-                r={hovered === i ? 5 : 3}
-                fill="#FF5500"
-                stroke="#0D1322"
-                strokeWidth="3"
-              />
-              <text
-                x={p.x}
-                y="215"
-                textAnchor="middle"
-                className="timeline-axis"
-              >
-                {months[i]}
-              </text>
-            </g>
-          ))}
-        </svg>
-      ) : (
-        <div className="dash-chart-empty">
-          <Icon name="chart" size={28} />
-          <p>Import a statement to see your spending trend.</p>
-        </div>
-      )}
-      <div className="timeline-summary">
-        <span>
-          <i />
-          Recurring spend
-        </span>
-        <Link href="/financial-impact">
-          View spending analysis <Icon name="arrow" size={14} />
-        </Link>
-      </div>
-    </section>
   );
 }
 function CategoryCard({ data }: { data: DashboardData }) {
@@ -283,7 +126,11 @@ export default function DashboardClient() {
       data.top_commitments
         .map((c) =>
           [c.display_name, c.category, c.monthly_cost, c.status]
-            .map((v) => '"' + String(v).replaceAll('"', '""') + '"')
+            .map((v) => {
+              const value = String(v);
+              const safe = /^\s*[=+\-@\t\r\n]/.test(value) ? `'${value}` : value;
+              return `"${safe.replaceAll('"', '""')}"`;
+            })
             .join(","),
         )
         .join("\n");
@@ -292,9 +139,7 @@ export default function DashboardClient() {
     );
     const a = document.createElement("a");
     a.href = url;
-    a.download = resource.isDemo
-      ? "payscope-sample-overview.csv"
-      : "payscope-overview.csv";
+    a.download = "payscope-overview.csv";
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
@@ -306,11 +151,10 @@ export default function DashboardClient() {
           <div>
 
             <h1>
-              Your money, in focus<span>.</span>
+              Overview<span>.</span>
             </h1>
             <p>
-              The bigger picture. The small details. All in a little more
-              clarity.
+              Cash flow and recurring charges from your uploaded statements.
             </p>
           </div>
           <div className="dashboard-title-tools">
@@ -319,7 +163,7 @@ export default function DashboardClient() {
             <button
               className="icon-button"
               aria-label="Refresh dashboard"
-              disabled={resource.refreshing || resource.isDemo}
+              disabled={resource.refreshing}
               onClick={() => void resource.refresh()}
             >
               <Icon
@@ -344,15 +188,12 @@ export default function DashboardClient() {
             </div>
           </div>
         </header>
-        <AIWorkspacePanel controls />
         <div className="dashboard-status">
           <span
-            className={`data-source source-${resource.isDemo ? "demo" : resource.error ? "offline" : "live"}`}
+            className={`data-source source-${resource.error ? "offline" : "live"}`}
           >
             <i />
-            {resource.isDemo
-              ? "Sample workspace"
-              : resource.error && data
+            {resource.error && data
                 ? "Saved snapshot"
                 : resource.refreshing && data
                   ? "Refreshing in background"
@@ -361,9 +202,7 @@ export default function DashboardClient() {
                     : "Connecting"}
           </span>
           <span>
-            {resource.isDemo
-              ? "Illustrative data · November 2026"
-              : resource.updatedAt
+            {resource.updatedAt
                 ? `Updated ${new Date(resource.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
                 : "Loading your workspace…"}
           </span>
@@ -479,7 +318,7 @@ export default function DashboardClient() {
               ))}
             </section>
             <div className="dashboard-analysis-grid">
-              <SpendTimeline data={data} />
+              <MonthlyPaymentChart activity={data.financial_overview.monthly_activity ?? []} overview />
               <CategoryCard data={data} />
             </div>
             <DeferredRelationships />
@@ -488,7 +327,7 @@ export default function DashboardClient() {
                 <div className="dash-panel-heading">
                   <div>
                     <h2>Your recurring commitments</h2>
-                    <p>Know what stays. Decide what’s next.</p>
+                    <p>Largest recurring costs based on observed payments.</p>
                   </div>
                   <Link href="/commitments" className="text-link">
                     View all <Icon name="arrow" size={14} />
@@ -528,9 +367,7 @@ export default function DashboardClient() {
                             <div>
                               <div className="flex items-center gap-2">
                                 <span>{c.display_name}</span>
-                                <span className="text-[10px] px-1.5 py-0.2 rounded bg-cyan-950/80 border border-cyan-700/50 text-cyan-300 font-mono font-medium">
-                                  {c.payment_rail || "UPI AutoPay"}
-                                </span>
+                                {c.payment_rail && c.payment_rail !== "Unknown" && <span className="text-[10px] px-1.5 py-0.2 rounded bg-cyan-950/80 border border-cyan-700/50 text-cyan-300 font-mono font-medium">{c.payment_rail}</span>}
                               </div>
                               <small>
                                 {c.category} · {formatPeriod(c.cadence)}
@@ -545,11 +382,7 @@ export default function DashboardClient() {
                           </td>
                           <td>
                             <Link
-                              href={
-                                resource.isDemo
-                                  ? "/commitments"
-                                  : `/commitments/${c.id}`
-                              }
+                              href={`/commitments/${c.id}`}
                               aria-label={`Review ${c.display_name}`}
                             >
                               <Icon name="chevron" size={16} />
@@ -571,11 +404,7 @@ export default function DashboardClient() {
               <section className="dash-panel dashboard-insights">
                 <div className="dash-panel-heading">
                   <div>
-                    <span className="dash-eyebrow">
-                      <Icon name="spark" size={12} />
-                      WORTH KNOWING
-                    </span>
-                    <h2>A few things to look at.</h2>
+                    <h2>Recent payment alerts</h2>
                   </div>
                   <span className="insight-count">
                     {data.kpis.open_insights_count}
@@ -585,7 +414,7 @@ export default function DashboardClient() {
                   <Link
                     className="dashboard-insight"
                     key={ins.id}
-                    href={resource.isDemo ? "/insights" : `/insights/${ins.id}`}
+                    href={`/insights/${ins.id}`}
                   >
                     <span className="insight-symbol">
                       <Icon
@@ -617,7 +446,7 @@ export default function DashboardClient() {
 
           </>
         )}
-        {!resource.isDemo && (
+          <AIWorkspacePanel controls />
           <details
             className="dashboard-notes"
             onToggle={(e) => setNotesOpen(e.currentTarget.open)}
@@ -630,7 +459,6 @@ export default function DashboardClient() {
               />
             )}
           </details>
-        )}
         <footer className="dashboard-footer">
           <span>PayScope · Find the money leaving quietly.</span>
           <Link href="/privacy">

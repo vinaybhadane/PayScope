@@ -21,6 +21,7 @@ from app.matching.review_service import ReviewService
 from app.models.import_record import ImportRecord
 from app.models.payment_notification import PaymentNotification
 from app.models.transaction import Transaction
+from app.models.statement_duplicate import StatementDuplicate
 from app.models.account import Account
 from app.repositories.import_repository import ImportRepository
 from app.analytics.autodebit_keyword_service import analyze_transaction_descriptor
@@ -336,13 +337,15 @@ class ImportService:
                 candidate_ext_ids = [
                     r["external_synthetic_id"] for r in norm_result.valid_records if r.get("external_synthetic_id")
                 ]
-                existing_ids: Set[str] = set()
+                existing_transactions = {}
                 if candidate_ext_ids:
-                    stmt = select(Transaction.external_synthetic_id).where(
+                    stmt = select(Transaction.external_synthetic_id, Transaction.id).where(
                         Transaction.user_id == user_id,
                         Transaction.external_synthetic_id.in_(candidate_ext_ids),
                     )
-                    existing_ids = set(db.scalars(stmt).all())
+                    existing_transactions = dict(db.execute(stmt).tuples().all())
+                existing_ids = set(existing_transactions)
+                seen_duplicates = set()
 
                 # Load resolver for automatic merchant matching
                 resolver = MerchantResolver.from_db(db)
@@ -352,8 +355,13 @@ class ImportService:
                 # Persist non-duplicate records
                 new_records = []
                 for r in norm_result.valid_records:
-                    if r.get("external_synthetic_id") in existing_ids:
+                    payment_key = r.get("external_synthetic_id")
+                    if payment_key in existing_ids:
                         duplicate_count += 1
+                        related_id = existing_transactions.get(payment_key)
+                        if related_id and related_id not in seen_duplicates:
+                            db.add(StatementDuplicate(import_id=import_record.id, transaction_id=related_id))
+                            seen_duplicates.add(related_id)
                         continue
 
                     # Automatic merchant resolution

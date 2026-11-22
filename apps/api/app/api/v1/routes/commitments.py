@@ -174,25 +174,11 @@ def get_commitments_summary(
     review_req = sum(1 for c in all_commitments if c.status in ("review_required", "needs_review"))
     confirmed = sum(1 for c in all_commitments if c.user_decision == "confirmed" or c.status == "user_confirmed")
 
-    # Monthly spend estimate
-    monthly_spend = Decimal("0.00")
-    annual_spend = Decimal("0.00")
-
     by_cadence: Dict[str, int] = {}
     by_type: Dict[str, int] = {}
     by_band: Dict[str, int] = {}
 
     for c in all_commitments:
-        if c.status != "marked_not_recurring":
-            # Add to spend totals
-            if c.annualised_amount:
-                annual_spend += c.annualised_amount
-                monthly_spend += round(c.annualised_amount / Decimal("12"), 2)
-            elif c.representative_amount:
-                if c.cadence in ("monthly", "variable_monthly"):
-                    monthly_spend += c.representative_amount
-                    annual_spend += c.representative_amount * Decimal("12")
-
         by_cadence[c.cadence] = by_cadence.get(c.cadence, 0) + 1
         by_type[c.commitment_type] = by_type.get(c.commitment_type, 0) + 1
         by_band[c.confidence_band] = by_band.get(c.confidence_band, 0) + 1

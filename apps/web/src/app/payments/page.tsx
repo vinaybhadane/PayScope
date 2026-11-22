@@ -3,12 +3,12 @@ import { useState } from "react";
 import Link from "next/link";
 import AppHeader from "@/components/navigation/AppHeader";
 import { useWorkspaceResource } from "@/lib/useWorkspaceResource";
+import { formatMoney as money } from "@/lib/formatMoney";
 
 type Payment = { id: string; date: string; description: string; amount: string; currency: string; direction: string;
   status: string; channel: string; reference: string | null; filename: string | null; source_row: number | null;
   source_page: number | null; source_sheet: string | null };
 type Ledger = { total: number; totals: { currency: string; count: number; debits: string; credits: string; net_outflow: string; excluded_count: number }[]; items: Payment[] };
-const money = (value: string, currency: string) => new Intl.NumberFormat("en-IN", { style: "currency", currency, minimumFractionDigits: 2 }).format(Number(value));
 
 export default function PaymentsPage() {
   const [query, setQuery] = useState("");
@@ -21,7 +21,8 @@ export default function PaymentsPage() {
   const ledger = resource.data;
   return <div className="dashboard-v2"><AppHeader /><main id="workspace-content" tabIndex={-1} className="dashboard-main">
     <header className="dashboard-title"><div><h1>Payments<span>.</span></h1><p>Every imported debit and credit, with its statement source.</p></div>
-      <Link href="/upload" className="button button-primary">Import statement</Link></header>
+      <div className="dashboard-actions"><Link href="/insights" className="button button-subtle">Compare statements</Link>
+        <Link href="/upload" className="button button-primary">Import statement</Link></div></header>
     {resource.error && <div className="dash-notice" role="alert">{resource.error}<button onClick={() => void resource.refresh()}>Retry</button></div>}
     <form className="dash-panel payment-filters" onSubmit={event => { event.preventDefault(); setSearch(query); setOffset(0); }}>
       <label>Find a payment<input aria-label="Search payments" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search statement description" /></label>
@@ -34,7 +35,7 @@ export default function PaymentsPage() {
       <div className="payment-totals">{ledger.totals.map(total => <section className="dash-panel" key={total.currency}>
         <h2>{total.currency} · {total.count} payments</h2><dl><dt>Successful debits</dt><dd>{money(total.debits, total.currency)}</dd>
           <dt>Successful credits</dt><dd>{money(total.credits, total.currency)}</dd><dt>Net outflow</dt><dd>{money(total.net_outflow, total.currency)}</dd></dl>
-        {total.excluded_count > 0 && <p>{total.excluded_count} failed, pending or reversed entries excluded from totals.</p>}</section>)}</div>
+        {total.excluded_count > 0 && <p>{total.excluded_count} incomplete or cancelled payments excluded from totals.</p>}</section>)}</div>
       <section className="dash-panel"><h2>Imported payment ledger</h2><p>{ledger.total} payments match your filters. Amounts keep their original currency. Recurring payments and forecasts are available under Subscriptions.</p>
         <div className="payment-table-wrap"><table className="payment-table"><thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Direction</th><th>Status</th><th>Source</th></tr></thead>
           <tbody>{ledger.items.map(payment => <tr key={payment.id}><td>{payment.date.slice(0, 10)}</td><td>{payment.description}

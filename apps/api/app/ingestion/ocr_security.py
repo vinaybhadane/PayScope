@@ -15,7 +15,7 @@ class OCRRecord(BaseModel):
     model_config = ConfigDict(extra="forbid")
     date: str
     descriptor: str = Field(min_length=2, max_length=1000)
-    amount: Decimal = Field(gt=0, allow_inf_nan=False, max_digits=18, decimal_places=2)
+    amount: Decimal = Field(ge=0, allow_inf_nan=False, max_digits=18, decimal_places=2)
 
     @field_validator("date")
     @classmethod

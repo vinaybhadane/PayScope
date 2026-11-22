@@ -26,7 +26,8 @@ class UploadRateLimitMiddleware:
         request = Request(scope)
         path = scope["path"].rstrip("/")
         prefix = settings.API_V1_STR
-        rates = {f"{prefix}/auth/guest": "5/minute", f"{prefix}/imports/preview": "10/minute", f"{prefix}/imports": "10/minute"}
+        rates = {f"{prefix}/auth/guest": "5/minute", f"{prefix}/imports/preview": "10/minute", f"{prefix}/imports": "10/minute",
+                 f"{prefix}/insights/statement-comparison/explain": "5/minute"}
         body_exceeded = False
         if scope["method"] == "POST" and path in rates:
             allowed = await run_in_threadpool(limiter.limiter.hit, parse(rates[path]), get_remote_address(request), path)

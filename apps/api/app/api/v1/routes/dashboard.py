@@ -6,12 +6,14 @@ from typing import Dict, List, Optional
 import uuid
 from fastapi import APIRouter, Depends, Query, Response
 from pydantic import BaseModel
-from sqlalchemy import func, select, exists, cast, String
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 from time import perf_counter
 from app.core.read_cache import dashboard_cache
 from app.analytics.financial_impact.commitment_costs import get_user_commitment_costs
+from app.analytics.financial_impact.historical_spend import get_monthly_payment_activity
+from app.analytics.financial_impact.schemas import MonthlyTrendPoint
 
 from app.analytics.financial_impact import (
     get_user_savings_summary,
@@ -22,8 +24,6 @@ from app.models.cancellation_case import CancellationCase
 from app.models.commitment import Commitment
 from app.models.commitment_insight import CommitmentInsight
 from app.models.manual_review_item import ManualReviewItem
-from app.models.transaction import Transaction
-from app.models.commitment_transaction import CommitmentTransaction
 from app.repositories.user_repository import UserRepository, resolve_workspace_user_id
 from app.analytics.autodebit_keyword_service import AutoDebitKeywordService
 
@@ -75,6 +75,7 @@ class DashboardFinancialOverview(BaseModel):
     candidate_annual_cost: Decimal
     historical_months: List[str]
     historical_amounts: List[Decimal]
+    monthly_activity: List[MonthlyTrendPoint] = []
 
 
 class DashboardSummaryResponse(BaseModel):
@@ -150,14 +151,7 @@ def _build_dashboard_summary(db: Session, user_id: Optional[uuid.UUID]) -> Dashb
         .join(Commitment, CommitmentInsight.commitment_id == Commitment.id)
         .where(CommitmentInsight.user_id == target, Commitment.user_id == target, CommitmentInsight.status == "open")
         .order_by(CommitmentInsight.detected_at.desc()).limit(5)).all()
-    # Aggregate in SQL and include only successful debit evidence of recurring commitments.
-    period = func.date_trunc("month", Transaction.transaction_date)
-    history = db.execute(select(period.label("month"), func.sum(Transaction.amount).label("amount"))
-        .where(Transaction.user_id == target, Transaction.direction.ilike("debit"),
-               Transaction.currency == 'INR',
-               Transaction.transaction_status.ilike("successful"),
-               exists(select(1).where(CommitmentTransaction.transaction_id == Transaction.id)))
-        .group_by(period).order_by(period.desc()).limit(12)).all()[::-1]
+    history = get_monthly_payment_activity(db, target, limit=12)
 
     # Calculate auto-debit rail distribution from verified commitments
     autodebit_service = AutoDebitKeywordService.get_instance()
@@ -195,8 +189,8 @@ def _build_dashboard_summary(db: Session, user_id: Optional[uuid.UUID]) -> Dashb
             cancellations_attention_count=cancellation["needs_attention"]),
         financial_overview=DashboardFinancialOverview(monthly_recurring_spend=monthly,
             annualized_recurring_spend=annual, upcoming_month_expected=upcoming.total_upcoming_30d,
-            candidate_annual_cost=candidate, historical_months=[row.month.strftime("%b %Y") for row in history],
-            historical_amounts=[row.amount for row in history]),
+            candidate_annual_cost=candidate, historical_months=[row.month_label for row in history],
+            historical_amounts=[row.recurring_debit for row in history], monthly_activity=history),
         top_commitments=top_commitment_models,
         category_distribution=categories,
         recent_insights=[DashboardRecentInsight(id=item.id, commitment_id=item.commitment_id,

@@ -35,16 +35,13 @@ def get_user_savings_opportunities(
     """Recorded recurring costs available for explicit cancellation scenarios."""
     if cost_items is None:
         cost_items = get_user_commitment_costs(db, user_id)
-    cost_map = {item.commitment_id: item for item in cost_items}
-    # Cancellation scenarios use recorded costs and require an explicit selection.
+    # Existing statements and manual corrections share the same observed-cost baseline.
     from app.models.workspace_intelligence import WorkspaceIntelligence
     review = db.get(WorkspaceIntelligence, user_id)
-    if review:
+    if review or any(item.transaction_count for item in cost_items):
         result = []
-        for sub in review.report.get('subscriptions', []):
-            item = cost_map.get(uuid.UUID(sub['commitment_id']))
-            recommendation = sub.get('savings_recommendation')
-            if not item or not item.is_confirmed or not recommendation:
+        for item in cost_items:
+            if not item.is_confirmed or not item.transaction_count or item.annualized_cost <= 0:
                 continue
             result.append(
                 SavingsOpportunityItem(
@@ -63,8 +60,8 @@ def get_user_savings_opportunities(
                     current_annual_cost=item.annualized_cost,
                     potential_monthly_saving=item.normalized_monthly_cost,
                     potential_annual_saving=item.annualized_cost,
-                    evidence_summary=recommendation + ' Simulator assumption: full cancellation of this subscription, not a plan discount. No cancellation is performed.',
-                    details={'source': review.model, 'assumption': 'User-selected cancellation; full observed recurring cost avoided. No cancellation has been performed.'},
+                    evidence_summary=f'Based on {item.transaction_count} successful payments. Model the cost you could avoid if future charges stop.',
+                    details={'source': 'statement history', 'assumption': 'Future charges stop after cancellation.'},
                 )
             )
         return result
@@ -135,7 +132,7 @@ def calculate_what_if_projection(
     )
     cost_lookup = {item.commitment_id: item.annualized_cost for item in cost_items}
 
-    all_opps = get_user_savings_opportunities(db, user_id)
+    all_opps = get_user_savings_opportunities(db, user_id, cost_items=cost_items)
     opp_lookup = {opp.id: opp for opp in all_opps}
 
     safeguards: List[str] = [
@@ -145,7 +142,7 @@ def calculate_what_if_projection(
     savings_by_commitment: Dict[uuid.UUID, Decimal] = {}
     selected_count = 0
 
-    for opp_id in selected_opportunity_ids:
+    for opp_id in dict.fromkeys(selected_opportunity_ids):
         opp = opp_lookup.get(opp_id)
         if not opp:
             continue

@@ -90,11 +90,10 @@ function CancellationCentreContent() {
           authFetch(`${apiBase}/api/v1/commitments`),
         ]);
 
-        if (!ignore && casesRes.ok) {
+        if (!casesRes.ok || !commsRes.ok) throw new Error("Could not load your cancellation cases and subscriptions.");
+        if (!ignore) {
           const cData = await casesRes.json();
           setCases(cData);
-        }
-        if (!ignore && commsRes.ok) {
           const commData = await commsRes.json();
           setCommitments(commData.items || commData);
         }
@@ -293,9 +292,9 @@ function CancellationCentreContent() {
                 </thead>
                 <tbody className="divide-y divide-[#1E293B]/50">
                   {cases.map((c) => {
-                    const totalSteps = c.playbook?.steps?.length || 5;
+                    const totalSteps = c.playbook?.steps?.length ?? 0;
                     const completed = c.completed_steps?.length || 0;
-                    const pct = Math.min(100, Math.round((completed / totalSteps) * 100));
+                    const pct = totalSteps ? Math.min(100, Math.round((completed / totalSteps) * 100)) : 0;
 
                     return (
                       <tr key={c.id} className="hover:bg-[#0D1322]/40 transition-colors">

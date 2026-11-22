@@ -214,6 +214,9 @@ export default function CommitmentsPage() {
   };
 
   const getStatusBadge = (status: string, user_decision?: string | null) => {
+    if (status === "ended_user_recorded" || status === "inactive") {
+      return <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-[#182234] text-[#c9d4e8]">{status === "ended_user_recorded" ? "Cancellation recorded" : "Inactive"}</span>;
+    }
     if (user_decision === "confirmed" || status === "user_confirmed") {
       return <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Confirmed</span>;
     }
@@ -386,6 +389,8 @@ export default function CommitmentsPage() {
               <option value="candidate">Candidate</option>
               <option value="review_required">Review Required</option>
               <option value="marked_not_recurring">Marked Not Recurring</option>
+              <option value="ended_user_recorded">Cancellation recorded</option>
+              <option value="inactive">Inactive</option>
             </select>
 
             {/* Confidence Filter */}
@@ -494,7 +499,7 @@ export default function CommitmentsPage() {
                           >
                             Details
                           </Link>
-                          {c.status !== "user_confirmed" && c.user_decision !== "confirmed" && (
+                          {!["user_confirmed", "ended_user_recorded", "marked_not_recurring", "inactive"].includes(c.status) && c.user_decision !== "confirmed" && (
                             <button
                               onClick={() => handleConfirm(c.id)}
                               className="px-2 py-1 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-colors text-[11px] font-medium cursor-pointer"

@@ -1,5 +1,6 @@
 "use client";
 import { authFetch } from "@/lib/authFetch";
+import { invalidateWorkspaceResources } from "@/lib/useWorkspaceResource";
 
 import { getApiBaseUrl } from "@/lib/api";
 import React, { useState, useEffect, use } from "react";
@@ -120,6 +121,7 @@ export default function CancellationCaseDetailPage({
   const handleReportCancelled = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmittingAction(true);
+    setError(null);
     try {
       const res = await authFetch(`${apiBase}/api/v1/cancellations/${caseId}/report-cancelled`, {
         method: "POST",
@@ -133,7 +135,10 @@ export default function CancellationCaseDetailPage({
         const updated = await res.json();
         setCaseDetail(updated);
         setReportingCancelled(false);
-        setActionSuccess("Cancellation reported successfully. Post-cancellation monitors are now active!");
+        setActionSuccess("Cancellation recorded. Future charges can be flagged when you import another statement.");
+        invalidateWorkspaceResources();
+      } else {
+        setError("Could not record the cancellation. Please try again.");
       }
     } catch {
       setError("Failed to record cancellation.");
@@ -153,7 +158,7 @@ export default function CancellationCaseDetailPage({
     );
   }
 
-  if (error || !caseDetail) {
+  if (!caseDetail) {
     return (
       <div className="min-h-screen bg-[#040711] text-[#F4F7FB] flex items-center justify-center p-4">
         <div className="max-w-md w-full p-6 rounded-2xl bg-[#0D1322] border border-[#1E293B] text-center flex flex-col gap-4">
@@ -169,8 +174,8 @@ export default function CancellationCaseDetailPage({
 
   const pb = caseDetail.playbook;
   const completedSteps = caseDetail.completed_steps || [];
-  const totalSteps = pb?.steps?.length || 5;
-  const progressPct = Math.min(100, Math.round((completedSteps.length / totalSteps) * 100));
+  const totalSteps = pb?.steps?.length ?? 0;
+  const progressPct = totalSteps ? Math.min(100, Math.round((completedSteps.length / totalSteps) * 100)) : 0;
 
   return (
     <div className="min-h-screen flex flex-col bg-[#040711] text-[#8E9CAE] selection:bg-[#FF5500] selection:text-[#F4F7FB]">
@@ -179,6 +184,7 @@ export default function CancellationCaseDetailPage({
 
       {/* Main Body */}
       <main id="workspace-content" tabIndex={-1} className="workspace-content flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-6">
+        {error && <p className="dash-notice" role="alert">{error}</p>}
         {/* Banner Messages */}
         {actionSuccess && (
           <div className="p-4 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-sm flex items-center justify-between">

@@ -6,7 +6,8 @@ import { getApiBaseUrl } from "@/lib/api";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { AIWorkspacePanel } from "@/components/workspace/AIWorkspacePanel";
+import { MonthlyPaymentChart, type MonthlyActivity } from "@/components/dashboard/MonthlyPaymentChart";
+import { formatMoney } from "@/lib/formatMoney";
 import AppHeader from "@/components/navigation/AppHeader";
 import { MerchantLogo } from "@/components/brand/MerchantLogo";
 import { formatPeriod } from "@/lib/formatPeriod";
@@ -98,12 +99,19 @@ interface UpcomingResponse {
   items: UpcomingItem[];
 }
 
+interface HistoricalSpend {
+  monthly_timeline: MonthlyActivity[];
+  periods: { period: string; period_label: string; gross_debit_amount: string; total_credits: string; net_spend: string; transaction_count: number }[];
+}
+
 export default function FinancialImpactPage() {
   const [summary, setSummary] = useState<FinancialSummary | null>(null);
   const [commitments, setCommitments] = useState<CommitmentCostItem[]>([]);
   const [categories, setCategories] = useState<CategoryBreakdown[]>([]);
   const [merchants, setMerchants] = useState<MerchantRanking[]>([]);
   const [upcoming, setUpcoming] = useState<UpcomingResponse | null>(null);
+  const [history, setHistory] = useState<HistoricalSpend | null>(null);
+  const [windowKey, setWindowKey] = useState("90d");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -122,24 +130,26 @@ export default function FinancialImpactPage() {
       setError(null);
 
       try {
-        const [sumRes, comRes, catRes, merRes, upRes] = await Promise.all([
+        const [sumRes, comRes, catRes, merRes, upRes, historyRes] = await Promise.all([
           authFetch(`${apiBase}/api/v1/financial-impact/summary`),
           authFetch(`${apiBase}/api/v1/financial-impact/commitments`),
           authFetch(`${apiBase}/api/v1/financial-impact/categories`),
           authFetch(`${apiBase}/api/v1/financial-impact/merchants`),
           authFetch(`${apiBase}/api/v1/financial-impact/upcoming`),
+          authFetch(`${apiBase}/api/v1/financial-impact/history`),
         ]);
 
-        if (!sumRes.ok || !comRes.ok) {
+        if (![sumRes, comRes, catRes, merRes, upRes, historyRes].every((response) => response.ok)) {
           throw new Error("Failed to load spending analysis calculations.");
         }
 
-        const [sumData, comData, catData, merData, upData] = await Promise.all([
+        const [sumData, comData, catData, merData, upData, historyData] = await Promise.all([
           sumRes.json(),
           comRes.json(),
           catRes.ok ? catRes.json() : [],
           merRes.ok ? merRes.json() : [],
           upRes.ok ? upRes.json() : null,
+          historyRes.json(),
         ]);
 
         if (!ignore) {
@@ -148,6 +158,7 @@ export default function FinancialImpactPage() {
           setCategories(catData);
           setMerchants(merData);
           setUpcoming(upData);
+          setHistory(historyData);
         }
       } catch (err: unknown) {
         if (!ignore) {
@@ -165,6 +176,8 @@ export default function FinancialImpactPage() {
       ignore = true;
     };
   }, [apiBase, workspaceRevision]);
+
+  const window = history?.periods.find((period) => period.period === windowKey);
 
   const filteredCommitments = commitments.filter((item) => {
     if (activeTab === "confirmed" && !item.is_confirmed) return false;
@@ -187,7 +200,6 @@ export default function FinancialImpactPage() {
 
       {/* Main Container */}
       <main id="workspace-content" tabIndex={-1} className="workspace-content flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
-        <AIWorkspacePanel section="spending_analysis" />
 
         {/* Title & Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -224,6 +236,25 @@ export default function FinancialImpactPage() {
           </div>
         )}
 
+        {!loading && history && window && <>
+          <section className="comparison-panel" aria-label="Recorded cash flow">
+            <header className="comparison-header">
+              <div><h2>Recorded cash flow</h2><p>Completed INR payments through today.</p></div>
+              <div className="history-window" aria-label="Spending period">
+                {history.periods.map((period) => <button key={period.period} type="button" aria-pressed={windowKey === period.period}
+                  onClick={() => setWindowKey(period.period)}>{period.period === "all" ? "All time" : period.period}</button>)}
+              </div>
+            </header>
+            <div className="comparison-kpis" aria-live="polite">
+              <div className="comparison-kpi outflow"><span>Outflow</span><strong>{formatMoney(window.gross_debit_amount)}</strong></div>
+              <div className="comparison-kpi inflow"><span>Inflow</span><strong>{formatMoney(window.total_credits)}</strong></div>
+              <div className="comparison-kpi"><span>Net cash flow</span><strong>{formatMoney(window.net_spend.startsWith("-") ? window.net_spend.slice(1) : window.net_spend === "0.00" ? "0.00" : `-${window.net_spend}`)}</strong></div>
+            </div>
+            <p className="comparison-caption">{window.transaction_count} completed payments · {window.period_label}</p>
+          </section>
+          <MonthlyPaymentChart activity={history.monthly_timeline} />
+        </>}
+
         {!loading && summary && (
           <>
             {/* Top Metrics Cards */}
@@ -233,7 +264,7 @@ export default function FinancialImpactPage() {
                 <span className="text-xs font-medium text-[#8E9CAE]">What You Spend Monthly</span>
                 <div className="mt-2 flex items-baseline gap-2">
                   <span className="text-2xl lg:text-3xl font-bold text-[#F4F7FB] font-mono">
-                    ₹{summary.monthly_recurring_spend.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {formatMoney(summary.monthly_recurring_spend)}
                   </span>
                   <span className="text-xs text-[#8E9CAE] font-normal">/mo</span>
                 </div>
@@ -248,7 +279,7 @@ export default function FinancialImpactPage() {
                 <span className="text-xs font-semibold text-amber-300">Expected Total Yearly Spend</span>
                 <div className="mt-2 flex items-baseline gap-2">
                   <span className="text-2xl lg:text-3xl font-bold text-amber-200 font-mono">
-                    ₹{Number(summary.estimated_annual_total).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {formatMoney(summary.estimated_annual_total)}
                   </span>
                   <span className="text-xs text-amber-300/80 font-normal">/yr</span>
                 </div>
@@ -262,7 +293,7 @@ export default function FinancialImpactPage() {
                 <span className="text-xs font-semibold text-cyan-300">Yearly Subscriptions Total</span>
                 <div className="mt-2 flex items-baseline gap-2">
                   <span className="text-2xl lg:text-3xl font-bold text-cyan-300 font-mono">
-                    ₹{summary.annualized_recurring_spend.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {formatMoney(summary.annualized_recurring_spend)}
                   </span>
                   <span className="text-xs text-cyan-400/70 font-normal">/yr</span>
                 </div>
@@ -277,7 +308,7 @@ export default function FinancialImpactPage() {
                 <span className="text-xs font-medium text-[#8E9CAE]">Past 12 Months Total Spent</span>
                 <div className="mt-2 flex items-baseline gap-2">
                   <span className="text-2xl lg:text-3xl font-bold text-[#8E9CAE] font-mono">
-                    ₹{summary.historical_spend_12m.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {formatMoney(summary.historical_spend_12m)}
                   </span>
                 </div>
                 <div className="mt-3 pt-2 border-t border-[#1E293B]/60 flex items-center justify-between text-[11px] text-[#8E9CAE]">
@@ -291,7 +322,7 @@ export default function FinancialImpactPage() {
                 <span className="text-xs font-medium text-[#8E9CAE]">Coming Due in Next 30 Days</span>
                 <div className="mt-2 flex items-baseline gap-2">
                   <span className="text-2xl lg:text-3xl font-bold text-amber-300 font-mono">
-                    ₹{summary.upcoming_30d_expected_spend.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {formatMoney(summary.upcoming_30d_expected_spend)}
                   </span>
                 </div>
                 <div className="mt-3 pt-2 border-t border-[#1E293B]/60 flex items-center justify-between text-[11px] text-[#8E9CAE]">
@@ -308,7 +339,7 @@ export default function FinancialImpactPage() {
                   <div className="w-2.5 h-2.5 rounded-full bg-teal-400 mt-1 flex-shrink-0 animate-pulse" />
                   <div>
                     <h4 className="text-sm font-semibold text-teal-300">
-                      You could save up to ₹{summary.potential_annual_savings.toLocaleString("en-IN", { minimumFractionDigits: 2 })} every year
+                      You could save up to {formatMoney(summary.potential_annual_savings)} every year
                     </h4>
                     <p className="text-xs text-[#8E9CAE] mt-0.5">
                       We identified recurring subscriptions you may not be using or whose prices recently increased.
@@ -331,7 +362,7 @@ export default function FinancialImpactPage() {
                   <div className="w-2.5 h-2.5 rounded-full bg-amber-400 mt-1 flex-shrink-0 animate-pulse" />
                   <div>
                     <h4 className="text-sm font-semibold text-amber-300">
-                      {summary.total_candidate_commitments} Potential Subscriptions to Review (₹{summary.potential_candidate_annual_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/yr)
+                      {summary.total_candidate_commitments} Potential Subscriptions to Review ({formatMoney(summary.potential_candidate_annual_cost)}/yr)
                     </h4>
                     <p className="text-xs text-[#8E9CAE] mt-0.5">
                       These are single annual payments or irregular charges (such as insurance or annual memberships). Check them to confirm or ignore.
@@ -369,7 +400,7 @@ export default function FinancialImpactPage() {
                         <div className="flex items-center gap-3 font-mono">
                           <span className="text-[#8E9CAE] font-sans">{cat.commitment_count} service{cat.commitment_count === 1 ? "" : "s"}</span>
                           <span className="text-cyan-300 font-bold">
-                            ₹{cat.annualized_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/yr
+                            {formatMoney(cat.annualized_cost)}/yr
                           </span>
                           <span className="text-[#8E9CAE] text-[11px] w-12 text-right">({cat.percentage_of_recurring}%)</span>
                         </div>
@@ -433,10 +464,10 @@ export default function FinancialImpactPage() {
 
                       <div className="text-right font-mono">
                         <span className="text-cyan-300 font-bold block text-sm">
-                          ₹{m.annualized_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/yr
+                          {formatMoney(m.annualized_cost)}/yr
                         </span>
                         <span className="text-[11px] text-[#8E9CAE]">
-                          ₹{m.monthly_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/mo
+                          {formatMoney(m.monthly_cost)}/mo
                         </span>
                       </div>
                     </div>
@@ -459,7 +490,7 @@ export default function FinancialImpactPage() {
                     </p>
                   </div>
                   <span className="text-xs font-mono px-3 py-1.5 rounded-full bg-[#040711] border border-[#1E293B] text-amber-300 font-semibold self-start sm:self-auto">
-                    Next 60 Days Total: ₹{upcoming.total_upcoming_60d.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                    Next 60 Days Total: {formatMoney(upcoming.total_upcoming_60d)}
                   </span>
                 </div>
 
@@ -488,7 +519,7 @@ export default function FinancialImpactPage() {
 
                       <div className="mt-3 pt-2 border-t border-[#1E293B]/60 flex justify-between items-baseline font-mono">
                         <span className="text-amber-400 font-bold text-sm">
-                          ₹{up.estimated_amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                          {formatMoney(up.estimated_amount)}
                         </span>
                         <span className="text-[11px] text-[#8E9CAE] font-sans">{up.expected_date}</span>
                       </div>
@@ -598,13 +629,13 @@ export default function FinancialImpactPage() {
                           {formatPeriod(c.cadence)}
                         </td>
                         <td className="py-3 px-4 font-mono text-[#F4F7FB]">
-                          ₹{c.representative_amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                          {formatMoney(c.representative_amount)}
                         </td>
                         <td className="py-3 px-4 font-mono font-semibold text-cyan-300">
-                          ₹{c.normalized_monthly_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/mo
+                          {formatMoney(c.normalized_monthly_cost)}/mo
                         </td>
                         <td className="py-3 px-4 font-mono font-bold text-[#F4F7FB]">
-                          ₹{c.annualized_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/yr
+                          {formatMoney(c.annualized_cost)}/yr
                         </td>
                         <td className="py-3 px-4">
                           <span

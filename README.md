@@ -51,6 +51,10 @@ PDF/image previews and imports return `202` with a `job_id`. Poll `GET /api/v1/i
 
 Bank-statement amounts and recurrence analysis use deterministic local rules. No Gemini key is needed for imports, payment tracking, subscription discovery or dashboard totals. Suspected instruction payloads and low-confidence OCR records go to manual review. Legitimate bank terms such as Standing Instruction are accepted. CSV and XLSX exports sanitize string cells against spreadsheet formulas.
 
+Payment insights compares two imported statements using completed payments in each source file. It shows cash flow by currency, new payees or payers, new recurring patterns, changes in observed subscription charges, and documented closures. A charge missing from the later file is marked as not seen. Explicit statement closure rows need a mandate reference that uniquely links to a prior recurring payment. User recorded cancellations appear separately. Overlap is shown in the comparison, and the ledger deduplicates shared payments. Older files imported before overlap tracking may need to be uploaded again if duplicate rows cannot be linked to the file.
+
+Choose **Explain with Gemini** to generate plain language highlights. Configure `GEMINI_API_KEY` and `GEMINI_MODEL` in the API environment. The request contains calculated amounts and change types, without names, file contents, account references, or filenames. The exact comparison is still available when the provider is unavailable.
+
 Guest and signed-in workspaces start empty. Guest sessions are isolated and expire after 24 hours. There is no automatic demo seeding or sample-value fallback in dashboard resources. Example downloads are optional and are imported only when explicitly uploaded.
 
 CORS allows configured origins only. Set `BACKEND_CORS_ORIGINS` for your frontend host and remove unused production defaults when deploying. Unexpected server errors return a generic message; details stay in server logs.

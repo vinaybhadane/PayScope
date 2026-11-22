@@ -176,7 +176,7 @@ def _generate_heuristic_review(records: list[dict], *args, **kwargs) -> Review:
         if len(txs) == 1:
             record = txs[0]
             ad = AutoDebitKeywordService.get_instance().analyze_descriptor(record["description"])
-            if ad.is_autodebit_candidate:
+            if ad.is_autodebit_candidate or re.search(r"(?i)\bsubscription\b|\bmonthly membership\b", record["description"]):
                 subscriptions.append(ReviewedSubscription(
                     name=(record.get("merchant_name") or record["description"])[:255],
                     category=ad.category_hint or "Recurring payment candidate",
@@ -407,18 +407,18 @@ def review_workspace(db: Session, user_id: uuid.UUID) -> dict:
         c.next_expected_date = estimate_next_expected_date(txs[-1].transaction_date.date(), sub.cadence, 0)
         c.annualised_amount, c.annualisation_method = calculate_annualised_amount(c.representative_amount, c.cadence)
         c.confidence_band = sub.confidence
-        c.confidence_score = Decimal({'high': '95', 'medium': '75', 'low': '45'}[sub.confidence])
+        c.confidence_score = None
         if not c.user_decision:
             c.status = 'active' if sub.confidence != 'low' else 'candidate'
 
         rail = sub.payment_rail or "Unknown"
         rail_counts[rail] = rail_counts.get(rail, 0) + 1
 
-        c.detection_explanation = f"[{rail}] {sub.explanation} (Audit: {sub.audit_note or 'Verified Accurate'})"
+        c.detection_explanation = f"[{rail}] {sub.explanation}"
         c.detection_reason_codes = [
             'statement_evidence_reviewed',
             f'rail:{rail}',
-            f'status:{sub.verification_status or "verified_accurate"}',
+            f'status:{sub.verification_status or "potential_candidate"}',
         ]
         c.detector_version = 'statement-rules-v2'
 
@@ -467,6 +467,14 @@ def review_workspace(db: Session, user_id: uuid.UUID) -> dict:
     for c in existing:
         if c.id not in claimed and not c.user_decision:
             c.status = 'inactive'
+
+    db.flush()
+    from app.analytics.cancellations.statement_evidence import sync_statement_closures
+    sync_statement_closures(db, user_id)
+    for item in saved:
+        commitment = db.get(Commitment, uuid.UUID(item['commitment_id']))
+        item['status'] = commitment.status
+        item['next_expected_date'] = commitment.next_expected_date.isoformat() if commitment.next_expected_date else None
 
     audit_score = None
     report = {

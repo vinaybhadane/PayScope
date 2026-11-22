@@ -334,7 +334,7 @@ export default function CommitmentDetailPage({
               </span>
               {/* Confidence Badge */}
               <span className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                {commitment.confidence_band} Confidence ({commitment.confidence_score}%)
+                {commitment.confidence_band.replaceAll("_", " ")} confidence
               </span>
             </div>
 
@@ -360,7 +360,7 @@ export default function CommitmentDetailPage({
 
           {/* User Review Action Buttons */}
           <div className="flex flex-wrap items-center gap-2.5">
-            {commitment.user_decision !== "confirmed" && (
+            {commitment.user_decision !== "confirmed" && commitment.status !== "ended_user_recorded" && (
               <button
                 onClick={handleConfirm}
                 className="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-[#F4F7FB] transition-colors cursor-pointer shadow-sm shadow-emerald-600/20"
@@ -368,7 +368,7 @@ export default function CommitmentDetailPage({
                 Confirm Recurring
               </button>
             )}
-            {commitment.user_decision !== "not_recurring" && (
+            {commitment.user_decision !== "not_recurring" && commitment.status !== "ended_user_recorded" && (
               <button
                 onClick={handleMarkNotRecurring}
                 className="px-4 py-2 rounded-xl text-xs font-medium bg-[#0D1322] hover:bg-[#0D1322] text-[#8E9CAE] transition-colors cursor-pointer border border-[#1E293B]"

@@ -1,12 +1,14 @@
 "use client";
 import { authFetch } from "@/lib/authFetch";
-import { useWorkspaceRevision } from "@/lib/useWorkspaceResource";
+import { invalidateWorkspaceResources, useWorkspaceRevision } from "@/lib/useWorkspaceResource";
 
 import { getApiBaseUrl } from "@/lib/api";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 
 import AppHeader from "@/components/navigation/AppHeader";
+import StatementComparison from "@/components/workspace/StatementComparison";
+import { formatMoney } from "@/lib/formatMoney";
 
 interface InsightItem {
   id: string;
@@ -137,11 +139,11 @@ export default function InsightsPage() {
       if (res.ok) {
         const detResult = await res.json();
         setDetectMsg(
-          `Detection completed in ${detResult.duration_ms}ms: Found ${detResult.total_detected} anomalies across subscriptions.`
+          `Refreshed ${detResult.total_detected} subscription alerts.`
         );
-        refreshInsights();
+        invalidateWorkspaceResources();
       } else {
-        setError("Failed to run anomaly intelligence detector.");
+        setError("Could not refresh subscription alerts.");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Network error during detection");
@@ -280,7 +282,7 @@ export default function InsightsPage() {
 
             </h1>
             <p className="mt-1 text-sm text-[#8E9CAE]">
-              AI-generated payment insights backed by your uploaded statement records.
+              Compare your uploaded statements and review changes in your payments.
             </p>
           </div>
 
@@ -295,18 +297,20 @@ export default function InsightsPage() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                 </svg>
-                <span>Analyzing Streams...</span>
+                <span>Refreshing alerts…</span>
               </>
             ) : (
               <>
                 <svg className="w-4 h-4 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                <span>Run Intelligence Detection</span>
+                <span>Refresh alerts</span>
               </>
             )}
           </button>
         </div>
+        <StatementComparison />
+        <h2 className="text-xl font-bold text-[#F4F7FB]">Subscription alerts</h2>
 
         {/* Status Alerts */}
         {detectMsg && (
@@ -362,9 +366,9 @@ export default function InsightsPage() {
             <div className="p-4 rounded-xl bg-[#0D1322]/60 border border-[#1E293B]">
               <div className="text-xs font-medium text-emerald-400">Monthly Impact</div>
               <div className="mt-1 text-2xl font-bold text-emerald-300">
-                ₹{Number(summary.estimated_monthly_impact).toLocaleString("en-IN", { minimumFractionDigits: 0 })}
+                {formatMoney(summary.estimated_monthly_impact)}
               </div>
-              <div className="mt-1 text-[11px] text-[#8E9CAE]">Recoverable / monthly</div>
+              <div className="mt-1 text-[11px] text-[#8E9CAE]">Estimated from open alerts</div>
             </div>
           </div>
         )}

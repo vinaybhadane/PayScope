@@ -1544,3 +1544,71 @@
 .payment-table th, .payment-table td { padding: 1rem .75rem; border-bottom: 1px solid #78957533; vertical-align: top; }
 .payment-table small { display: block; margin-top: .35rem; opacity: .75; }
 .payment-pagination { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1.25rem; }
+
+/* Statement comparison and monthly cash flow */
+.comparison-panel { --comparison-border: #263247; display: grid; gap: 1.25rem; padding: clamp(1rem, 2.5vw, 2rem); color: #edf2fa; border: 1px solid var(--comparison-border); border-radius: 20px; background: #0b111e; }
+.comparison-header, .comparison-section-head, .comparison-currency-title { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+.comparison-header h2 { font-size: clamp(1.35rem, 2.5vw, 1.8rem); font-weight: 700; letter-spacing: -.025em; }
+.comparison-header p, .comparison-section-head p, .comparison-caption { margin-top: .25rem; color: #aebad0; font-size: .865rem; line-height: 1.5; }
+.comparison-action { display: inline-flex; align-items: center; gap: .45rem; justify-content: center; border: 1px solid #3b4a63; border-radius: 9px; padding: .6rem .9rem; background: #192339; color: #f2f5ff; font-size: .825rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.comparison-action:hover { background: #273655; }
+.comparison-action:disabled { cursor: wait; opacity: .65; }
+.comparison-selects, .comparison-flows { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.comparison-selects label { display: grid; gap: .45rem; min-width: 0; color: #c6d0e0; font-size: .825rem; font-weight: 600; }
+.comparison-selects select { width: 100%; border: 1px solid #34425a; border-radius: 9px; min-height: 44px; padding: .5rem .7rem; background: #111b2d; color: #eef2f9; text-overflow: ellipsis; }
+.comparison-currency { display: grid; gap: .75rem; }
+.comparison-currency-title { gap: .3rem 1rem; }
+.comparison-currency-title h3, .comparison-section-head h3 { font-size: 1rem; font-weight: 700; }
+.comparison-currency-title span { color: #aab7cc; font-size: .8rem; }
+.comparison-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; }
+.comparison-kpi { display: grid; align-content: start; gap: .45rem; padding: 1rem; border: 1px solid var(--comparison-border); border-radius: 12px; background: #101a2a; }
+.comparison-kpi > span { color: #b2c1d6; font-size: .8rem; font-weight: 600; }
+.comparison-kpi strong { font-size: clamp(1.25rem, 2.2vw, 1.8rem); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.comparison-kpi.inflow strong { color: #71ebcf; }
+.comparison-kpi.outflow strong { color: #ffac88; }
+.comparison-kpi > div { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .7rem; color: #a9b8ce; font-size: .775rem; }
+.comparison-delta { padding: .2rem .4rem; border: 1px solid #3c4a63; border-radius: 6px; color: #edf2fa; font-variant-numeric: tabular-nums; }
+.comparison-warning, .comparison-empty { padding: .85rem 1rem; border: 1px dashed var(--comparison-border); border-radius: 9px; color: #c2cee2; font-size: .875rem; }
+.comparison-warning { border-style: solid; border-color: #684524; color: #ffcb9f; background: #291c13; }
+.comparison-warning button { text-decoration: underline; margin-inline-start: .5rem; cursor: pointer; }
+.comparison-gemini, .comparison-evidence { display: grid; align-content: start; gap: .85rem; padding: 1rem; border: 1px solid var(--comparison-border); border-radius: 12px; }
+.comparison-gemini { background: linear-gradient(112deg, #1b203e, #11182a 67%); border-color: #3b446b; }
+.comparison-gemini h3 { display: flex; align-items: center; gap: .5rem; }
+.comparison-gemini-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: .65rem; margin: 0; }
+.comparison-gemini-list li { display: grid; gap: .3rem; padding: .75rem; border: 1px solid #394362; border-radius: 8px; background: #0c1424; font-size: .825rem; }
+.comparison-gemini-list span { color: #becae0; line-height: 1.45; }
+.comparison-list { display: grid; margin: 0; }
+.comparison-list li { display: flex; justify-content: space-between; align-items: center; gap: .8rem; min-width: 0; padding: .65rem 0; border-top: 1px solid var(--comparison-border); }
+.comparison-list li > div { min-width: 0; }
+.comparison-list li > div:last-child { text-align: right; }
+.comparison-list a, .comparison-list strong { font-weight: 600; font-size: .875rem; overflow-wrap: anywhere; }
+.comparison-list a:hover { text-decoration: underline; }
+.comparison-list small { display: block; margin-top: .2rem; color: #aab8cd; font-size: .75rem; }
+.comparison-amount { font-size: .875rem; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.comparison-chip { display: inline-block; padding: .245rem .55rem; border-radius: 6px; font-size: .725rem; font-weight: 650; background: #20304e; color: #d1ddff; }
+.comparison-chip.price_increase, .comparison-chip.payment_not_seen { background: #37271c; color: #ffd0a4; }
+.comparison-chip.closed, .comparison-chip.new_subscription, .comparison-chip.price_decrease { background: #16352f; color: #9bf3d8; }
+.comparison-chip.charge_after_closure { background: #492831; color: #ffc7d2; }
+.comparison-panel :is(button, a, select):focus-visible, .payment-trend :is(button, a, g):focus-visible { outline: 2px solid #a8adff; outline-offset: 3px; }
+.payment-trend { min-width: 0; }
+.payment-trend-metrics { display: flex; gap: .45rem; flex-wrap: wrap; margin: .8rem 0; }
+.payment-trend-metrics button { display: inline-flex; align-items: center; gap: .4rem; padding: .4rem .65rem; border: 1px solid #33415a; border-radius: 7px; color: #bcc9de; font-size: .825rem; cursor: pointer; }
+.payment-trend-metrics button[aria-pressed="true"] { background: #253149; border-color: #526381; color: #f4f7fb; }
+.payment-trend-metrics i { width: 8px; height: 8px; border-radius: 50%; }
+.payment-trend .timeline-readout { flex-wrap: wrap; }
+.payment-trend .timeline-svg { width: 100%; min-height: 8rem; margin-top: .6rem; }
+.payment-trend .timeline-axis { font-size: 12px; }
+.payment-trend .timeline-summary > span { line-height: 1.4; }
+.payment-trend-change { opacity: .9; font-size: .775rem; }
+.payment-trend .dash-chart-empty a { color: #a8adff; text-decoration: underline; }
+.history-window { display: flex; gap: .45rem; flex-wrap: wrap; }
+.history-window button { min-height: 2.4rem; padding: .45rem .7rem; border-radius: 7px; background: #121c2c; border: 1px solid #2e3a52; color: #c7d2e6; cursor: pointer; }
+.history-window button[aria-pressed="true"] { background: #283755; color: #f3f6fd; }
+
+@media (max-width: 700px) {
+  .comparison-selects, .comparison-flows { grid-template-columns: 1fr; }
+  .comparison-kpis { grid-template-columns: 1fr; }
+  .comparison-kpi { grid-template-columns: 1fr auto; align-items: center; }
+  .comparison-kpi > div { grid-column: 1 / -1; }
+  .payment-trend .timeline-axis { font-size: 15px; }
+}

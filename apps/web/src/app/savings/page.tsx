@@ -6,7 +6,7 @@ import { getApiBaseUrl } from "@/lib/api";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 
-import { AIWorkspacePanel } from "@/components/workspace/AIWorkspacePanel";
+import { formatMoney } from "@/lib/formatMoney";
 import AppHeader from "@/components/navigation/AppHeader";
 import { MerchantLogo } from "@/components/brand/MerchantLogo";
 
@@ -75,6 +75,8 @@ export default function SavingsPage() {
   const [summary, setSummary] = useState<SavingsSummary | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [projection, setProjection] = useState<ProjectionResult | null>(null);
+  const [calculationError, setCalculationError] = useState("");
+  const [retryCalculation, setRetryCalculation] = useState(0);
   const [savedScenarios, setSavedScenarios] = useState<SavedScenario[]>([]);
   const [loading, setLoading] = useState(true);
   const [calculating, setCalculating] = useState(false);
@@ -118,9 +120,8 @@ export default function SavingsPage() {
         if (!ignore) {
           setSummary(sumData);
           setSavedScenarios(scenData);
-          // By default, select all opportunities for initial simulation
-          const initialSelected = sumData.opportunities.map((o) => o.id);
-          setSelectedIds(initialSelected);
+          const available = new Set(sumData.opportunities.map((o) => o.id));
+          setSelectedIds((selection) => selection.filter((id) => available.has(id)));
         }
       } catch (err: unknown) {
         if (!ignore) {
@@ -154,6 +155,7 @@ export default function SavingsPage() {
 
     async function recomputeProjection() {
       setCalculating(true);
+      setCalculationError("");
       try {
         const res = await authFetch(`${apiBase}/api/v1/savings/calculate`, {
           method: "POST",
@@ -162,7 +164,8 @@ export default function SavingsPage() {
           signal: controller.signal,
         });
 
-        if (currentRequestId === latestCalcRequestId.current && res.ok) {
+        if (!res.ok) throw new Error("Could not update the savings estimate.");
+        if (currentRequestId === latestCalcRequestId.current) {
           const data: ProjectionResult = await res.json();
           setProjection(data);
         }
@@ -170,7 +173,10 @@ export default function SavingsPage() {
         if (err instanceof Error && err.name === "AbortError") {
           return;
         }
-        console.error("Calculation error:", err);
+        if (currentRequestId === latestCalcRequestId.current) {
+          setCalculationError(err instanceof Error ? err.message : "Could not update the savings estimate.");
+          setProjection(null);
+        }
       } finally {
         if (currentRequestId === latestCalcRequestId.current) {
           setCalculating(false);
@@ -183,7 +189,7 @@ export default function SavingsPage() {
     return () => {
       controller.abort();
     };
-  }, [selectedIds, apiBase]);
+  }, [selectedIds, apiBase, retryCalculation]);
 
   // Toggle opportunity selection (single clean state update path)
   const toggleOpportunity = (id: string) => {
@@ -276,27 +282,17 @@ export default function SavingsPage() {
 
       {/* Main Container */}
       <main id="workspace-content" tabIndex={-1} className="workspace-content flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
-        <AIWorkspacePanel section="savings_analysis" />
-
         {/* Title */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#F4F7FB] flex items-center gap-3">
-              Savings Calculator
+              Savings simulator
             </h1>
             <p className="text-sm text-[#8E9CAE] mt-1">
-              Pick the subscriptions you no longer need and see instantly how much money you keep in your pocket.
+              Select one or more subscriptions to model what you could save if those charges stop.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-cyan-950/60 border border-cyan-800/40 text-cyan-300">
-              Accurate Calculations
-            </span>
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-teal-950/60 border border-teal-800/40 text-teal-300">
-              Verified Statement Amounts
-            </span>
-          </div>
         </div>
 
         {/* Friendly Information Notice */}
@@ -308,7 +304,7 @@ export default function SavingsPage() {
                 How Your Savings Are Calculated
               </span>
               <p className="text-[#8E9CAE] mt-0.5 leading-relaxed">
-                These estimates show what you could save based on your past bank statement charges. You actually keep this money once you cancel the subscription directly with the provider or through your bank.
+                Estimates use successful INR charges and observed billing frequency. Select a subscription to preview savings. Use the cancellation centre to record an actual cancellation.
               </p>
             </div>
           </div>
@@ -335,7 +331,7 @@ export default function SavingsPage() {
               <div className="rounded-xl border border-cyan-500/30 bg-[#0D1322] p-5 shadow-sm">
                 <span className="text-xs font-medium text-[#8E9CAE]">If You Cancel Everything Suggested</span>
                 <strong className="block mt-2 text-3xl font-bold font-mono text-cyan-300">
-                  ₹{Number(summary.total_potential_annual_savings).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {formatMoney(summary.total_potential_annual_savings)}
                   <span className="text-sm font-normal text-[#8E9CAE] font-sans"> / year</span>
                 </strong>
                 <p className="mt-3 text-xs text-[#8E9CAE]">
@@ -346,7 +342,7 @@ export default function SavingsPage() {
               <div className="rounded-xl border border-teal-500/30 bg-[#0D1322] p-5 shadow-sm">
                 <span className="text-xs font-medium text-[#8E9CAE]">Monthly Savings Equivalent</span>
                 <strong className="block mt-2 text-3xl font-bold font-mono text-[#F4F7FB]">
-                  ₹{Number(summary.total_potential_monthly_savings).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {formatMoney(summary.total_potential_monthly_savings)}
                   <span className="text-sm font-normal text-[#8E9CAE] font-sans"> / month</span>
                 </strong>
                 <p className="mt-3 text-xs text-[#8E9CAE]">
@@ -356,6 +352,7 @@ export default function SavingsPage() {
             </section>
 
             {/* Interactive Live Simulation Bar */}
+            {calculationError && <div className="dash-notice" role="alert">{calculationError} <button type="button" onClick={() => setRetryCalculation((value) => value + 1)}>Retry</button></div>}
             {projection && (
               <section className="rounded-2xl border border-cyan-500/40 bg-gradient-to-r from-slate-900 via-slate-900/90 to-cyan-950/40 p-6 shadow-[0_0_30px_rgba(6,182,212,0.12)]">
                 <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
@@ -364,7 +361,7 @@ export default function SavingsPage() {
                       Live Calculator
                     </span>
                     <h2 className="text-xl font-bold text-[#F4F7FB] mt-1 flex items-center">
-                      What You Spend Now vs What You Spend After Cancelling
+                      Estimated annual cost after cancellation
                       {calculating && (
                         <span className="ml-2 text-xs font-mono text-cyan-400 font-normal animate-pulse">
                           (Updating...)
@@ -372,7 +369,7 @@ export default function SavingsPage() {
                       )}
                     </h2>
                     <p className="text-xs text-[#8E9CAE] mt-1 max-w-xl leading-relaxed">
-                      Select or uncheck subscriptions below. Your new lower bill and yearly savings update automatically.
+                      Select any combination below. The estimate updates with your selection.
                     </p>
                   </div>
 
@@ -381,7 +378,7 @@ export default function SavingsPage() {
                     <div className="text-right">
                       <span className="text-[11px] text-[#8E9CAE] block font-sans">Current Spending</span>
                       <span className="text-xl font-bold text-[#8E9CAE]">
-                        ₹{projection.baseline_annual_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                        {formatMoney(projection.baseline_annual_cost)}
                       </span>
                     </div>
 
@@ -390,7 +387,7 @@ export default function SavingsPage() {
                     <div className="text-right">
                       <span className="text-[11px] text-teal-400 block font-sans">Total You Save ({projection.selected_count} selected)</span>
                       <span className="text-xl font-bold text-teal-300">
-                        ₹{projection.selected_annual_savings.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                        {formatMoney(projection.selected_annual_savings)}
                       </span>
                     </div>
 
@@ -399,7 +396,7 @@ export default function SavingsPage() {
                     <div className="text-right p-3.5 rounded-xl bg-cyan-950/60 border border-cyan-500/40 shadow-inner">
                       <span className="text-[11px] text-cyan-300 font-bold block font-sans">Your New Lower Bill</span>
                       <span className="text-2xl font-black text-cyan-200">
-                        ₹{projection.projected_annual_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                        {formatMoney(projection.projected_annual_cost)}
                       </span>
                       <span className="text-[10px] text-teal-300 font-sans block mt-0.5 font-semibold">
                         &darr; {projection.percentage_reduction}% Less To Pay Each Year
@@ -408,10 +405,8 @@ export default function SavingsPage() {
                   </div>
                 </div>
 
-                {/* Applied Safeguards Note */}
                 <div className="mt-4 pt-3 border-t border-[#1E293B]/80 flex items-center gap-2 text-[11px] text-[#8E9CAE]">
-                  <span className="text-cyan-400">✓ Accurate Protection:</span>
-                  <span>Calculations ensure no double-counting and match your verified bank amounts.</span>
+                  <span>Estimated monthly savings: {formatMoney(projection.selected_monthly_savings)}</span>
                 </div>
               </section>
             )}
@@ -534,13 +529,13 @@ export default function SavingsPage() {
                         {/* Cost & Savings Figures */}
                         <div className="text-right font-mono flex-shrink-0 self-end sm:self-center">
                           <span className="text-sm font-bold text-teal-400 block">
-                            Save ₹{opp.potential_annual_saving.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/year
+                            Save {formatMoney(opp.potential_annual_saving)}/year
                           </span>
                           <span className="text-xs text-cyan-300 block">
-                            ₹{opp.potential_monthly_saving.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/month
+                            {formatMoney(opp.potential_monthly_saving)}/month
                           </span>
                           <span className="text-[10px] text-[#8E9CAE] block mt-1 font-sans">
-                            Currently costs ₹{opp.current_annual_cost.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/year
+                            Currently costs {formatMoney(opp.current_annual_cost)}/year
                           </span>
                         </div>
                       </div>
@@ -643,7 +638,7 @@ export default function SavingsPage() {
 
                         <div className="pt-2 border-t border-[#1E293B]/60 flex items-center justify-between text-[11px] font-mono">
                           <span className="text-teal-400 font-bold">
-                            Save ₹{scen.annual_savings.toLocaleString("en-IN", { minimumFractionDigits: 2 })}/year
+                            Save {formatMoney(scen.annual_savings)}/year
                           </span>
                           <span className="text-cyan-300 font-semibold font-sans">
                             &darr; {scen.percentage_reduction}% less

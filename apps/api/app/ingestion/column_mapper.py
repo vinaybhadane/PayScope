@@ -60,7 +60,7 @@ class ColumnMapper:
         "currency": ["currency", "curr", "ccy"],
         "direction": ["direction", "type", "dr_cr", "cr_dr", "txn_type", "debit/credit", "dr/cr"],
         "payment_channel": ["channel", "payment_channel", "mode", "payment_mode", "instrument"],
-        "payment_reference": ["reference", "ref", "payment_reference", "ref_no", "reference_number", "utr", "cheque_no"],
+        "payment_reference": ["mandate_reference", "mandate_id", "umrn", "reference", "ref", "payment_reference", "ref_no", "reference_number", "utr", "cheque_no"],
         "external_synthetic_id": ["external_synthetic_id", "external_id", "synthetic_id", "id", "txn_id", "transaction_id"],
         "transaction_status": ["status", "transaction_status", "txn_status"],
     }

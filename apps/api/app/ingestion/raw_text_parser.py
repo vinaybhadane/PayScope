@@ -62,6 +62,10 @@ def _read_split_amounts(rest, columns):
     values = match.groupdict()
     debit = money(values["debit"], optional=True)
     credit = money(values["credit"], optional=True)
+    if debit == 0 and credit is None:
+        return rest[:match.start()].strip(), debit, "debit", values.get("balance", "")
+    if credit == 0 and debit is None:
+        return rest[:match.start()].strip(), credit, "credit", values.get("balance", "")
     if bool(debit) == bool(credit):
         raise ValueError("Expected one non-zero amount in the debit or credit column; review this row.")
     return rest[:match.start()].strip(), abs(debit or credit), "debit" if debit else "credit", values.get("balance", "")
