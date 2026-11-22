@@ -102,6 +102,7 @@ export function LandingClientContainer({}: LandingClientContainerProps) {
           <nav aria-label="Footer navigation">
             <Link href="/about">About us</Link>
             <Link href="/privacy">Privacy policy</Link>
+            <Link href="/accessibility">Accessibility</Link>
             <button type="button" onClick={handleLaunchApp}>Launch dashboard</button>
           </nav>
         </div>

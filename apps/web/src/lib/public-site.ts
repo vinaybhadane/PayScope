@@ -15,6 +15,10 @@ export const publicPages = {
     title: "PayScope Privacy Policy",
     description: "Learn how PayScope handles uploaded statements, payment records, and workspace data.",
   },
+  "/accessibility": {
+    title: "PayScope Accessibility Statement",
+    description: "Learn how to navigate PayScope with a keyboard, review payment records and report an accessibility barrier.",
+  },
 } as const;
 
 export function publicPageMetadata(path: keyof typeof publicPages): Metadata {

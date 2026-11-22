@@ -32,6 +32,9 @@ export default function AboutUsPage() {
           <p className="text-base sm:text-lg text-[#8E9CAE] leading-relaxed">
             Every year, billions in recurring commitments slip under the radar through silent price hikes, forgotten subscriptions, and complex cancellation friction. PayScope brings radical clarity to every recurring expense.
           </p>
+          <p className="text-sm text-slate-300">
+            Designed by Vinay Bhadane and Sakshi Patil at MET Institute of Engineering, Nashik.
+          </p>
         </div>
 
         {/* Core Pillars */}
@@ -106,7 +109,7 @@ export default function AboutUsPage() {
       <footer className="relative z-10 border-t border-white/[0.06] bg-[#040711]/90 backdrop-blur-md py-6 text-xs text-[#8E9CAE]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <span>© {new Date().getFullYear()} PayScope. All rights reserved.</span>
-          <div className="flex items-center gap-6 text-xs">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs">
             <Link href="/" className="hover:text-white transition-colors">
               Home
             </Link>
@@ -115,6 +118,9 @@ export default function AboutUsPage() {
             </Link>
             <Link href="/privacy" className="hover:text-white transition-colors">
               Privacy Policy
+            </Link>
+            <Link href="/accessibility" className="hover:text-white transition-colors">
+              Accessibility
             </Link>
           </div>
         </div>

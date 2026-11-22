@@ -96,7 +96,12 @@ export default function PrivacyPolicyPage() {
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-white">5. Contact & Inquiries</h2>
             <p>
-              For data privacy inquiries or security reports, contact our privacy engineering team at <span className="text-[#00E0E0] font-mono">security@payscope.dev</span>.
+              For data privacy inquiries, contact <span className="text-[#00E0E0] font-mono">security@payscope.dev</span>.
+              If you suspect a vulnerability,{" "}
+              <a href="https://github.com/vinaybhadane/PayScope/security/advisories/new" className="policy-link">
+                report it privately on GitHub
+              </a>
+              .
             </p>
           </section>
         </div>
@@ -106,7 +111,7 @@ export default function PrivacyPolicyPage() {
       <footer className="relative z-10 border-t border-white/[0.06] bg-[#040711]/90 backdrop-blur-md py-6 text-xs text-[#8E9CAE]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <span>© {new Date().getFullYear()} PayScope. All rights reserved.</span>
-          <div className="flex items-center gap-6 text-xs">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs">
             <Link href="/" className="hover:text-white transition-colors">
               Home
             </Link>
@@ -115,6 +120,9 @@ export default function PrivacyPolicyPage() {
             </Link>
             <Link href="/privacy" className="text-white font-semibold transition-colors">
               Privacy Policy
+            </Link>
+            <Link href="/accessibility" className="hover:text-white transition-colors">
+              Accessibility
             </Link>
           </div>
         </div>
