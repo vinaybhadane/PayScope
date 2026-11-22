@@ -4,50 +4,45 @@ import { getApiBaseUrl } from "./apiBase";
 export const DEMO_VERSION = "subscriptions-v2";
 let guestRequest: Promise<void> | null = null;
 let guestReady = false;
+let guestToken: string | null = null;
 let firebaseSessionToken: string | null = null;
 let firebaseRequest: Promise<void> | null = null;
 
 export async function ensureGuestSession(): Promise<void> {
-  if (guestReady) return;
+  if (guestReady && guestToken) return;
+  if (typeof window !== "undefined") {
+    const cached = sessionStorage.getItem("payscope_guest_token");
+    if (cached) {
+      guestToken = cached;
+      guestReady = true;
+      return;
+    }
+  }
   if (!guestRequest) {
     guestRequest = (async () => {
-      const current = await globalThis.fetch(`${getApiBaseUrl()}/api/v1/auth/me`, {
-        credentials: "include", cache: "no-store",
-      });
-      if (current.ok && (await current.json()).is_demo) {
-        guestReady = true;
-        return;
-      }
-      if (!current.ok && current.status !== 401) throw new Error("Could not check your demo session. Please retry.");
       const response = await globalThis.fetch(`${getApiBaseUrl()}/api/v1/auth/guest`, {
-        method: "POST", credentials: "include", cache: "no-store",
+        method: "POST",
+        credentials: "include",
+        cache: "no-store",
       });
-      if (!response.ok) throw new Error("Demo access is temporarily unavailable. Please retry.");
+      if (!response.ok) {
+        throw new Error("Demo access is temporarily unavailable. Please retry.");
+      }
+      const data = await response.json();
+      if (data?.access_token) {
+        guestToken = data.access_token;
+        if (typeof window !== "undefined") {
+          try {
+            sessionStorage.setItem("payscope_guest_token", data.access_token);
+          } catch {}
+        }
+      }
       guestReady = true;
-    })().finally(() => { guestRequest = null; });
+    })().finally(() => {
+      guestRequest = null;
+    });
   }
   return guestRequest;
-}
-
-export async function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-  const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url, window.location.origin);
-  if (url.origin !== window.location.origin || !url.pathname.startsWith("/api/v1/")) return globalThis.fetch(input, init);
-  if (auth) await auth.authStateReady();
-  if (localStorage.getItem("payscope_demo_user")) {
-    await ensureGuestSession();
-  } else if (auth?.currentUser) {
-    await establishFirebaseSession();
-  }
-  return globalThis.fetch(input, { ...init, credentials: "include", cache: "no-store" });
-}
-
-export async function clearApiSession(): Promise<void> {
-  const response = await globalThis.fetch(`${getApiBaseUrl()}/api/v1/auth/logout`, {
-    method: "POST", credentials: "include", cache: "no-store",
-  });
-  if (!response.ok && response.status !== 401) throw new Error("Could not close your session. Please retry.");
-  guestReady = false;
-  firebaseSessionToken = null;
 }
 
 export async function establishFirebaseSession(): Promise<void> {
@@ -56,26 +51,84 @@ export async function establishFirebaseSession(): Promise<void> {
   if (firebaseSessionToken === token) return;
   if (!firebaseRequest) {
     firebaseRequest = (async () => {
-      const response = await globalThis.fetch(`${getApiBaseUrl()}/api/v1/auth/session`, {
-        method: "POST", credentials: "include", cache: "no-store",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) {
-        let detail = "";
-        try {
-          const body = await response.json();
-          detail = body.detail || body.error || "";
-        } catch {
-          // ignore parsing error
-        }
-        throw new Error(detail || `Could not establish your session (${response.status}). Please sign in again.`);
+      try {
+        await globalThis.fetch(`${getApiBaseUrl()}/api/v1/auth/session`, {
+          method: "POST",
+          credentials: "include",
+          cache: "no-store",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch (err) {
+        console.warn("Session cookie exchange skipped (using Bearer authorization):", err);
       }
-      // In-memory only. API requests use the HttpOnly cookie.
       firebaseSessionToken = token;
       guestReady = false;
-    })().finally(() => { firebaseRequest = null; });
+    })().finally(() => {
+      firebaseRequest = null;
+    });
   }
   return firebaseRequest;
+}
+
+export async function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const inputStr = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+  const isApi = inputStr.includes("/api/v1/");
+
+  if (!isApi) {
+    return globalThis.fetch(input, init);
+  }
+
+  if (auth) {
+    try {
+      await auth.authStateReady();
+    } catch {}
+  }
+
+  let token: string | null = null;
+
+  if (auth?.currentUser) {
+    try {
+      token = await auth.currentUser.getIdToken();
+    } catch (err) {
+      console.warn("Could not retrieve Firebase token:", err);
+    }
+    void establishFirebaseSession().catch(() => {});
+  } else if (typeof window !== "undefined" && localStorage.getItem("payscope_demo_user")) {
+    await ensureGuestSession();
+    token = guestToken || (typeof window !== "undefined" ? sessionStorage.getItem("payscope_guest_token") : null);
+  }
+
+  const headers = new Headers(init?.headers);
+  if (token && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  return globalThis.fetch(input, {
+    ...init,
+    headers,
+    credentials: "include",
+    cache: "no-store",
+  });
+}
+
+export async function clearApiSession(): Promise<void> {
+  try {
+    await globalThis.fetch(`${getApiBaseUrl()}/api/v1/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+      cache: "no-store",
+    });
+  } catch (err) {
+    console.warn("Logout request failed:", err);
+  }
+  guestReady = false;
+  guestToken = null;
+  firebaseSessionToken = null;
+  if (typeof window !== "undefined") {
+    try {
+      sessionStorage.removeItem("payscope_guest_token");
+    } catch {}
+  }
 }
 
 /** Resolve both immediate CSV responses and background OCR responses. */

@@ -1,5 +1,9 @@
 export function getApiBaseUrl(): string {
-  // Same-origin proxy keeps HttpOnly, Secure, SameSite=Strict cookies usable
-  // when frontend and backend are hosted on different sites.
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/, "");
+  }
+  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+    return process.env.NEXT_PUBLIC_API_BASE_URL.replace(/\/+$/, "");
+  }
   return "";
 }

@@ -58,26 +58,27 @@ def create_application() -> FastAPI:
 
     application.add_middleware(UploadRateLimitMiddleware)
     application.add_middleware(
-        CORSMiddleware, allow_origins=settings.BACKEND_CORS_ORIGINS,
+        CORSMiddleware,
+        allow_origins=settings.BACKEND_CORS_ORIGINS,
+        allow_origin_regex=r"https://.*\.vercel\.app|https://.*\.onrender\.com|http://localhost:\d+|http://127\.0\.0\.1:\d+",
         allow_credentials=True,
         allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
-        allow_headers=["Authorization", "Content-Type"],
+        allow_headers=["*"],
     )
 
     @application.exception_handler(Exception)
     async def unexpected_error(request: Request, exc: Exception):
         logger.exception("Unhandled request failure: %s", request.url.path, exc_info=exc)
         response = JSONResponse(status_code=500, content={"detail": "An unexpected error occurred. Please try again."})
-        origin = request.headers.get("origin")
-        policy = CORSMiddleware(application, allow_origins=settings.BACKEND_CORS_ORIGINS, allow_credentials=True)
-        if origin and policy.is_allowed_origin(origin):
+        from app.core.auth import is_allowed_origin
+        if origin and is_allowed_origin(origin):
             response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Vary"] = "Origin"
             response.headers["Access-Control-Allow-Credentials"] = "true"
         return response
 
     # Root status endpoint for cloud health & quick browser checks
-    @application.get('/', tags=['Root'], dependencies=[Depends(require_identity)])
+    @application.get('/', tags=['Root'])
     def root():
         return {
             'name': settings.PROJECT_NAME,

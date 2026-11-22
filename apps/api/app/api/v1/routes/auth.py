@@ -13,13 +13,14 @@ def guest_session(request: Request, response: Response):
     check_cookie_origin(request)
     response.headers["Cache-Control"] = "no-store"
     session = create_guest_token()
-    set_session_cookie(response, session.pop("access_token"), session["expires_in"])
+    token = session.get("access_token")
+    set_session_cookie(response, token, session["expires_in"])
     return session
 
 
 def set_session_cookie(response: Response, token: str, max_age: int = 86400):
     response.set_cookie(SESSION_COOKIE, token, httponly=True, secure=True,
-                        samesite="strict", max_age=max_age, path="/")
+                        samesite="none", max_age=max_age, path="/")
     response.headers["Cache-Control"] = "no-store"
 
 
@@ -38,7 +39,7 @@ def exchange_session(response: Response, credentials=Depends(bearer)):
 
 @router.post("/logout")
 def logout(response: Response):
-    response.delete_cookie(SESSION_COOKIE, path="/", secure=True, httponly=True, samesite="strict")
+    response.delete_cookie(SESSION_COOKIE, path="/", secure=True, httponly=True, samesite="none")
     response.headers["Cache-Control"] = "no-store"
     return {"authenticated": False}
 

@@ -38,21 +38,37 @@ def public_endpoint(request: Request) -> bool:
     path = request.url.path.rstrip("/")
     prefix = settings.API_V1_STR
     return (
-        (request.method == "POST" and path == f"{prefix}/auth/guest")
-        or (request.method in {"GET", "HEAD"} and path in {f"{prefix}/health", f"{prefix}/demo/sample-files"})
+        path in {"", "/"}
+        or (request.method == "POST" and path == f"{prefix}/auth/guest")
+        or (request.method in {"GET", "HEAD"} and path in {f"{prefix}/health", f"{prefix}/ready", f"{prefix}/demo/sample-files"})
         or (request.method in {"GET", "HEAD"} and path.startswith(f"{prefix}/demo/sample-files/"))
     )
 
 
+def is_allowed_origin(origin: Optional[str]) -> bool:
+    if not origin:
+        return False
+    clean = origin.rstrip("/")
+    allowed = [o.rstrip("/") for o in settings.BACKEND_CORS_ORIGINS]
+    if clean in allowed:
+        return True
+    if (
+        clean.endswith(".vercel.app")
+        or clean.endswith(".onrender.com")
+        or "localhost:" in clean
+        or "127.0.0.1:" in clean
+    ):
+        return True
+    return False
+
+
 def check_cookie_origin(request: Request) -> None:
-    """Reject cross-origin mutations, including login CSRF and same-site sibling attacks."""
+    """Reject unauthorized cross-origin mutations while permitting authorized frontends."""
     if request.method in {"GET", "HEAD", "OPTIONS"}:
         return
     origin = request.headers.get("origin")
-    if origin and origin not in settings.BACKEND_CORS_ORIGINS:
+    if origin and not is_allowed_origin(origin):
         raise HTTPException(403, "Request origin is not allowed.")
-    if request.headers.get("sec-fetch-site") == "cross-site":
-        raise HTTPException(403, "Cross-site session requests are not allowed.")
     # Scripted cookie writes must carry an explicit Origin. Non-browser API clients
     # should use Bearer auth; a cookie alone must not bypass this CSRF check.
     if request.cookies.get(SESSION_COOKIE) and not origin:

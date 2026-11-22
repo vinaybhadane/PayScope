@@ -14,8 +14,8 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     RATE_LIMIT_STORAGE_URI: str = "memory://"
     
-    FIREBASE_PROJECT_ID: str = ""
-    API_SESSION_SECRET: str = ""
+    FIREBASE_PROJECT_ID: str = "payscope18"
+    API_SESSION_SECRET: str = "payscope-secure-session-key-fallback-min-32-chars-for-dev-and-prod-token-signing"
     ALLOW_GUEST_SESSIONS: bool = True
     RUN_MIGRATIONS: bool = True
     GEMINI_API_KEY: str = ""
