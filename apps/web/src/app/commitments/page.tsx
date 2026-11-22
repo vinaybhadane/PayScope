@@ -347,6 +347,7 @@ export default function CommitmentsPage() {
           <div className="w-full md:w-auto flex flex-wrap items-center gap-3">
             {/* Billing period filter */}
             <select
+              aria-label="Billing period"
               value={cadenceFilter}
               onChange={(e) => setCadenceFilter(e.target.value)}
               className="px-3 py-2 rounded-lg bg-[#040711] border border-[#1E293B] text-xs text-[#8E9CAE] focus:outline-none focus:border-emerald-500"
@@ -363,6 +364,7 @@ export default function CommitmentsPage() {
 
             {/* Type Filter */}
             <select
+              aria-label="Commitment type"
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
               className="px-3 py-2 rounded-lg bg-[#040711] border border-[#1E293B] text-xs text-[#8E9CAE] focus:outline-none focus:border-emerald-500"
@@ -379,6 +381,7 @@ export default function CommitmentsPage() {
 
             {/* Status Filter */}
             <select
+              aria-label="Commitment status"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-3 py-2 rounded-lg bg-[#040711] border border-[#1E293B] text-xs text-[#8E9CAE] focus:outline-none focus:border-emerald-500"
@@ -395,6 +398,7 @@ export default function CommitmentsPage() {
 
             {/* Confidence Filter */}
             <select
+              aria-label="Confidence level"
               value={confidenceFilter}
               onChange={(e) => setConfidenceFilter(e.target.value)}
               className="px-3 py-2 rounded-lg bg-[#040711] border border-[#1E293B] text-xs text-[#8E9CAE] focus:outline-none focus:border-emerald-500"
