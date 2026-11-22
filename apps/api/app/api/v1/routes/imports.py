@@ -49,6 +49,7 @@ async def preview_import(
     import_type: str = Form("statement"),
     synthetic_confirmed: bool = Form(False),
     column_overrides: Optional[str] = Form(None),
+    sync: bool = Form(False),
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
     """Generate unpersisted import preview with validation report and duplicate check."""
@@ -80,7 +81,7 @@ async def preview_import(
     user = await run_in_threadpool(UserRepository.get_or_create_demo_user, db)
     user_id = user.id
 
-    if requires_background_processing(file.filename or ""):
+    if not sync and requires_background_processing(file.filename or ""):
         response.status_code = 202
         return enqueue_import(db, user_id, True, dict(filename=file.filename, content=content,
             import_type=import_type, synthetic_confirmed=synthetic_confirmed, column_overrides=overrides_dict))
@@ -114,6 +115,7 @@ async def create_import(
     synthetic_confirmed: bool = Form(False),
     column_overrides: Optional[str] = Form(None),
     background_processing: bool = Form(False),
+    sync: bool = Form(False),
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
     """Execute import and persist valid non-duplicate records to PostgreSQL."""
@@ -143,7 +145,7 @@ async def create_import(
 
     user = await run_in_threadpool(UserRepository.get_or_create_demo_user, db)
 
-    if background_processing or requires_background_processing(file.filename or ""):
+    if not sync and (background_processing or requires_background_processing(file.filename or "")):
         response.status_code = 202
         return enqueue_import(db, user.id, False, dict(filename=file.filename, content=content,
             import_type=import_type, synthetic_confirmed=synthetic_confirmed, column_overrides=overrides_dict))
