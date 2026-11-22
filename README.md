@@ -89,7 +89,7 @@ Repeated imports skip stable payment IDs regardless of filename or row ordering.
 - Graph overview: `/api/v1/graph/explorer`
 - Graph sync: `POST /api/v1/graph/sync`
 
-Set `NEO4J_ENABLED=false` to use the PostgreSQL relationship projection. When enabled, set the backend-only URI, username, password, and database, then sync your workspace explicitly. See [dashboard and graph behavior](docs/dashboard-and-neo4j.md).
+To enable the live Relationships tab, configure the backend-only Aura URI, user and password, run the graph schema migration, and set `NEO4J_ENABLED=true`. Imports sync automatically. Existing imports can be projected through **Sync Neo4j**. See [dashboard and graph setup](docs/dashboard-and-neo4j.md) for the live Gemini review and verification commands.
 
 Notes stay in a local browser cache when Firestore is unavailable. Deploy `firestore.rules` to enforce ownership before enabling cloud notes.
 

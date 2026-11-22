@@ -175,12 +175,14 @@ def test_api_graph_health(client: TestClient):
 
 
 def test_api_graph_summary(client: TestClient, db_session, graph_test_data):
-    """Test GET /api/v1/graph/summary."""
+    """Count only the nodes and edges returned by the workspace explorer."""
+    explorer = client.get("/api/v1/graph/explorer").json()
     res = client.get("/api/v1/graph/summary")
     assert res.status_code == 200
     data = res.json()
-    assert "total_nodes" in data
-    assert data["total_nodes"] >= 3
+    assert data["total_nodes"] == len(explorer["nodes"]) >= 3
+    assert data["total_relationships"] == len(explorer["edges"]) > 0
+    assert sum(data["counts_by_relationship"].values()) == len(explorer["edges"])
 
 
 def test_api_graph_explorer(client: TestClient, db_session, graph_test_data):

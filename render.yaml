@@ -54,6 +54,12 @@ services:
         value: "3600"
       - key: NEO4J_ENABLED
         value: "false"
+      - key: NEO4J_URI
+        sync: false
+      - key: NEO4J_USER
+        sync: false
+      - key: NEO4J_PASSWORD
+        sync: false
       - key: BACKEND_CORS_ORIGINS
         value: https://payscope-web.onrender.com
 

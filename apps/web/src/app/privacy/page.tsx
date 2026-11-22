@@ -75,7 +75,7 @@ export default function PrivacyPolicyPage() {
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-white">2. Synthetic Data Protocol</h2>
             <p>
-              PayScope stores the transaction data you import in your authenticated workspace. Guest workspaces are isolated temporary sessions. Import only statements you are authorized to process. Imports and calculations run on the API host. If you choose Explain with Gemini, PayScope sends calculated amounts and change types to Gemini. Statement files, descriptions, filenames, and account references stay in PayScope.
+              PayScope stores the transaction data you import in your authenticated workspace. When Neo4j is enabled, PayScope projects payment relationships to the configured Neo4j database. If you choose Explain with Gemini, PayScope sends calculated amounts and change types. If you choose the separate graph review, Gemini receives eligible debit dates, amounts, redacted descriptions, and graph facts for your workspace. Statement files, filenames, and full account or mandate references are excluded from Gemini requests.
             </p>
           </section>
 

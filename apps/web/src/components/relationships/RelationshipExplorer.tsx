@@ -19,6 +19,9 @@ const kinds: Record<string, { label: string; color: string; icon: string }> = {
   Transaction: { label: "Evidence", color: "#8E9CAE", icon: "file" },
   Commitment: { label: "Subscriptions", color: "#FF5500", icon: "repeat" },
   Merchant: { label: "Companies", color: "#A855F7", icon: "globe" },
+  MerchantDescriptor: { label: "Statement names", color: "#a8adff", icon: "file" },
+  Mandate: { label: "Observed mandates", color: "#5ee0c3", icon: "repeat" },
+  RiskAlert: { label: "Alerts", color: "#F59E0B", icon: "spark" },
   CommitmentInsight: { label: "Insights", color: "#F59E0B", icon: "spark" },
   CancellationEvent: {
     label: "Cancellations",
@@ -37,6 +40,11 @@ const edgeLabels: Record<string, string> = {
   PAID_TO: "paid to",
   HAS_CANCELLATION_EVENT: "cancelled via",
   HAS_MERCHANT: "uses",
+  PAYS: "pays",
+  HAS_MANDATE: "observed mandate",
+  FLAGGED_AS: "flagged as",
+  HAS_PAYMENT_DESCRIPTOR: "appears as",
+  SIMILAR_DESCRIPTOR: "similar name",
 };
 export default function RelationshipExplorer({
   compact = false,
@@ -45,7 +53,7 @@ export default function RelationshipExplorer({
 }) {
   const { user } = useAuth();
   const resource = useWorkspaceResource<GraphData>(
-    "/api/v1/graph/explorer?limit=50",
+    compact ? "/api/v1/graph/explorer?limit=50" : "/api/v1/graph?limit=50",
     );
   const [mode, setMode] = useState("Overview");
   const [evidenceSubscription, setEvidenceSubscription] = useState("");
@@ -58,6 +66,8 @@ export default function RelationshipExplorer({
   const marker = useId().replaceAll(":", "");
   const canvas = useRef<HTMLDivElement>(null);
   const graph = resource.data;
+  const merchantMode = !compact && (mode === "Merchants" || (mode === "Overview" &&
+    !!graph?.nodes.some(n => n.data.node_type === "Merchant") && !graph.nodes.some(n => n.data.node_type === "Commitment")));
   const model = useMemo(() => {
     if (!graph) return null;
     const categories = [
@@ -123,18 +133,19 @@ export default function RelationshipExplorer({
         },
       });
     }
-    const columns = mode === "Evidence" && !compact
+    const columns = merchantMode ? ["Account", "Merchant", "MerchantDescriptor", "Mandate", "RiskAlert"] : mode === "Evidence" && !compact
       ? ["Account", "Commitment", "Transaction"]
       : ["Account", "Commitment", "Merchant"];
     const nodes = graph.nodes.filter(
-      (n) => keep.has(n.data.id) && columns.includes(n.data.node_type),
+      (n) => (merchantMode || keep.has(n.data.id)) && columns.includes(n.data.node_type),
     );
     const ids = new Set(nodes.map((n) => n.data.id));
     const edges = [
       ...graph.edges,
       ...funding.values(),
     ].filter((e) => ids.has(e.data.source) && ids.has(e.data.target) &&
-      ["FUNDS", "ASSOCIATED_WITH", "SUPPORTED_BY"].includes(e.data.relationship_type));
+      (merchantMode ? ["PAYS", "HAS_MANDATE", "FLAGGED_AS", "HAS_PAYMENT_DESCRIPTOR", "SIMILAR_DESCRIPTOR"]
+        : ["FUNDS", "ASSOCIATED_WITH", "SUPPORTED_BY"]).includes(e.data.relationship_type));
     const nonemptyColumns = columns.filter((c) =>
       nodes.some((n) => n.data.node_type === c),
     );
@@ -184,7 +195,7 @@ export default function RelationshipExplorer({
       categories,
       columns: nonemptyColumns,
     };
-  }, [graph, mode, category, compact, evidenceSubscription]);
+  }, [graph, mode, category, compact, evidenceSubscription, merchantMode]);
   const selectedNode = model?.nodes.find((n) => n.data.id === selected);
   useEffect(() => {
     if (query.trim().length < 2 || !model) return;
@@ -234,7 +245,7 @@ export default function RelationshipExplorer({
       setSyncMessage(
         result.status === "success"
           ? `${result.nodes_synced} nodes and ${result.relationships_synced} connections synced.`
-          : "Neo4j is disabled. Showing the relational projection.",
+          : "Neo4j sync did not complete.",
       );
       await resource.refresh();
     } catch (e) {
@@ -259,7 +270,8 @@ export default function RelationshipExplorer({
           <p>
             {compact
               ? "From the account it leaves to the subscription it supports."
-              : mode === "Evidence"
+              : merchantMode ? "See the companies paid from your accounts, similar statement names, and mandates recorded in your files."
+                : mode === "Evidence"
                 ? "Choose a subscription to see its account and the individual payments that support it."
                 : "Read left to right: your account pays for a subscription, which is billed by a company. Select a box for details."}
           </p>
@@ -268,9 +280,7 @@ export default function RelationshipExplorer({
           <i />
           {graph?.source === "neo4j"
             ? "Neo4j connected"
-            : graph?.source === "demo"
-              ? "Sample graph"
-              : graph?.source === "relational"
+            : resource.error ? "Live graph unavailable" : graph?.source === "relational"
                 ? "Relational projection"
                 : "Loading relationships"}
         </span>
@@ -278,7 +288,7 @@ export default function RelationshipExplorer({
       {!compact && (
         <div className="relation-toolbar">
           <div className="segmented-control">
-            {["Overview", "Evidence"].map((m) => (
+            {["Overview", "Evidence", "Merchants"].map((m) => (
               <button
                 key={m}
                 className={mode === m ? "active" : ""}
@@ -287,7 +297,7 @@ export default function RelationshipExplorer({
                   setSelected(null);
                 }}
               >
-                {m === "Evidence" ? "Payment evidence" : "Overview"}
+                {m === "Evidence" ? "Payment evidence" : m}
               </button>
             ))}
           </div>
@@ -310,6 +320,7 @@ export default function RelationshipExplorer({
           <select
             id={`${marker}-category`}
             value={category}
+            disabled={merchantMode}
             onChange={(e) => {
               setCategory(e.target.value);
               setSelected(null);
@@ -328,7 +339,7 @@ export default function RelationshipExplorer({
           >
             <Icon name="repeat" size={16} />
           </button>
-          {!user?.isDemo && (
+          {user && (
             <button
               className="button button-subtle relation-sync"
               onClick={sync}
@@ -356,7 +367,7 @@ export default function RelationshipExplorer({
           <Icon name="network" size={27} />
           <span>
             {resource.error
-              ? "Relationships couldn’t be loaded."
+              ? "Live relationships couldn’t be loaded. Try syncing Neo4j."
               : "Connecting the dots…"}
           </span>
         </div>

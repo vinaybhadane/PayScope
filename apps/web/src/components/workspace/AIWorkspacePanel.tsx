@@ -7,7 +7,8 @@ import { Modal } from "@/components/ui/Modal";
 import { Icon } from "@/components/ui/Icon";
 
 type ReviewState = { status: string; model: string; generated_at: string | null; error: string | null;
-  report: { overview: string; spending_analysis: string; savings_analysis: string; limitations: string[]; transaction_count: number } | null };
+  report: { overview: string; spending_analysis: string; savings_analysis: string; limitations: string[]; transaction_count: number;
+    neo4j_review?: { model: string; merchants_reviewed: number; highlights: { transaction_id: string; explanation: string }[] } } | null };
 type EmailSettings = { recipient: string | null; sender: string; can_email: boolean; reports_enabled: boolean; reminders_enabled: boolean;
   deliveries: { kind: string; status: string; error: string | null; created_at: string }[] };
 
@@ -19,6 +20,7 @@ export function AIWorkspacePanel({ section = "overview", controls = false }: { s
   const [showClear, setShowClear] = useState(false);
   const [confirmation, setConfirmation] = useState("");
   const [emailOpen, setEmailOpen] = useState(false);
+  const [showGraphReview, setShowGraphReview] = useState(false);
   const state = review.data;
   const email = settings.data;
   const isDemoReport = state?.model === "predefined-demo-v1";
@@ -59,8 +61,26 @@ export function AIWorkspacePanel({ section = "overview", controls = false }: { s
         const result = await action("/workspace/review", { method: "POST" });
         if (result) { invalidateWorkspaceResources(); setMessage(result.message || "Statement analysis completed."); }
       }}>{busy ? "Working…" : isDemoReport ? "Refresh sample analysis" : "Review uploaded records"}</button>
+      <button className="button button-subtle" type="button" disabled={busy || state?.status !== "completed"} onClick={() => setShowGraphReview(true)}>
+        <Icon name="network" size={15} /> Review with Neo4j and Gemini
+      </button>
       <button className="button ai-clear-button" onClick={() => setShowClear(true)}>Clear dashboard</button>
     </div>}
+    {state?.report?.neo4j_review && <div className="ai-email-settings" aria-label="Neo4j grounded Gemini review">
+      <h3>Gemini highlights from your live graph</h3>
+      <p>{state.report.neo4j_review.merchants_reviewed} merchants reviewed</p>
+      <ul>{state.report.neo4j_review.highlights.map((item, index) => <li key={`${item.transaction_id}:${index}`}>{item.explanation}</li>)}</ul>
+    </div>}
+    {showGraphReview && <Modal label="Review graph evidence with Gemini" close={() => { if (!busy) setShowGraphReview(false); }}>
+      <h2>Review graph evidence with Gemini</h2>
+      <p>Gemini will receive eligible debit dates, amounts, redacted descriptions, and live graph facts about your payments.</p>
+      {message && <p role="alert">{message}</p>}
+      <div className="ai-panel-actions"><button className="button button-subtle" type="button" disabled={busy} onClick={() => setShowGraphReview(false)}>Cancel</button>
+        <button className="button button-primary" type="button" disabled={busy} onClick={async () => {
+          const result = await action("/workspace/graph-review", { method: "POST", signal: AbortSignal.timeout(45000) });
+          if (result) { setShowGraphReview(false); invalidateWorkspaceResources(); setMessage("Gemini graph review completed."); }
+        }}>{busy ? "Reviewing…" : "Run review"}</button></div>
+    </Modal>}
     {controls && emailOpen && <div className="ai-email-settings">
       <h3>Report emails & payment reminders</h3>
       {email?.can_email ? <><p>From {email.sender}<br />To {email.recipient} (your verified login email)</p>

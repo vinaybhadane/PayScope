@@ -29,19 +29,29 @@ def run_migrations():
 async def lifespan(app: FastAPI):
     """Do not accept traffic until migrations complete; failures stop startup."""
     from starlette.concurrency import run_in_threadpool
+    from app.graph.config import neo4j_settings
+    from app.graph.driver import check_neo4j_connection, close_neo4j_driver
+
     if settings.RUN_MIGRATIONS:
         await run_in_threadpool(run_migrations)
     from app.analytics.email_alerts import email_worker
-    worker = asyncio.create_task(email_worker()) if settings.EMAIL_WORKER_ENABLED else None
+    worker = None
     try:
+        connected = await run_in_threadpool(check_neo4j_connection) if neo4j_settings.ENABLED else False
+        if connected:
+            logger.info("Neo4j startup connectivity verified.")
+        elif neo4j_settings.REQUIRED:
+            raise RuntimeError("Required Neo4j connection unavailable. See the startup connectivity log.")
+        elif neo4j_settings.ENABLED:
+            logger.warning("Live graph is unavailable. PostgreSQL operations remain enabled.")
+        worker = asyncio.create_task(email_worker()) if settings.EMAIL_WORKER_ENABLED else None
         yield
     finally:
         if worker:
             worker.cancel()
             with suppress(asyncio.CancelledError):
                 await worker
-    from app.graph.driver import close_neo4j_driver
-    close_neo4j_driver()
+        await run_in_threadpool(close_neo4j_driver)
 
 
 def create_application() -> FastAPI:

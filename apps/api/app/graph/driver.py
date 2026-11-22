@@ -4,6 +4,7 @@ from typing import Optional
 from threading import Lock
 import logging
 from neo4j import GraphDatabase, Driver, TrustCustomCAs
+from neo4j.exceptions import AuthError
 import certifi
 from app.graph.config import neo4j_settings
 from app.graph.exceptions import Neo4jConnectionError, Neo4jDisabledError
@@ -37,6 +38,8 @@ def get_neo4j_driver() -> Optional[Driver]:
 
     with _driver_lock:
         if _driver_instance is None:
+            if not all((neo4j_settings.URI, neo4j_settings.USERNAME, neo4j_settings.PASSWORD)):
+                raise Neo4jConnectionError("Set NEO4J_URI, NEO4J_USER and NEO4J_PASSWORD to enable the live graph.")
             try:
                 driver_uri, security = secure_driver_options(neo4j_settings.URI)
                 _driver_instance = GraphDatabase.driver(
@@ -50,11 +53,10 @@ def get_neo4j_driver() -> Optional[Driver]:
                     **security,
                 )
             except Exception as e:
-                logger.warning(f"Failed to initialize Neo4j driver: {e}")
                 _driver_instance = None
                 raise Neo4jConnectionError(
-                    f"Could not connect to Neo4j at {neo4j_settings.URI}: {e}"
-                )
+                    f"Neo4j driver could not be initialized ({type(e).__name__}). Check its URI and connection settings."
+                ) from e
 
     return _driver_instance
 
@@ -66,7 +68,7 @@ def close_neo4j_driver() -> None:
         try:
             _driver_instance.close()
         except Exception as e:
-            logger.warning(f"Error closing Neo4j driver: {e}")
+            logger.warning("Error closing Neo4j driver: %s", type(e).__name__)
         finally:
             _driver_instance = None
 
@@ -76,13 +78,18 @@ def check_neo4j_connection() -> bool:
     if not neo4j_settings.ENABLED:
         return False
 
-    driver = get_neo4j_driver()
-    if not driver:
-        return False
-
     try:
+        driver = get_neo4j_driver()
+        if driver is None:
+            return False
         driver.verify_connectivity()
         return True
+    except AuthError:
+        logger.error("Neo4j authentication failed. Check NEO4J_USER and NEO4J_PASSWORD.")
+        return False
+    except Neo4jConnectionError as exc:
+        logger.error("Neo4j connectivity check failed: %s", exc)
+        return False
     except Exception as e:
-        logger.warning(f"Neo4j connectivity check failed: {e}")
+        logger.error("Neo4j connectivity check failed (%s). Check the instance status, network and TLS settings.", type(e).__name__)
         return False

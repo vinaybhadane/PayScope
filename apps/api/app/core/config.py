@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     RUN_MIGRATIONS: bool = True
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-3.5-flash-lite"
+    GEMINI_FALLBACK_MODELS: str = ""
     BREVO_API_KEY: str = ""
     BREVO_SENDER_EMAIL: str = "patilsakshi18027@gmail.com"
     EMAIL_REMINDER_INTERVAL_SECONDS: int = 3600

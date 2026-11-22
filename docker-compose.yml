@@ -25,7 +25,7 @@ services:
     container_name: payscope-neo4j
     restart: unless-stopped
     environment:
-      - NEO4J_AUTH=${NEO4J_AUTH:-neo4j/payscope_password}
+      - NEO4J_AUTH
       - NEO4J_PLUGINS=["apoc"]
     ports:
       - "127.0.0.1:7474:7474"
